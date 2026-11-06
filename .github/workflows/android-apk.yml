@@ -28,6 +28,7 @@ jobs:
           mkdir -p "$ANDROID_HOME/cmdline-tools"
           curl -fsSL https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -o /tmp/android-tools.zip
           unzip -q /tmp/android-tools.zip -d /tmp/android-tools
+          rm -rf "$ANDROID_HOME/cmdline-tools/latest"
           mkdir -p "$ANDROID_HOME/cmdline-tools/latest"
           mv /tmp/android-tools/cmdline-tools/* "$ANDROID_HOME/cmdline-tools/latest/"
 
