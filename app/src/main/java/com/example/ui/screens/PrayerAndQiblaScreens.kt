@@ -70,8 +70,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.domain.DailyPrayerSchedule
 import com.example.domain.GovernorateInfo
 import com.example.domain.NextPrayerCountdown
+import com.example.domain.PrayerAlertProfile
+import com.example.domain.PrayerAlertSettings
 import com.example.domain.PrayerCalcMethod
+import com.example.domain.PrayerKey
 import com.example.domain.PrayerMinuteOffsets
+import com.example.domain.QuietHours
+import com.example.domain.TimeFormat
 import com.example.media.AdhanAudioStorage
 import com.example.media.AdhanPlaybackService
 import com.example.media.CompassReading
@@ -103,11 +108,16 @@ fun PrayerTimesScreen(
     coordinatesLatitude: Double,
     coordinatesLongitude: Double,
     isUsingDeviceLocation: Boolean,
+    timeFormat: TimeFormat,
+    prayerAlertProfile: PrayerAlertProfile,
     onBack: () -> Unit,
     onOpenGovernorateSheet: () -> Unit,
     onSelectMethod: (Int) -> Unit,
     onUpdateOffsets: (PrayerMinuteOffsets) -> Unit,
     onToggleNotifyPrayers: (Boolean) -> Unit,
+    onChangeTimeFormat: (TimeFormat) -> Unit,
+    onChangePrayerAlert: (PrayerKey, PrayerAlertSettings) -> Unit,
+    onChangeQuietHours: (QuietHours) -> Unit,
     onSetPrayerCoordinates: (Double, Double) -> Unit,
     onClearPrayerCoordinates: () -> Unit,
     onRefreshPrayerSchedule: () -> Unit
@@ -115,6 +125,11 @@ fun PrayerTimesScreen(
     BackHandler { onBack() }
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
+
+    fun formatTime(minutesOfDay: Int): String = when (timeFormat) {
+        TimeFormat.TWELVE_HOUR -> schedule.formatted12h(minutesOfDay)
+        TimeFormat.TWENTY_FOUR_HOUR -> schedule.formatted24h(minutesOfDay)
+    }
     var locationStatus by remember { mutableStateOf<String?>(null) }
     var adhanStatus by remember { mutableStateOf<String?>(null) }
     var isImportingAdhan by remember { mutableStateOf(false) }
@@ -304,15 +319,15 @@ fun PrayerTimesScreen(
             item {
                 GlassCard(modifier = Modifier.fillMaxWidth()) {
                     val rows = listOf(
-                        Triple("الفجر", schedule.formatted12h(schedule.fajrMinutes), Icons.Outlined.WbTwilight),
-                        Triple("الشروق", schedule.formatted12h(schedule.sunriseMinutes), Icons.Outlined.WbSunny),
-                        Triple("الظهر", schedule.formatted12h(schedule.dhuhrMinutes), Icons.Outlined.LightMode),
-                        Triple("العصر", schedule.formatted12h(schedule.asrMinutes), Icons.Outlined.WbTwilight),
-                        Triple("المغرب", schedule.formatted12h(schedule.maghribMinutes), Icons.Outlined.NightsStay),
-                        Triple("العشاء", schedule.formatted12h(schedule.ishaMinutes), Icons.Outlined.Bedtime),
-                        Triple("منتصف الليل الشرعي", schedule.formatted12h(schedule.midnightMinutes), Icons.Outlined.AutoAwesome)
+                        Triple("الفجر", formatTime(schedule.fajrMinutes), Icons.Outlined.WbTwilight),
+                        Triple("الشروق", formatTime(schedule.sunriseMinutes), Icons.Outlined.WbSunny),
+                        Triple("الظهر", formatTime(schedule.dhuhrMinutes), Icons.Outlined.LightMode),
+                        Triple("العصر", formatTime(schedule.asrMinutes), Icons.Outlined.WbTwilight),
+                        Triple("المغرب", formatTime(schedule.maghribMinutes), Icons.Outlined.NightsStay),
+                        Triple("العشاء", formatTime(schedule.ishaMinutes), Icons.Outlined.Bedtime),
+                        Triple("منتصف الليل الشرعي", formatTime(schedule.midnightMinutes), Icons.Outlined.AutoAwesome)
                     )
-                    rows.forEachIndexed { idx, (name, timeStr, iconVec) ->
+rows.forEachIndexed { idx, (name, timeStr, iconVec) ->
                         val isNext = name == countdown.prayerArabicName
                         Row(
                             modifier = Modifier
@@ -553,6 +568,195 @@ fun PrayerTimesScreen(
                 }
             }
 
+            // Per-prayer reminder configuration
+            item {
+                GlassCard(modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = "ضبط تنبيه كل صلاة",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "يمكنك إيقاف تنبيه صلاة بعينها، أو تحديد وقت التنبيه قبل دخول الوقت، أو اختيار الصوت والاهتزاز.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    PrayerKey.entries.forEach { prayer ->
+                        val settings = prayerAlertProfile.settingsFor(prayer)
+                        Column(modifier = Modifier.padding(vertical = 6.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = prayer.arabicName,
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                                Switch(
+                                    checked = settings.enabled,
+                                    onCheckedChange = { onChangePrayerAlert(prayer, settings.copy(enabled = it)) },
+                                    modifier = Modifier.testTag("prayer_alert_switch_${prayer.key}")
+                                )
+                            }
+                            if (settings.enabled) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "التنبيه قبل دخول الوقت بـ ${settings.leadMinutes} دقيقة",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        TextButton(onClick = {
+                                            onChangePrayerAlert(
+                                                prayer,
+                                                settings.copy(leadMinutes = (settings.leadMinutes - 5).coerceAtLeast(0))
+                                            )
+                                        }) { Text("−") }
+                                        TextButton(onClick = {
+                                            onChangePrayerAlert(
+                                                prayer,
+                                                settings.copy(leadMinutes = (settings.leadMinutes + 5).coerceAtMost(120))
+                                            )
+                                        }) { Text("+") }
+                                    }
+                                }
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text("صوت التنبيه", style = MaterialTheme.typography.bodySmall)
+                                    Switch(
+                                        checked = settings.soundEnabled,
+                                        onCheckedChange = {
+                                            onChangePrayerAlert(prayer, settings.copy(soundEnabled = it))
+                                        }
+                                    )
+                                }
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text("اهتزاز التنبيه", style = MaterialTheme.typography.bodySmall)
+                                    Switch(
+                                        checked = settings.vibrateEnabled,
+                                        onCheckedChange = {
+                                            onChangePrayerAlert(prayer, settings.copy(vibrateEnabled = it))
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Quiet hours (do not disturb) window
+            item {
+                GlassCard(modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("فترة منع الإزعاج", fontWeight = FontWeight.Bold)
+                            Text(
+                                "خلال هذه الفترة تصل إشعارات الصلاة بلا صوت وبلا اهتزاز.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Switch(
+                            checked = prayerAlertProfile.quietHours.enabled,
+                            onCheckedChange = {
+                                onChangeQuietHours(prayerAlertProfile.quietHours.copy(enabled = it))
+                            },
+                            modifier = Modifier.testTag("quiet_hours_switch")
+                        )
+                    }
+                    if (prayerAlertProfile.quietHours.enabled) {
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = "من ${prayerAlertProfile.quietHours.formatted()}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = "اضبط البداية والنهاية بدقة 15 دقيقة.",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        TimeOfDayStepperRow(
+                            label = "بداية الفترة",
+                            value = prayerAlertProfile.quietHours.startMinutes
+                        ) { newValue ->
+                            onChangeQuietHours(
+                                prayerAlertProfile.quietHours.copy(
+                                    startMinutes = ((newValue / 15) * 15).coerceIn(0, 1425)
+                                )
+                            )
+                        }
+                        TimeOfDayStepperRow(
+                            label = "نهاية الفترة",
+                            value = prayerAlertProfile.quietHours.endMinutes
+                        ) { newValue ->
+                            onChangeQuietHours(
+                                prayerAlertProfile.quietHours.copy(
+                                    endMinutes = ((newValue / 15) * 15).coerceIn(0, 1425)
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+
+            // Time format preference
+            item {
+                GlassCard(modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = "صيغة عرض الوقت",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    TimeFormat.entries.forEach { format ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 2.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(
+                                selected = timeFormat == format,
+                                onClick = { onChangeTimeFormat(format) },
+                                modifier = Modifier.testTag("time_format_${format.key}")
+                            )
+                            Text(format.arabicLabel)
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = "المنطقة الزمنية المعتمدة: Asia/Baghdad (UTC+3) دون ساعت صيفية. الإحداثيات المستخدمة: " +
+                            String.format(java.util.Locale.US, "%.4f°, %.4f°", coordinatesLatitude, coordinatesLongitude) +
+                            (if (isUsingDeviceLocation) " (موقع GPS محفوظ)" else " (مركز المحافظة)"),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
             // Monthly Timetable
             if (monthlySchedules.isNotEmpty()) {
                 item {
@@ -580,6 +784,38 @@ fun PrayerTimesScreen(
                     }
                 }
             }
+        }
+    }
+}
+
+/**
+ * Stepper for a wall-clock time of day (minutes since midnight) used by the quiet-hours window.
+ */
+@Composable
+private fun TimeOfDayStepperRow(label: String, value: Int, onValueChange: (Int) -> Unit) {
+    val clamped = value.coerceIn(0, 1439)
+    val formatted = String.format(
+        java.util.Locale.US,
+        "%02d:%02d",
+        clamped / 60,
+        clamped % 60
+    )
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 2.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(label, style = MaterialTheme.typography.bodyMedium)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            TextButton(onClick = { onValueChange(((clamped - 15) + 1440) % 1440) }) { Text("−") }
+            Text(
+                text = formatted,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold
+            )
+            TextButton(onClick = { onValueChange((clamped + 15) % 1440) }) { Text("+") }
         }
     }
 }
@@ -641,7 +877,9 @@ fun QiblaScreen(
 
     val qiblaBearing = governorate.qiblaBearingDegrees.toFloat()
     val relativeQiblaAngle = ((qiblaBearing - compass.azimuthDegrees + 360f) % 360f)
-    val isAligned = abs(relativeQiblaAngle) <= 6f || abs(relativeQiblaAngle - 360f) <= 6f
+    // Without a working compass sensor the alignment cannot be trusted, so it is never claimed.
+    val isAligned = compass.isSensorAvailable &&
+        (abs(relativeQiblaAngle) <= 6f || abs(relativeQiblaAngle - 360f) <= 6f)
     val primaryColor = MaterialTheme.colorScheme.primary
     val ringColor = MaterialTheme.colorScheme.outline
 
@@ -667,8 +905,11 @@ fun QiblaScreen(
                     else MaterialTheme.colorScheme.primaryContainer
                 ) {
                     Text(
-                        text = if (isAligned) "أنت الآن باتجاه القبلة الصحيح ✓"
-                        else "زاوية القبلة من الشمال: ${governorate.qiblaBearingDegrees}° · المسافة للكعبة: ${governorate.distanceToKaabaKm} كم",
+                        text = if (isAligned) {
+                            "أنت الآن باتجاه القبلة الصحيح ✓"
+                        } else {
+                            "زاوية القبلة من الشمال: ${governorate.qiblaBearingDegrees}° · المسافة للكعبة: ${governorate.distanceToKaabaKm} كم"
+                        },
                         style = MaterialTheme.typography.labelLarge,
                         color = if (isAligned) MaterialTheme.colorScheme.onPrimary
                         else MaterialTheme.colorScheme.onPrimaryContainer,
@@ -677,7 +918,32 @@ fun QiblaScreen(
                 }
             }
 
-            // Live Sensor Compass Canvas (uses DrawScope size.width/height dynamically)
+            // The live compass is only drawn when the device really has a usable sensor.
+            if (!compass.isSensorAvailable) {
+                item {
+                    GlassCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        cornerRadius = 20.dp
+                    ) {
+                        Text(
+                            text = "مستشعر البوصلة غير متوفر على هذا الجهاز",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = "لا يمكن قياس اتجاه هاتفك الآن، ولذلك لا يُرسم سهم القبلة تفادياً لإظهار اتجاه غير دقيق. استعن بتطبيق بوصلة آخر أو ببوصلة خارجية، أو استخدم الزاوية الظاهرة أعلاه مع بوصلة يدوية.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            // Live Sensor Compass Canvas (uses DrawScope size.width/height dynamically).
+            // It is only rendered when the device really exposes a usable compass sensor.
+            if (compass.isSensorAvailable) {
             item {
                 Box(
                     contentAlignment = Alignment.Center,
@@ -733,13 +999,20 @@ fun QiblaScreen(
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Spacer(modifier = Modifier.height(110.dp))
                         Text(
-                            text = if (compass.isSensorAvailable) "اتجاه الهاتف: ${compass.azimuthDegrees.roundToInt()}°"
-                            else "مستشعر البوصلة غير متوفر على هذا الجهاز",
+                            text = "اتجاه الهاتف: ${compass.azimuthDegrees.roundToInt()}°",
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                        if (compass.needsCalibration) {
+                            Text(
+                                text = "حرّك الجهاز على شكل رقم ٨ لمعايرة البوصلة",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
                     }
                 }
+            }
             }
 
             item {

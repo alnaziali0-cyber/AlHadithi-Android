@@ -13,6 +13,23 @@ data class SurahMeta(
     val isWajibSajdahShia: Boolean = false
 )
 
+/**
+ * Filters the surah index by a free-text query. The search matches the Arabic name or the surah
+ * number, and it is kept as a pure function so it can be unit tested.
+ */
+fun filterSurahs(
+    surahs: List<SurahMeta>,
+    query: String,
+    onlySajdah: Boolean = false
+): List<SurahMeta> {
+    val base = if (onlySajdah) surahs.filter { it.hasSajdah } else surahs
+    val trimmed = query.trim()
+    if (trimmed.isEmpty()) return base
+    return base.filter {
+        it.arabicName.contains(trimmed) || it.number.toString() == trimmed
+    }
+}
+
 data class QuranReciter(
     val id: String,
     val arabicName: String,

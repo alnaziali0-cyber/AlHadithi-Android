@@ -254,4 +254,25 @@ interface AlHadithiDao {
 
     @Query("DELETE FROM admin_announcements_local WHERE cloudId = :cloudId")
     suspend fun deleteAnnouncementByCloudId(cloudId: String)
+
+    // --- User data removal (privacy) ---
+    // Only deletes rows; the schema is untouched, so no Room migration is required.
+
+    @Query("DELETE FROM favorites_bookmarks")
+    suspend fun deleteAllFavorites()
+
+    @Query("DELETE FROM reading_history")
+    suspend fun deleteAllReadingHistory()
+
+    @Query("DELETE FROM tasbih_sessions")
+    suspend fun deleteAllTasbihSessions()
+
+    @Query("DELETE FROM lesson_progress")
+    suspend fun deleteAllLessonProgress()
+
+    @Query("DELETE FROM quiz_attempts")
+    suspend fun deleteAllQuizAttempts()
+
+    @Query("DELETE FROM cached_ayahs")
+    suspend fun deleteAllCachedAyahs()
 }

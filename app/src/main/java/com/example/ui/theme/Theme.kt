@@ -14,53 +14,67 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 
-private val AlHadithiLightColorScheme = lightColorScheme(
-    primary = TurquoisePrimaryLight,
-    onPrimary = Color.White,
-    primaryContainer = TurquoiseSoftContainer,
-    onPrimaryContainer = OnTurquoiseContainer,
-    secondary = TurquoiseSecondaryLight,
-    onSecondary = Color.White,
-    secondaryContainer = SoftSageSurfaceVariant,
-    onSecondaryContainer = OnTurquoiseContainer,
-    tertiary = HeritageGold,
-    onTertiary = Color.White,
-    tertiaryContainer = HeritageGoldSoft,
-    onTertiaryContainer = OnHeritageGoldSoft,
-    background = CalmAlabasterBg,
-    onBackground = InkDarkText,
-    surface = PureGlassWhite,
-    onSurface = InkDarkText,
-    surfaceVariant = SoftSageSurfaceVariant,
-    onSurfaceVariant = MutedSlateText,
-    outline = SubtleGlassBorderLight,
-    outlineVariant = Color(0x1F0F766E)
+private fun lightSchemeFor(choice: AccentChoice): androidx.compose.material3.ColorScheme {
+    val accent = accentPaletteFor(choice)
+    return lightColorScheme(
+        primary = accent.lightPrimary,
+        onPrimary = accent.lightOnPrimary,
+        primaryContainer = accent.lightPrimaryContainer,
+        onPrimaryContainer = accent.lightOnPrimaryContainer,
+        secondary = accent.lightSecondary,
+        onSecondary = accent.lightOnSecondary,
+        secondaryContainer = SoftSageSurfaceVariant,
+        onSecondaryContainer = OnTurquoiseContainer,
+        tertiary = HeritageGold,
+        onTertiary = Color.White,
+        tertiaryContainer = HeritageGoldSoft,
+        onTertiaryContainer = OnHeritageGoldSoft,
+        background = CalmAlabasterBg,
+        onBackground = InkDarkText,
+        surface = PureGlassWhite,
+        onSurface = InkDarkText,
+        surfaceVariant = SoftSageSurfaceVariant,
+        onSurfaceVariant = MutedSlateText,
+        outline = SubtleGlassBorderLight,
+        outlineVariant = Color(0x1F0F766E)
+    )
+}
+
+private fun darkSchemeFor(choice: AccentChoice): androidx.compose.material3.ColorScheme {
+    val accent = accentPaletteFor(choice)
+    return darkColorScheme(
+        primary = accent.darkPrimary,
+        onPrimary = accent.darkOnPrimary,
+        primaryContainer = accent.darkPrimaryContainer,
+        onPrimaryContainer = accent.darkOnPrimaryContainer,
+        secondary = accent.darkSecondary,
+        onSecondary = accent.darkOnSecondary,
+        secondaryContainer = NightSurfaceVariant,
+        onSecondaryContainer = NightLightText,
+        tertiary = NightGoldAccent,
+        onTertiary = Color(0xFF3A2804),
+        tertiaryContainer = Color(0xFF35280D),
+        onTertiaryContainer = Color(0xFFF9E2AC),
+        background = NightSanctuaryBg,
+        onBackground = NightLightText,
+        surface = NightGlassSurface,
+        onSurface = NightLightText,
+        surfaceVariant = NightSurfaceVariant,
+        onSurfaceVariant = NightMutedText,
+        outline = SubtleGlassBorderDark,
+        outlineVariant = Color(0x225EEAD4)
+    )
+}
+
+private val CompactShapes = Shapes(
+    extraSmall = RoundedCornerShape(8.dp),
+    small = RoundedCornerShape(12.dp),
+    medium = RoundedCornerShape(16.dp),
+    large = RoundedCornerShape(20.dp),
+    extraLarge = RoundedCornerShape(24.dp)
 )
 
-private val AlHadithiDarkColorScheme = darkColorScheme(
-    primary = TurquoisePrimaryDark,
-    onPrimary = Color(0xFF042F2B),
-    primaryContainer = Color(0xFF0E3E39),
-    onPrimaryContainer = Color(0xFFC7F9F1),
-    secondary = TurquoiseSecondaryDark,
-    onSecondary = Color(0xFF042F2B),
-    secondaryContainer = NightSurfaceVariant,
-    onSecondaryContainer = NightLightText,
-    tertiary = NightGoldAccent,
-    onTertiary = Color(0xFF3A2804),
-    tertiaryContainer = Color(0xFF35280D),
-    onTertiaryContainer = Color(0xFFF9E2AC),
-    background = NightSanctuaryBg,
-    onBackground = NightLightText,
-    surface = NightGlassSurface,
-    onSurface = NightLightText,
-    surfaceVariant = NightSurfaceVariant,
-    onSurfaceVariant = NightMutedText,
-    outline = SubtleGlassBorderDark,
-    outlineVariant = Color(0x225EEAD4)
-)
-
-val AlHadithiShapes = Shapes(
+private val ComfortableShapes = Shapes(
     extraSmall = RoundedCornerShape(10.dp),
     small = RoundedCornerShape(14.dp),
     medium = RoundedCornerShape(20.dp),
@@ -68,28 +82,82 @@ val AlHadithiShapes = Shapes(
     extraLarge = RoundedCornerShape(32.dp)
 )
 
+val AlHadithiShapes = ComfortableShapes
+
 val LocalReadingFontScale = staticCompositionLocalOf { 1.10f }
 val LocalIsDarkThemeActive = staticCompositionLocalOf { false }
+val LocalCardDensity = staticCompositionLocalOf { CardDensity.COMFORTABLE }
+val LocalLineSpacing = staticCompositionLocalOf { LineSpacingOption.NORMAL }
+val LocalReadingFontChoice = staticCompositionLocalOf { ReadingFontChoice.AMIRI }
 
+/**
+ * Spacing tokens driven by the user's density preference so that a compact layout really is
+ * denser everywhere instead of only in a few screens.
+ */
+object DensityTokens {
+    fun cardPadding(density: CardDensity) = when (density) {
+        CardDensity.COMFORTABLE -> 16.dp
+        CardDensity.COMPACT -> 11.dp
+    }
+
+    fun cardSpacing(density: CardDensity) = when (density) {
+        CardDensity.COMFORTABLE -> 14.dp
+        CardDensity.COMPACT -> 8.dp
+    }
+
+    fun listSpacing(density: CardDensity) = when (density) {
+        CardDensity.COMFORTABLE -> 14.dp
+        CardDensity.COMPACT -> 8.dp
+    }
+}
+
+/**
+ * The single entry point of the app design system.
+ *
+ * @param themeMode light / dark / follow the system.
+ * @param accentChoice the primary colour family; the heritage gold tertiary stays untouched.
+ * @param fontChoice the UI font family.
+ * @param uiFontScale multiplier applied to every typography size.
+ * @param readingFontScale multiplier applied to long-form reading texts.
+ */
 @Composable
 fun AlHadithiTheme(
+    themeMode: ThemeMode = ThemeMode.SYSTEM,
     darkTheme: Boolean = isSystemInDarkTheme(),
+    accentChoice: AccentChoice = AccentChoice.EMERALD,
     fontChoice: AppFontChoice = AppFontChoice.NASKH,
+    readingFontChoice: ReadingFontChoice = ReadingFontChoice.AMIRI,
+    uiFontScale: Float = 1.0f,
     readingFontScale: Float = 1.10f,
+    cardDensity: CardDensity = CardDensity.COMFORTABLE,
+    lineSpacing: LineSpacingOption = LineSpacingOption.NORMAL,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = if (darkTheme) AlHadithiDarkColorScheme else AlHadithiLightColorScheme
-    val typography = buildAlHadithiTypography(fontChoice = fontChoice, scale = 1.0f)
+    val isDark = when (themeMode) {
+        ThemeMode.LIGHT -> false
+        ThemeMode.DARK -> true
+        ThemeMode.SYSTEM -> darkTheme
+    }
+    val colorScheme = if (isDark) darkSchemeFor(accentChoice) else lightSchemeFor(accentChoice)
+    val typography = buildAlHadithiTypography(fontChoice = fontChoice, scale = uiFontScale)
+    val shapes = when (cardDensity) {
+        CardDensity.COMFORTABLE -> ComfortableShapes
+        CardDensity.COMPACT -> CompactShapes
+    }
 
     CompositionLocalProvider(
+        // The whole product is Arabic-first, so the layout direction is pinned to RTL.
         LocalLayoutDirection provides LayoutDirection.Rtl,
         LocalReadingFontScale provides readingFontScale,
-        LocalIsDarkThemeActive provides darkTheme
+        LocalIsDarkThemeActive provides isDark,
+        LocalCardDensity provides cardDensity,
+        LocalLineSpacing provides lineSpacing,
+        LocalReadingFontChoice provides readingFontChoice
     ) {
         MaterialTheme(
             colorScheme = colorScheme,
             typography = typography,
-            shapes = AlHadithiShapes,
+            shapes = shapes,
             content = content
         )
     }
@@ -97,9 +165,27 @@ fun AlHadithiTheme(
 
 @Composable
 fun MyApplicationTheme(
+    themeMode: ThemeMode = ThemeMode.SYSTEM,
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = false,
+    accentChoice: AccentChoice = AccentChoice.EMERALD,
+    fontChoice: AppFontChoice = AppFontChoice.NASKH,
+    readingFontChoice: ReadingFontChoice = ReadingFontChoice.AMIRI,
+    uiFontScale: Float = 1.0f,
+    readingFontScale: Float = 1.10f,
+    cardDensity: CardDensity = CardDensity.COMFORTABLE,
+    lineSpacing: LineSpacingOption = LineSpacingOption.NORMAL,
     content: @Composable () -> Unit
 ) {
-    AlHadithiTheme(darkTheme = darkTheme, content = content)
+    AlHadithiTheme(
+        themeMode = themeMode,
+        darkTheme = darkTheme,
+        accentChoice = accentChoice,
+        fontChoice = fontChoice,
+        readingFontChoice = readingFontChoice,
+        uiFontScale = uiFontScale,
+        readingFontScale = readingFontScale,
+        cardDensity = cardDensity,
+        lineSpacing = lineSpacing,
+        content = content
+    )
 }

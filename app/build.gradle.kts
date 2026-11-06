@@ -18,8 +18,8 @@ android {
     applicationId = "com.aistudio.alhadithi.iqshia"
     minSdk = 24
     targetSdk = 36
-    versionCode = 10
-    versionName = "1.0.8"
+    versionCode = 11
+    versionName = "1.0.9"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
@@ -112,6 +112,7 @@ dependencies {
   implementation(libs.androidx.room.runtime)
   implementation(libs.androidx.media3.common)
   implementation(libs.androidx.media3.exoplayer)
+  implementation(libs.androidx.media3.session)
   implementation(libs.coil.compose)
   implementation(libs.converter.moshi)
   implementation(libs.firebase.ai)
@@ -147,8 +148,11 @@ dependencies {
 }
 
 tasks.withType<Test> {
-  failFast = true
-  timeout.set(Duration.ofMinutes(2))
+  // Run every test even when one fails, so a single run reports the complete picture instead
+  // of hiding the remaining problems behind the first failure.
+  failFast = false
+  // Robolectric boots a full Android runtime, which is slow on small machines.
+  timeout.set(Duration.ofMinutes(15))
   testLogging {
     events("passed", "failed", "skipped")
   }

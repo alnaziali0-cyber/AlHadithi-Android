@@ -16,6 +16,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import org.json.JSONObject
 import org.junit.After
+import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -35,6 +36,14 @@ abstract class FirestoreEmulatorTestBase {
 
     @Before
     open fun setUpFirebase() {
+        // These tests only make sense against the local Firebase emulator. When it is not running
+        // the test is skipped instead of failing, so the rest of the unit test suite stays green
+        // on a machine without the emulator. See README for the emulator start command.
+        assumeTrue(
+            "The Firestore emulator must be listening on $EMULATOR_HOST:$FIRESTORE_PORT",
+            isEmulatorReachable(EMULATOR_HOST, FIRESTORE_PORT)
+        )
+
         val context = ApplicationProvider.getApplicationContext<Context>()
         val resId = context.resources.getIdentifier("firestore_database_id", "string", context.packageName)
         databaseId = if (resId != 0) context.getString(resId) else "ai-studio-android-0ccb0e51-02de-4d38-94ef-54f1255a8b5d"
@@ -67,7 +76,11 @@ abstract class FirestoreEmulatorTestBase {
 
     @After
     open fun tearDownFirebase() {
-        auth.signOut()
+        // The setup may have been skipped because the emulator is not running, in that case there
+        // is no authenticated session to close.
+        if (this::auth.isInitialized) {
+            auth.signOut()
+        }
     }
 
     // Local unit test helper ONLY (under app/src/test/).
@@ -126,5 +139,15 @@ abstract class FirestoreEmulatorTestBase {
         const val PROJECT_ID = "demo-no-project"
         const val DEFAULT_PASSWORD = "password123"
         const val AUTH_TIMEOUT_MS = 5000L
+
+        /** A short TCP probe so a missing emulator is detected in about a second. */
+        fun isEmulatorReachable(host: String, port: Int): Boolean = try {
+            java.net.Socket().use { socket ->
+                socket.connect(java.net.InetSocketAddress(host, port), 1500)
+            }
+            true
+        } catch (_: Exception) {
+            false
+        }
     }
 }

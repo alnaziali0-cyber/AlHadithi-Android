@@ -13,6 +13,9 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.example.R
+import com.example.domain.QuietHours
+import java.util.Calendar
+import java.util.TimeZone
 
 class PrayerAlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
@@ -25,6 +28,9 @@ class PrayerAlarmReceiver : BroadcastReceiver() {
         val prayerName = intent.getStringExtra(EXTRA_PRAYER_NAME) ?: "الصلاة"
         val timeText = intent.getStringExtra(EXTRA_TIME_TEXT).orEmpty()
         val areaName = intent.getStringExtra(EXTRA_AREA_NAME).orEmpty()
+        val soundEnabled = intent.getBooleanExtra(EXTRA_SOUND_ENABLED, true)
+        val vibrateEnabled = intent.getBooleanExtra(EXTRA_VIBRATE_ENABLED, true)
+        val quietHours = QuietHours.decode(intent.getStringExtra(EXTRA_QUIET_HOURS))
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager ?: return
         val hasCustomAdhan = AdhanAudioStorage.hasAudio(context)
         // Starting a media foreground service from an alarm is permitted for exact alarms.
@@ -33,24 +39,36 @@ class PrayerAlarmReceiver : BroadcastReceiver() {
         val canStartAdhanService = hasCustomAdhan && PrayerNotificationScheduler.canScheduleExactAlarms(context)
         ensureChannels(manager)
 
-        val selectedChannel = if (canStartAdhanService) CHANNEL_ID_WITH_ADHAN else CHANNEL_ID_DEFAULT
-        val notification = NotificationCompat.Builder(context, selectedChannel)
+        // The quiet-hours window silences the reminder without removing the notification.
+        val quietNow = quietHours.isActiveAt(currentMinutesOfDay())
+        val audible = soundEnabled && !quietNow
+        val vibrating = vibrateEnabled && !quietNow
+
+        val selectedChannel = when {
+            canStartAdhanService && audible -> CHANNEL_ID_WITH_ADHAN
+            audible -> CHANNEL_ID_DEFAULT
+            else -> CHANNEL_ID_SILENT
+        }
+        val builder = NotificationCompat.Builder(context, selectedChannel)
             .setSmallIcon(R.drawable.ic_notification_adhan)
             .setContentTitle("حان الآن وقت صلاة $prayerName")
             .setContentText(listOf("الحديثي", areaName, timeText).filter { it.isNotBlank() }.joinToString(" · "))
             .setCategory(NotificationCompat.CATEGORY_ALARM)
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setPriority(if (audible) NotificationCompat.PRIORITY_HIGH else NotificationCompat.PRIORITY_LOW)
             .setAutoCancel(true)
             .setWhen(System.currentTimeMillis())
             .setShowWhen(true)
-            .build()
+        if (!vibrating) {
+            builder.setVibrate(longArrayOf(0L))
+        }
+        val notification = builder.build()
 
         val notificationId = intent.dataString?.hashCode() ?: prayerName.hashCode()
         manager.notify(notificationId, notification)
 
         // The long-form audio is user-selected and stored privately; no copyrighted recording
         // is bundled in the APK. Exact-alarm delivery is an eligible foreground-service start.
-        if (canStartAdhanService) {
+        if (canStartAdhanService && audible) {
             try {
                 AdhanPlaybackService.play(context)
             } catch (_: RuntimeException) {
@@ -58,6 +76,12 @@ class PrayerAlarmReceiver : BroadcastReceiver() {
                 // prayer notification visible instead of crashing the alarm receiver.
             }
         }
+    }
+
+    /** Minutes of the day in the app's reference time zone, used for the quiet-hours window. */
+    private fun currentMinutesOfDay(): Int {
+        val cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Baghdad"))
+        return cal.get(Calendar.HOUR_OF_DAY) * 60 + cal.get(Calendar.MINUTE)
     }
 
     private fun ensureChannels(manager: NotificationManager) {
@@ -95,13 +119,31 @@ class PrayerAlarmReceiver : BroadcastReceiver() {
                 }
             )
         }
+
+        if (manager.getNotificationChannel(CHANNEL_ID_SILENT) == null) {
+            manager.createNotificationChannel(
+                NotificationChannel(
+                    CHANNEL_ID_SILENT,
+                    "تنبيهات صامتة (فترة منع الإزعاج)",
+                    NotificationManager.IMPORTANCE_LOW
+                ).apply {
+                    description = "إشعار بلا صوت وبلا اهتزاز خلال فترة منع الإزعاج"
+                    enableVibration(false)
+                    setSound(null, null)
+                }
+            )
+        }
     }
 
     companion object {
         const val EXTRA_PRAYER_NAME = "prayer_name"
         const val EXTRA_TIME_TEXT = "prayer_time_text"
         const val EXTRA_AREA_NAME = "prayer_area_name"
+        const val EXTRA_SOUND_ENABLED = "prayer_sound_enabled"
+        const val EXTRA_VIBRATE_ENABLED = "prayer_vibrate_enabled"
+        const val EXTRA_QUIET_HOURS = "prayer_quiet_hours"
         const val CHANNEL_ID_DEFAULT = "alhadithi_prayer_times_v3"
         const val CHANNEL_ID_WITH_ADHAN = "alhadithi_prayer_times_v3_custom_audio"
+        const val CHANNEL_ID_SILENT = "alhadithi_prayer_times_v3_silent"
     }
 }

@@ -14,10 +14,12 @@ import com.example.data.local.BookEntity
 import com.example.data.local.CachedAyahEntity
 import com.example.data.local.ContentSourceEntity
 import com.example.data.local.CurriculumCourseEntity
+import com.example.data.local.DailyGoal
 import com.example.data.local.DhikrEntity
 import com.example.data.local.DuaZiyaratEntity
 import com.example.data.local.FavoriteBookmarkEntity
 import com.example.data.local.HadithEntity
+import com.example.data.local.HomeCard
 import com.example.data.local.IslamicOccasionEntity
 import com.example.data.local.LessonProgressEntity
 import com.example.data.local.QuizAttemptEntity
@@ -35,15 +37,27 @@ import com.example.data.remote.QuranNetworkRepository
 import com.example.domain.DailyPrayerSchedule
 import com.example.domain.IraqGovernorates
 import com.example.domain.NextPrayerCountdown
+import com.example.domain.PrayerAlertProfile
+import com.example.domain.PrayerAlertSettings
 import com.example.domain.PrayerAndHijriCalculator
 import com.example.domain.PrayerCalcMethod
+import com.example.domain.PrayerKey
 import com.example.domain.PrayerMinuteOffsets
+import com.example.domain.QuietHours
 import com.example.domain.HamedShakernejadJuzCatalog
 import com.example.domain.SurahCatalog
+import com.example.domain.TimeFormat
 import com.example.media.AudioPlayerController
 import com.example.media.AudioQueueItem
+import com.example.media.AdhanAudioStorage
 import com.example.media.PrayerNotificationScheduler
+import com.example.ui.theme.AccentChoice
 import com.example.ui.theme.AppFontChoice
+import com.example.ui.theme.CardDensity
+import com.example.ui.theme.LineSpacingOption
+import com.example.ui.theme.QuranBackgroundStyle
+import com.example.ui.theme.ReadingFontChoice
+import com.example.ui.theme.ThemeMode
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.auth
@@ -162,6 +176,10 @@ class AlHadithiViewModel(application: Application) : AndroidViewModel(applicatio
     val contentSources: StateFlow<List<ContentSourceEntity>> = dao.observeContentSources()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), emptyList())
 
+    /** The locally stored repeat counters of the adhkar, keyed by the dhikr id. */
+    val dhikrCounters: StateFlow<Map<Long, Int>> = prefsRepo.dhikrCountersFlow
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), emptyMap())
+
     // Local Announcements (for HomeScreen & Offline Developer Panel)
     val activeAnnouncements: StateFlow<List<AdminAnnouncementEntity>> = dao.observeActiveAnnouncements()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), emptyList())
@@ -231,7 +249,8 @@ class AlHadithiViewModel(application: Application) : AndroidViewModel(applicatio
                     hijriOffsetDays = s.hijriOffsetDays,
                     latitude = s.customLatitude,
                     longitude = s.customLongitude,
-                    notificationsEnabled = s.notifyPrayers
+                    notificationsEnabled = s.notifyPrayers,
+                    alertProfile = s.prayerAlertProfile
                 )
             }.distinctUntilChanged().collectLatest { config ->
                 refreshPrayerTimes(
@@ -295,7 +314,8 @@ class AlHadithiViewModel(application: Application) : AndroidViewModel(applicatio
         val hijriOffsetDays: Int,
         val latitude: Double?,
         val longitude: Double?,
-        val notificationsEnabled: Boolean
+        val notificationsEnabled: Boolean,
+        val alertProfile: PrayerAlertProfile
     )
 
     fun refreshPrayerTimes(
@@ -332,7 +352,8 @@ class AlHadithiViewModel(application: Application) : AndroidViewModel(applicatio
                 enabled = true,
                 apiYear = -1,
                 apiMonth = -1,
-                apiMonthSchedules = emptyList()
+                apiMonthSchedules = emptyList(),
+                alertProfile = settings.value.prayerAlertProfile
             )
         } else {
             PrayerNotificationScheduler.disable(appCtx)
@@ -373,7 +394,8 @@ class AlHadithiViewModel(application: Application) : AndroidViewModel(applicatio
                 enabled = settings.value.notifyPrayers,
                 apiYear = year,
                 apiMonth = month,
-                apiMonthSchedules = monthSchedules
+                apiMonthSchedules = monthSchedules,
+                alertProfile = settings.value.prayerAlertProfile
             )
         }
     }
@@ -411,6 +433,58 @@ class AlHadithiViewModel(application: Application) : AndroidViewModel(applicatio
         viewModelScope.launch { prefsRepo.setDarkMode(enabled) }
     }
 
+    fun setThemeMode(mode: ThemeMode) {
+        viewModelScope.launch { prefsRepo.setThemeMode(mode) }
+    }
+
+    fun setAccentChoice(choice: AccentChoice) {
+        viewModelScope.launch { prefsRepo.setAccentChoice(choice) }
+    }
+
+    fun setReadingFontChoice(choice: ReadingFontChoice) {
+        viewModelScope.launch { prefsRepo.setReadingFontChoice(choice) }
+    }
+
+    fun setUiFontScale(scale: Float) {
+        viewModelScope.launch { prefsRepo.setUiFontScale(scale) }
+    }
+
+    fun setLineSpacing(option: LineSpacingOption) {
+        viewModelScope.launch { prefsRepo.setLineSpacing(option) }
+    }
+
+    fun setCardDensity(density: CardDensity) {
+        viewModelScope.launch { prefsRepo.setCardDensity(density) }
+    }
+
+    fun setQuranBackground(background: QuranBackgroundStyle) {
+        viewModelScope.launch { prefsRepo.setQuranBackground(background) }
+    }
+
+    fun setQuranAutoScroll(enabled: Boolean, speed: Float = 1.0f) {
+        viewModelScope.launch { prefsRepo.setQuranAutoScroll(enabled, speed) }
+    }
+
+    fun setTimeFormat(format: TimeFormat) {
+        viewModelScope.launch { prefsRepo.setTimeFormat(format) }
+    }
+
+    fun setPrayerAlert(prayer: PrayerKey, settings: PrayerAlertSettings) {
+        viewModelScope.launch { prefsRepo.setPrayerAlert(prayer, settings) }
+    }
+
+    fun setQuietHours(quietHours: QuietHours) {
+        viewModelScope.launch { prefsRepo.setQuietHours(quietHours) }
+    }
+
+    fun setHomeLayout(cards: List<HomeCard>, hidden: Set<HomeCard>) {
+        viewModelScope.launch { prefsRepo.setHomeLayout(cards, hidden) }
+    }
+
+    fun setDailyGoals(goals: Set<DailyGoal>) {
+        viewModelScope.launch { prefsRepo.setDailyGoals(goals) }
+    }
+
     fun setFontChoice(choice: AppFontChoice) {
         viewModelScope.launch { prefsRepo.setFontChoice(choice) }
     }
@@ -446,8 +520,31 @@ class AlHadithiViewModel(application: Application) : AndroidViewModel(applicatio
         viewModelScope.launch { prefsRepo.setHapticTasbih(enabled) }
     }
 
+    /** Increments the repeat counter of one dhikr; the progress is stored on the device. */
+    fun incrementDhikrCounter(id: Long) {
+        val todayKey = _todaySchedule.value.hijriDate.formattedArabic()
+        viewModelScope.launch { prefsRepo.incrementDhikrCounter(id, todayKey) }
+    }
+
+    fun resetDhikrCounter(id: Long) {
+        viewModelScope.launch { prefsRepo.resetDhikrCounter(id) }
+    }
+
     fun setDailyTasbihGoal(goal: Int) {
         viewModelScope.launch { prefsRepo.setDailyTasbihGoal(goal) }
+    }
+
+    /** Stores the electronic tasbih counter so it survives a rotation or a navigation. */
+    fun saveTasbihScreenState(
+        presetId: String,
+        stageIndex: Int,
+        stageCount: Int,
+        totalCount: Int,
+        customTarget: Int
+    ) {
+        viewModelScope.launch {
+            prefsRepo.saveTasbihScreenState(presetId, stageIndex, stageCount, totalCount, customTarget)
+        }
     }
 
     fun recordTasbihTick() {
@@ -478,6 +575,25 @@ class AlHadithiViewModel(application: Application) : AndroidViewModel(applicatio
 
     fun resetAllSettings() {
         viewModelScope.launch { prefsRepo.resetSettingsToDefaults() }
+    }
+
+    /**
+     * Removes everything the user created on this device: favourites, reading history, tasbih
+     * sessions, course progress, cached Quran text and every stored preference. The bundled
+     * encyclopedia content stays intact because it is part of the application, not user data.
+     */
+    fun deleteAllUserData() {
+        viewModelScope.launch {
+            dao.deleteAllFavorites()
+            dao.deleteAllReadingHistory()
+            dao.deleteAllTasbihSessions()
+            dao.deleteAllLessonProgress()
+            dao.deleteAllQuizAttempts()
+            dao.deleteAllCachedAyahs()
+            prefsRepo.resetSettingsToDefaults()
+            PrayerNotificationScheduler.disable(appCtx)
+            AdhanAudioStorage.clear(appCtx)
+        }
     }
 
     // --- Quran & Offline-First Audio Actions ---

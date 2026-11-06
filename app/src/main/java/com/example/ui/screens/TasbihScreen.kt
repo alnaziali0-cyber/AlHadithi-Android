@@ -41,6 +41,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -87,11 +88,17 @@ fun TasbihScreen(
     dailyGoal: Int,
     dailyCount: Int,
     sessions: List<TasbihSessionEntity>,
+    savedPresetId: String,
+    savedStageIndex: Int,
+    savedStageCount: Int,
+    savedTotalCount: Int,
+    savedCustomTarget: Int,
     onBack: () -> Unit,
     onToggleHaptic: (Boolean) -> Unit,
     onChangeDailyGoal: (Int) -> Unit,
     onTickDailyCount: () -> Unit,
-    onSaveSession: (String, String, Int, Int) -> Unit
+    onSaveSession: (String, String, Int, Int) -> Unit,
+    onSaveScreenState: (String, Int, Int, Int, Int) -> Unit
 ) {
     BackHandler { onBack() }
     val context = LocalContext.current
@@ -110,16 +117,32 @@ fun TasbihScreen(
         )
     }
 
-    var selectedPreset by remember { mutableStateOf(presets.first()) }
-    var customTarget by remember { mutableIntStateOf(70) }
+    // The counter state is restored from the local storage so a rotation or a navigation never
+    // loses the count the user already made.
+    var selectedPreset by remember {
+        mutableStateOf(presets.firstOrNull { it.id == savedPresetId } ?: presets.first())
+    }
+    var customTarget by remember { mutableIntStateOf(savedCustomTarget) }
     var showCustomDialog by remember { mutableStateOf(false) }
     var customInput by remember { mutableStateOf("70") }
 
     // State for standard or Fatima al-Zahra 3-stage sequence (0: 34 Akbar, 1: 33 Hamd, 2: 33 Subhan)
-    var stageIndex by remember { mutableIntStateOf(0) }
-    var stageCount by remember { mutableIntStateOf(0) }
-    var totalSessionCount by remember { mutableIntStateOf(0) }
+    var stageIndex by remember { mutableIntStateOf(savedStageIndex.coerceIn(0, 2)) }
+    var stageCount by remember { mutableIntStateOf(savedStageCount) }
+    var totalSessionCount by remember { mutableIntStateOf(savedTotalCount) }
     var completedBannerVisible by remember { mutableStateOf(false) }
+    var showResetConfirmation by remember { mutableStateOf(false) }
+
+    // Persist the counter whenever it changes so the state survives leaving the screen.
+    LaunchedEffect(selectedPreset.id, stageIndex, stageCount, totalSessionCount, customTarget) {
+        onSaveScreenState(
+            selectedPreset.id,
+            stageIndex,
+            stageCount,
+            totalSessionCount,
+            customTarget
+        )
+    }
 
     val zahraStages = listOf(
         "اللهُ أَكْبَرُ" to 34,
@@ -372,7 +395,7 @@ fun TasbihScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     OutlinedButton(
-                        onClick = { resetCurrentSession() },
+                        onClick = { showResetConfirmation = true },
                         modifier = Modifier.testTag("tasbih_reset_button")
                     ) {
                         Icon(Icons.Outlined.Refresh, contentDescription = null)
@@ -529,6 +552,23 @@ fun TasbihScreen(
                 }
             }
         }
+    }
+
+    if (showResetConfirmation) {
+        AlertDialog(
+            onDismissRequest = { showResetConfirmation = false },
+            title = { Text("تصفير العدّاد") },
+            text = { Text("سيُصفَّر عدّاد الجلسة الحالية. هل تريد المتابعة؟") },
+            confirmButton = {
+                Button(onClick = {
+                    showResetConfirmation = false
+                    resetCurrentSession()
+                }) { Text("تصفير") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showResetConfirmation = false }) { Text("إلغاء") }
+            }
+        )
     }
 
     if (showCustomDialog) {

@@ -50,6 +50,16 @@ fun resolveUiFontFamily(choice: AppFontChoice): FontFamily = when (choice) {
     AppFontChoice.KUFI -> KufiFontFamily
 }
 
+/**
+ * Font family used for long-form reading (Quran text, adhkar, duas). It is independent from the
+ * UI font so a user can read the Quran in Amiri while keeping a crisp UI typeface.
+ */
+fun resolveReadingFontFamily(choice: ReadingFontChoice): FontFamily = when (choice) {
+    ReadingFontChoice.AMIRI -> AmiriFontFamily
+    ReadingFontChoice.NASKH -> NaskhFontFamily
+    ReadingFontChoice.TAJAWAL -> TajawalFontFamily
+}
+
 fun buildAlHadithiTypography(
     fontChoice: AppFontChoice = AppFontChoice.NASKH,
     scale: Float = 1.0f
@@ -133,15 +143,42 @@ fun buildAlHadithiTypography(
 }
 
 /**
- * Dedicated vocalized Quranic & heritage text style using bundled Amiri font with generous line height.
+ * Dedicated vocalized Quranic & heritage text style. The default family is Amiri because it was
+ * designed for the diacritics of the Uthmani script; users may switch to Naskh or Tajawal.
  */
-fun quranAndHeritageStyle(scale: Float = 1.0f): TextStyle {
+fun quranAndHeritageStyle(
+    scale: Float = 1.0f,
+    fontChoice: ReadingFontChoice = ReadingFontChoice.AMIRI,
+    lineSpacing: LineSpacingOption = LineSpacingOption.NORMAL
+): TextStyle {
     val s = scale.coerceIn(0.85f, 1.65f)
+    val base = 23f * s
+    val line = base * 1.95f * lineSpacing.multiplier
     return TextStyle(
-        fontFamily = AmiriFontFamily,
+        fontFamily = resolveReadingFontFamily(fontChoice),
         fontWeight = FontWeight.Normal,
-        fontSize = (23f * s).sp,
-        lineHeight = (45f * s).sp
+        fontSize = base.sp,
+        lineHeight = line.sp
+    )
+}
+
+/**
+ * Style for the non-Quran religious texts (adhkar, duas, ziyarat) which are less dense than the
+ * Quran and read better with a slightly tighter leading.
+ */
+fun heritageReadingStyle(
+    scale: Float = 1.0f,
+    fontChoice: ReadingFontChoice = ReadingFontChoice.AMIRI,
+    lineSpacing: LineSpacingOption = LineSpacingOption.NORMAL
+): TextStyle {
+    val s = scale.coerceIn(0.85f, 1.65f)
+    val base = 19f * s
+    val line = base * 1.7f * lineSpacing.multiplier
+    return TextStyle(
+        fontFamily = resolveReadingFontFamily(fontChoice),
+        fontWeight = FontWeight.Normal,
+        fontSize = base.sp,
+        lineHeight = line.sp
     )
 }
 

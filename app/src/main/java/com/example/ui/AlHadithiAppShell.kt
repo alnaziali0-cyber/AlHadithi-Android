@@ -75,6 +75,7 @@ import com.example.ui.screens.SettingsScreen
 import com.example.ui.screens.TasbihScreen
 import com.example.ui.screens.UnifiedSearchAndScholarScreen
 import com.example.ui.screens.WallpapersScreen
+import com.example.domain.PrayerCalcMethod
 import com.example.ui.theme.AlHadithiTheme
 import com.example.ui.viewmodel.AlHadithiViewModel
 import com.example.util.SystemActionsHelper
@@ -111,6 +112,7 @@ fun AlHadithiAppRoot(
     val readingHistory by vm.readingHistory.collectAsStateWithLifecycle()
     val tasbihSessions by vm.tasbihSessions.collectAsStateWithLifecycle()
     val contentSources by vm.contentSources.collectAsStateWithLifecycle()
+    val dhikrCounters by vm.dhikrCounters.collectAsStateWithLifecycle()
 
     val activeAnnouncements by vm.activeAnnouncements.collectAsStateWithLifecycle()
     val allAnnouncements by vm.allAnnouncements.collectAsStateWithLifecycle()
@@ -157,11 +159,23 @@ fun AlHadithiAppRoot(
 
     val currentGovernorate = IraqGovernorates.byId(settings.governorateId)
 
+    // A short, human readable summary of how the displayed prayer times were produced.
+    val prayerCalculationSummary = remember(settings.prayerCalcMethodCode, currentGovernorate.id) {
+        val method = PrayerCalcMethod.fromCode(settings.prayerCalcMethodCode)
+        "${method.arabicTitle} · توقيت بغداد (UTC+3)"
+    }
+
     AlHadithiTheme(
+        themeMode = settings.themeMode,
         darkTheme = settings.darkMode,
+        accentChoice = settings.accentChoice,
         fontChoice = settings.fontChoice,
-        readingFontScale = settings.readingFontScale
-    ) {
+        readingFontChoice = settings.readingFontChoice,
+        uiFontScale = settings.uiFontScale,
+        readingFontScale = settings.readingFontScale,
+        cardDensity = settings.cardDensity,
+        lineSpacing = settings.lineSpacing,
+        content = {
         val navGlassBg = if (settings.darkMode) {
             Color(0xFF102422).copy(alpha = 0.72f)
         } else {
@@ -281,6 +295,13 @@ fun AlHadithiAppRoot(
                                         lastSurahNumber = settings.lastSurahNumber,
                                         lastSurahName = settings.lastSurahName,
                                         lastAyahNumber = settings.lastAyahNumber,
+                                        homeCards = settings.homeCards,
+                                        hiddenHomeCards = settings.hiddenHomeCards,
+                                        dailyGoals = settings.dailyGoals,
+                                        tasbihCount = settings.dailyTasbihCount,
+                                        tasbihGoal = settings.dailyTasbihGoal,
+                                        timeFormat = settings.timeFormat,
+                                        prayerCalculationSummary = prayerCalculationSummary,
                                         onOpenGovernorateSheet = { manualGovSheetOpen = true },
                                         onNavigate = { currentDestination = it },
                                         onOpenSurah = { sNum ->
@@ -302,6 +323,10 @@ fun AlHadithiAppRoot(
                                         lastAyahNumber = settings.lastAyahNumber,
                                         selectedReciterId = settings.selectedReciterId,
                                         darkMode = settings.darkMode,
+                                        readingFontChoice = settings.readingFontChoice,
+                                        quranBackground = settings.quranBackground,
+                                        autoScrollEnabled = settings.quranAutoScrollEnabled,
+                                        autoScrollSpeed = settings.quranAutoScrollSpeed,
                                         onSelectSurahToRead = { sNum ->
                                             vm.loadSurah(sNum, recordHistory = true)
                                             openedSurahInReader = sNum
@@ -311,6 +336,9 @@ fun AlHadithiAppRoot(
                                         onSelectReciter = vm::setReciter,
                                         onChangeFontScale = vm::setReadingFontScale,
                                         onToggleDarkMode = vm::setDarkMode,
+                                        onChangeReadingFont = vm::setReadingFontChoice,
+                                        onChangeBackground = vm::setQuranBackground,
+                                        onChangeAutoScroll = vm::setQuranAutoScroll,
                                         onSaveLastReadAyah = vm::saveLastReadAyah,
                                         onSaveFavorite = vm::toggleFavorite
                                     )
@@ -326,7 +354,10 @@ fun AlHadithiAppRoot(
                                         duasAndZiyarat = duasAndZiyarat,
                                         adhkar = adhkar,
                                         hapticEnabled = settings.hapticTasbihEnabled,
+                                        dhikrCounters = dhikrCounters,
                                         onChangeFontScale = vm::setReadingFontScale,
+                                        onIncrementDhikr = vm::incrementDhikrCounter,
+                                        onResetDhikr = vm::resetDhikrCounter,
                                         onSaveFavorite = vm::toggleFavorite
                                     )
 
@@ -345,11 +376,16 @@ fun AlHadithiAppRoot(
                                         coordinatesLatitude = settings.customLatitude ?: currentGovernorate.latitude,
                                         coordinatesLongitude = settings.customLongitude ?: currentGovernorate.longitude,
                                         isUsingDeviceLocation = settings.customLatitude != null && settings.customLongitude != null,
+                                        timeFormat = settings.timeFormat,
+                                        prayerAlertProfile = settings.prayerAlertProfile,
                                         onBack = { currentDestination = AppDestination.HOME },
                                         onOpenGovernorateSheet = { manualGovSheetOpen = true },
                                         onSelectMethod = vm::setPrayerCalcMethod,
                                         onUpdateOffsets = vm::updatePrayerOffsets,
                                         onToggleNotifyPrayers = { vm.updateNotificationPrefs(notifyPrayers = it) },
+                                        onChangeTimeFormat = vm::setTimeFormat,
+                                        onChangePrayerAlert = vm::setPrayerAlert,
+                                        onChangeQuietHours = vm::setQuietHours,
                                         onSetPrayerCoordinates = vm::setPrayerCoordinates,
                                         onClearPrayerCoordinates = vm::clearPrayerCoordinates,
                                         onRefreshPrayerSchedule = { vm.refreshPrayerTimes() }
@@ -360,11 +396,17 @@ fun AlHadithiAppRoot(
                                         dailyGoal = settings.dailyTasbihGoal,
                                         dailyCount = settings.dailyTasbihCount,
                                         sessions = tasbihSessions,
+                                        savedPresetId = settings.tasbihPresetId,
+                                        savedStageIndex = settings.tasbihStageIndex,
+                                        savedStageCount = settings.tasbihStageCount,
+                                        savedTotalCount = settings.tasbihTotalCount,
+                                        savedCustomTarget = settings.tasbihCustomTarget,
                                         onBack = { currentDestination = AppDestination.HOME },
                                         onToggleHaptic = vm::setHapticTasbih,
                                         onChangeDailyGoal = vm::setDailyTasbihGoal,
                                         onTickDailyCount = vm::recordTasbihTick,
-                                        onSaveSession = vm::saveTasbihSession
+                                        onSaveSession = vm::saveTasbihSession,
+                                        onSaveScreenState = vm::saveTasbihScreenState
                                     )
 
                                     AppDestination.QIBLA -> QiblaScreen(
@@ -444,14 +486,30 @@ fun AlHadithiAppRoot(
                                         sources = contentSources,
                                         onBack = { currentDestination = AppDestination.HOME },
                                         onOpenGovernorateSheet = { manualGovSheetOpen = true },
-                                        onToggleDarkMode = vm::setDarkMode,
-                                        onSelectFont = vm::setFontChoice,
-                                        onChangeFontScale = vm::setReadingFontScale,
-                                        onChangeHijriOffset = vm::setHijriOffsetDays,
+                                        onChangeThemeMode = vm::setThemeMode,
+                                        onChangeAccent = vm::setAccentChoice,
+                                        onChangeCardDensity = vm::setCardDensity,
+                                        onChangeUiFont = vm::setFontChoice,
+                                        onChangeUiFontScale = vm::setUiFontScale,
+                                        onChangeReadingFont = vm::setReadingFontChoice,
+                                        onChangeReadingFontScale = vm::setReadingFontScale,
+                                        onChangeLineSpacing = vm::setLineSpacing,
+                                        onChangeHomeLayout = vm::setHomeLayout,
+                                        onChangeDailyGoals = vm::setDailyGoals,
+                                        onChangeTimeFormat = vm::setTimeFormat,
+                                        onChangeCalcMethod = vm::setPrayerCalcMethod,
+                                        onChangePrayerAlert = vm::setPrayerAlert,
+                                        onChangeQuietHours = vm::setQuietHours,
+                                        onChangeQuranBackground = vm::setQuranBackground,
+                                        onChangeAutoScroll = vm::setQuranAutoScroll,
+                                        onChangeReciter = vm::setReciter,
+                                        onChangePlaybackSpeed = vm::setPlaybackSpeed,
                                         onToggleHaptic = vm::setHapticTasbih,
+                                        onChangeDailyTasbihGoal = vm::setDailyTasbihGoal,
                                         onUpdateNotifications = vm::updateNotificationPrefs,
                                         onClearQuranCache = vm::clearCachedQuranTexts,
-                                        onResetDefaults = vm::resetAllSettings
+                                        onResetDefaults = vm::resetAllSettings,
+                                        onDeleteUserData = vm::deleteAllUserData
                                     )
 
                                     AppDestination.ADMIN -> HiddenDeveloperPanelScreen(
@@ -507,5 +565,6 @@ fun AlHadithiAppRoot(
                 }
             )
         }
-    }
+        }
+    )
 }

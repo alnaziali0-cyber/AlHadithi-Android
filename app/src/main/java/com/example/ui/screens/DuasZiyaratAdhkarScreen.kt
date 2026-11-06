@@ -54,7 +54,10 @@ import com.example.ui.components.GlassCard
 import com.example.ui.components.GlassFilterChip
 import com.example.ui.components.SourceCitationBadge
 import com.example.ui.components.SubScreenTopBar
+import com.example.ui.theme.LocalLineSpacing
+import com.example.ui.theme.LocalReadingFontChoice
 import com.example.ui.theme.LocalReadingFontScale
+import com.example.ui.theme.heritageReadingStyle
 import com.example.ui.theme.quranAndHeritageStyle
 import com.example.util.SystemActionsHelper
 
@@ -63,11 +66,16 @@ fun DuasZiyaratAdhkarScreen(
     duasAndZiyarat: List<DuaZiyaratEntity>,
     adhkar: List<DhikrEntity>,
     hapticEnabled: Boolean,
+    dhikrCounters: Map<Long, Int>,
     onChangeFontScale: (Float) -> Unit,
+    onIncrementDhikr: (Long) -> Unit,
+    onResetDhikr: (Long) -> Unit,
     onSaveFavorite: (String, String, String, String, String) -> Unit
 ) {
     val context = LocalContext.current
     val fontScale = LocalReadingFontScale.current
+    val readingFontChoice = LocalReadingFontChoice.current
+    val lineSpacing = LocalLineSpacing.current
     var openedItem by remember { mutableStateOf<DuaZiyaratEntity?>(null) }
 
     if (openedItem != null) {
@@ -208,7 +216,6 @@ fun DuasZiyaratAdhkarScreen(
     var primaryTab by remember { mutableIntStateOf(0) } // 0=الأدعية, 1=الزيارات, 2=الأذكار اليومية
     var selectedSubCat by remember { mutableStateOf("الكل") }
     var searchQuery by remember { mutableStateOf("") }
-    val dhikrCounters = remember { mutableStateMapOf<Long, Int>() }
 
     Column(modifier = Modifier.fillMaxSize()) {
         SubScreenTopBar(
@@ -321,33 +328,74 @@ fun DuasZiyaratAdhkarScreen(
                         Spacer(modifier = Modifier.height(6.dp))
                         Text(
                             text = dhikr.vocalizedText,
-                            style = quranAndHeritageStyle(fontScale * 0.90f).copy(lineHeight = 38.sp)
+                            style = heritageReadingStyle(
+                                fontScale * 0.92f,
+                                fontChoice = readingFontChoice,
+                                lineSpacing = lineSpacing
+                            )
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = dhikr.virtueAndSource,
+                            text = dhikr.virtueAndSource.ifBlank {
+                                "المصدر غير متوفر في بيانات التطبيق"
+                            },
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.height(10.dp))
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            OutlinedButton(onClick = { dhikrCounters[dhikr.id] = 0 }) {
-                                Text("تصفير")
+                            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                OutlinedButton(onClick = { onResetDhikr(dhikr.id) }) {
+                                    Icon(Icons.Outlined.Refresh, contentDescription = "تصفير العدّاد")
+                                }
+                                IconButton(onClick = {
+                                    onSaveFavorite(
+                                        "ADHKAR",
+                                        "dhikr_${dhikr.id}",
+                                        dhikr.title,
+                                        dhikr.category,
+                                        dhikr.vocalizedText
+                                    )
+                                }) {
+                                    Icon(
+                                        Icons.Outlined.BookmarkBorder,
+                                        contentDescription = "حفظ الذكر في المفضلة"
+                                    )
+                                }
+                                IconButton(onClick = {
+                                    SystemActionsHelper.copyToClipboard(
+                                        context,
+                                        dhikr.title,
+                                        "${dhikr.title}\n\n${dhikr.vocalizedText}"
+                                    )
+                                }) {
+                                    Icon(Icons.Outlined.ContentCopy, contentDescription = "نسخ الذكر")
+                                }
+                                IconButton(onClick = {
+                                    SystemActionsHelper.sharePlainText(
+                                        context,
+                                        dhikr.title,
+                                        "${dhikr.title}\n\n${dhikr.vocalizedText}"
+                                    )
+                                }) {
+                                    Icon(Icons.Outlined.Share, contentDescription = "مشاركة الذكر")
+                                }
                             }
                             Button(
                                 onClick = {
-                                    val next = currentCount + 1
-                                    dhikrCounters[dhikr.id] = next
+                                    onIncrementDhikr(dhikr.id)
                                     if (hapticEnabled) {
                                         SystemActionsHelper.triggerHapticPulse(
                                             context,
-                                            strongMilestone = next == dhikr.targetCount
+                                            strongMilestone = currentCount + 1 == dhikr.targetCount
                                         )
                                     }
-                                }
+                                },
+                                modifier = Modifier.testTag("dhikr_increment_${dhikr.id}")
                             ) {
                                 Text("تكرار الذكر (+١)")
                             }

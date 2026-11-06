@@ -37,7 +37,7 @@ class ExampleRobolectricTest {
         if (map.isEmpty()) {
             // This source revision intentionally does not package the previous zero-byte placeholder.
             // Missing or incomplete Quran assets must never be advertised as a complete offline Mushaf.
-            val assetExists = context.assets.list()?.contains("quran_uthmani_full.json") == true
+            val assetExists = context.assets.list("")?.contains("quran_uthmani_full.json") == true
             assertTrue("A missing local Mushaf must result in an empty bundled map", !assetExists)
         } else {
             assertEquals("The offline Mushaf must contain all 114 surahs", 114, map.size)
@@ -70,20 +70,20 @@ class ExampleRobolectricTest {
             val audioTracks = dao.observeAllAudioTracks().first()
             assertTrue(audioTracks.size >= 15)
             val tracksWithBundledNames = audioTracks.filter { it.offlineRawResName.isNotBlank() }
-            assertTrue("Audio catalogue should retain the bundled-resource mapping", tracksWithBundledNames.size >= 8)
-            AudioPlayerController.init(context)
+            // A bundled offline recording must really exist inside the APK and hold a valid MP3.
+            // The empty placeholder files were removed from the resources, so no track may claim
+            // a bundled offline recording any more.
             tracksWithBundledNames.forEach { track ->
                 val resId = context.resources.getIdentifier(track.offlineRawResName, "raw", context.packageName)
                 assertTrue("Declared raw resource '${track.offlineRawResName}' must exist", resId != 0)
                 val firstRead = context.resources.openRawResource(resId).use { input ->
                     input.read(ByteArray(4_096))
                 }
-                if (firstRead <= 0) {
-                    assertTrue(
-                        "An empty MP3 resource must not be advertised as offline",
-                        !AudioPlayerController.isTrackAvailableOffline("audio_${track.id}", track.offlineRawResName)
-                    )
-                }
+                assertTrue("A bundled offline recording must not be an empty file", firstRead > 0)
+                assertTrue(
+                    "A bundled offline recording must be reported as available offline",
+                    AudioPlayerController.isTrackAvailableOffline("audio_${track.id}", track.offlineRawResName)
+                )
             }
 
             // Seeding is safe to rerun: a second launch must not duplicate the starter catalogue.

@@ -10,9 +10,21 @@ import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.example.domain.PrayerAlertProfile
+import com.example.domain.PrayerAlertSettings
 import com.example.domain.PrayerCalcMethod
+import com.example.domain.PrayerKey
 import com.example.domain.PrayerMinuteOffsets
+import com.example.domain.QuietHours
+import com.example.domain.TasbihProgress
+import com.example.domain.TimeFormat
+import com.example.ui.theme.AccentChoice
 import com.example.ui.theme.AppFontChoice
+import com.example.ui.theme.CardDensity
+import com.example.ui.theme.LineSpacingOption
+import com.example.ui.theme.QuranBackgroundStyle
+import com.example.ui.theme.ReadingFontChoice
+import com.example.ui.theme.ThemeMode
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.security.MessageDigest
@@ -21,22 +33,116 @@ private val Context.alHadithiDataStore: DataStore<Preferences> by preferencesDat
     name = "alhadithi_user_prefs"
 )
 
+/**
+ * Identifiers of the optional cards on the home dashboard. The persisted layout keeps both the
+ * display order and the hidden state of every card.
+ */
+enum class HomeCard(val key: String, val arabicTitle: String) {
+    PRAYER_HERO("prayer_hero", "صلاة اليوم"),
+    DAILY_TRACKING("daily_tracking", "متابعة اليوم"),
+    DAILY_TIMES("daily_times", "مواقيت اليوم"),
+    DAILY_VERSE("daily_verse", "آية اليوم"),
+    DAILY_HADITH("daily_hadith", "حديث اليوم"),
+    DAILY_DUA("daily_dua", "دعاء اليوم"),
+    OCCASIONS("occasions", "المناسبات القادمة"),
+    QUICK_ACCESS("quick_access", "الوصول السريع");
+
+    companion object {
+        fun fromKey(key: String): HomeCard? = entries.firstOrNull { it.key == key }
+
+        val defaultOrder: List<HomeCard> = entries.toList()
+    }
+}
+
+/**
+ * The personal goals the user can switch on inside the optional "daily follow-up" card.
+ * The card stays hidden until at least one goal is selected, so the dashboard is never noisy.
+ */
+enum class DailyGoal(val key: String, val arabicTitle: String) {
+    QURAN_READING("quran_reading", "قراءة القرآن"),
+    TASBIH("tasbih", "التسبيح"),
+    ADHKAR("adhkar", "أذكار الصباح والمساء"),
+    DUAS("duas", "الأدعية والزيارات");
+
+    companion object {
+        fun fromKey(key: String): DailyGoal? = entries.firstOrNull { it.key == key }
+
+        fun decode(raw: String?): Set<DailyGoal> {
+            if (raw.isNullOrBlank()) return emptySet()
+            return raw.split(',').mapNotNull { fromKey(it.trim()) }.toSet()
+        }
+
+        fun encode(goals: Set<DailyGoal>): String =
+            entries.filter { it in goals }.joinToString(",") { it.key }
+    }
+}
+
+/**
+ * Compact persistence format for the home dashboard layout: a comma separated list of tokens
+ * where a leading `-` marks a hidden card. Example: `prayer_hero,daily_tracking,-occasions`.
+ */
+object HomeLayoutCodec {
+    fun encode(cards: List<HomeCard>, hidden: Set<HomeCard>): String =
+        cards.joinToString(",") { card ->
+            if (card in hidden) "-${card.key}" else card.key
+        }
+
+    fun decode(raw: String?): Pair<List<HomeCard>, Set<HomeCard>> {
+        if (raw.isNullOrBlank()) return HomeCard.defaultOrder to emptySet()
+        val ordered = linkedMapOf<HomeCard, Boolean>()
+        raw.split(',').forEach { token ->
+            val trimmed = token.trim()
+            if (trimmed.isEmpty()) return@forEach
+            val isHidden = trimmed.startsWith("-")
+            val key = if (isHidden) trimmed.removePrefix("-") else trimmed
+            HomeCard.fromKey(key)?.let { card -> ordered[card] = isHidden }
+        }
+        // Cards that were added after the layout was saved must still appear.
+        HomeCard.entries.forEach { card -> if (!ordered.containsKey(card)) ordered[card] = false }
+        val orderedCards = ordered.keys.toList()
+        return orderedCards to orderedCards.filter { ordered[it] == true }.toSet()
+    }
+}
+
+/**
+ * Resolves the effective theme mode.
+ *
+ * An explicitly stored mode always wins. Users who never chose one keep the behaviour of the
+ * previous release, where a single boolean switch decided between light and dark.
+ */
+internal fun resolveThemeMode(storedMode: String?, legacyDarkMode: Boolean): ThemeMode {
+    val parsed = storedMode?.let { key -> ThemeMode.entries.firstOrNull { it.key == key } }
+    return parsed ?: if (legacyDarkMode) ThemeMode.DARK else ThemeMode.SYSTEM
+}
+
 data class UserSettingsState(
     val hasSelectedGovernorateOnce: Boolean = false,
     val governorateId: String = "baghdad",
     val customLatitude: Double? = null,
     val customLongitude: Double? = null,
+    /** Legacy boolean mirror of [themeMode]; kept so older screens keep working. */
     val darkMode: Boolean = false,
+    val themeMode: ThemeMode = ThemeMode.SYSTEM,
+    val accentChoice: AccentChoice = AccentChoice.EMERALD,
     val fontChoice: AppFontChoice = AppFontChoice.NASKH,
+    val readingFontChoice: ReadingFontChoice = ReadingFontChoice.AMIRI,
     val readingFontScale: Float = 1.15f,
+    val uiFontScale: Float = 1.0f,
+    val lineSpacing: LineSpacingOption = LineSpacingOption.NORMAL,
+    val cardDensity: CardDensity = CardDensity.COMFORTABLE,
+    val quranBackground: QuranBackgroundStyle = QuranBackgroundStyle.PAPER,
+    val quranAutoScrollEnabled: Boolean = false,
+    val quranAutoScrollSpeed: Float = 1.0f,
     val prayerCalcMethodCode: Int = PrayerCalcMethod.JAFARI.apiCode,
     val prayerOffsets: PrayerMinuteOffsets = PrayerMinuteOffsets(),
     val hijriOffsetDays: Int = 0,
+    val timeFormat: TimeFormat = TimeFormat.TWELVE_HOUR,
     val notifyPrayers: Boolean = false,
     val notifyMinutesBefore: Int = 5,
+    val prayerAlertProfile: PrayerAlertProfile = PrayerAlertProfile(),
     val notifyOccasions: Boolean = true,
     val notifyAdhkar: Boolean = true,
-    val hapticTasbihEnabled: Boolean = true,
+    val hapticTasbihEnabled: Boolean = false,
     val dailyTasbihGoal: Int = 100,
     val dailyTasbihCount: Int = 0,
     val dailyTasbihDayKey: String = "",
@@ -45,8 +151,23 @@ data class UserSettingsState(
     val lastAyahNumber: Int = 1,
     val selectedReciterId: String = "afasy",
     val playbackSpeed: Float = 1.0f,
-    val adminPinSha256: String = ""
-)
+    val adminPinSha256: String = "",
+    val homeCards: List<HomeCard> = HomeCard.defaultOrder,
+    val hiddenHomeCards: Set<HomeCard> = emptySet(),
+    val dailyGoals: Set<DailyGoal> = emptySet(),
+    val tasbihPresetId: String = "zahra",
+    val tasbihStageIndex: Int = 0,
+    val tasbihStageCount: Int = 0,
+    val tasbihTotalCount: Int = 0,
+    val tasbihCustomTarget: Int = 70
+) {
+    val effectiveDarkMode: Boolean
+        get() = when (themeMode) {
+            ThemeMode.LIGHT -> false
+            ThemeMode.DARK -> true
+            ThemeMode.SYSTEM -> darkMode
+        }
+}
 
 class UserPreferencesRepository(private val context: Context) {
 
@@ -80,17 +201,110 @@ class UserPreferencesRepository(private val context: Context) {
         val RECITER_ID = stringPreferencesKey("reciter_id")
         val PLAYBACK_SPEED = floatPreferencesKey("playback_speed")
         val ADMIN_PIN_HASH = stringPreferencesKey("admin_pin_hash")
+        val THEME_MODE = stringPreferencesKey("theme_mode")
+        val ACCENT_CHOICE = stringPreferencesKey("accent_choice")
+        val READING_FONT_CHOICE = stringPreferencesKey("reading_font_choice")
+        val UI_FONT_SCALE = floatPreferencesKey("ui_font_scale")
+        val LINE_SPACING = stringPreferencesKey("line_spacing")
+        val CARD_DENSITY = stringPreferencesKey("card_density")
+        val QURAN_BACKGROUND = stringPreferencesKey("quran_background")
+        val QURAN_AUTO_SCROLL = booleanPreferencesKey("quran_auto_scroll")
+        val QURAN_AUTO_SCROLL_SPEED = floatPreferencesKey("quran_auto_scroll_speed")
+        val TIME_FORMAT = stringPreferencesKey("time_format")
+        val QUIET_HOURS = stringPreferencesKey("quiet_hours")
+        val HOME_LAYOUT = stringPreferencesKey("home_layout")
+        val DAILY_GOALS = stringPreferencesKey("daily_goals")
+        val DHIKR_COUNT_DAY_KEY = stringPreferencesKey("dhikr_count_day_key")
+        val TASBIH_PRESET_ID = stringPreferencesKey("tasbih_preset_id")
+        val TASBIH_STAGE_INDEX = intPreferencesKey("tasbih_stage_index")
+        val TASBIH_STAGE_COUNT = intPreferencesKey("tasbih_stage_count")
+        val TASBIH_TOTAL_COUNT = intPreferencesKey("tasbih_total_count")
+        val TASBIH_CUSTOM_TARGET = intPreferencesKey("tasbih_custom_target")
+        const val DHIKR_COUNT_PREFIX = "dhikr_count_"
+        fun dhikrCountKey(id: Long) = intPreferencesKey(DHIKR_COUNT_PREFIX + id)
+        fun prayerAlertKey(prayer: PrayerKey) = stringPreferencesKey("prayer_alert_${prayer.key}")
+    }
+
+    /**
+     * The repeat counters of the adhkar, stored locally so the progress survives a rotation,
+     * a navigation to another screen and a restart of the app.
+     */
+    val dhikrCountersFlow: Flow<Map<Long, Int>> = context.alHadithiDataStore.data.map { prefs ->
+        prefs.asMap().mapNotNull { (key, value) ->
+            if (!key.name.startsWith(Keys.DHIKR_COUNT_PREFIX)) return@mapNotNull null
+            val id = key.name.removePrefix(Keys.DHIKR_COUNT_PREFIX).toLongOrNull()
+                ?: return@mapNotNull null
+            val count = value as? Int ?: return@mapNotNull null
+            id to count
+        }.toMap()
+    }
+
+    /**
+     * Increments the repeat counter of one dhikr and returns the new value. Every counter resets
+     * when the day changes so the progress always matches the current day.
+     */
+    suspend fun incrementDhikrCounter(id: Long, dayKey: String): Int {
+        var result = 0
+        context.alHadithiDataStore.edit { prefs ->
+            val storedDay = prefs[Keys.DHIKR_COUNT_DAY_KEY] ?: ""
+            if (storedDay != dayKey) {
+                val staleKeys = prefs.asMap().keys
+                    .filter { it.name.startsWith(Keys.DHIKR_COUNT_PREFIX) }
+                    .toList()
+                staleKeys.forEach { prefs.remove(it) }
+                prefs[Keys.DHIKR_COUNT_DAY_KEY] = dayKey
+            }
+            val key = Keys.dhikrCountKey(id)
+            val next = (prefs[key] ?: 0) + 1
+            prefs[key] = next
+            result = next
+        }
+        return result
+    }
+
+    suspend fun resetDhikrCounter(id: Long) {
+        context.alHadithiDataStore.edit { prefs ->
+            prefs.remove(Keys.dhikrCountKey(id))
+        }
+    }
+
+    suspend fun resetAllDhikrCounters() {
+        context.alHadithiDataStore.edit { prefs ->
+            val staleKeys = prefs.asMap().keys
+                .filter { it.name.startsWith(Keys.DHIKR_COUNT_PREFIX) }
+                .toList()
+            staleKeys.forEach { prefs.remove(it) }
+        }
     }
 
     val settingsFlow: Flow<UserSettingsState> = context.alHadithiDataStore.data.map { prefs ->
+        val legacyDarkMode = prefs[Keys.DARK_MODE] ?: false
+        // A stored theme mode always wins; the legacy boolean is only the fallback for users who
+        // never picked an explicit mode.
+        val themeMode = resolveThemeMode(prefs[Keys.THEME_MODE], legacyDarkMode)
+        val notifyMinutesBefore = prefs[Keys.NOTIFY_MIN_BEFORE] ?: 5
+        val (homeCards, hiddenHomeCards) = HomeLayoutCodec.decode(prefs[Keys.HOME_LAYOUT])
+        val prayerAlerts = PrayerKey.entries.associateWith { prayer ->
+            prefs[Keys.prayerAlertKey(prayer)]?.let { PrayerAlertSettings.decode(it) }
+                ?: PrayerAlertSettings(leadMinutes = notifyMinutesBefore)
+        }
         UserSettingsState(
             hasSelectedGovernorateOnce = prefs[Keys.HAS_SELECTED_GOV] ?: false,
             governorateId = prefs[Keys.GOVERNORATE_ID] ?: "baghdad",
             customLatitude = prefs[Keys.CUSTOM_LATITUDE],
             customLongitude = prefs[Keys.CUSTOM_LONGITUDE],
-            darkMode = prefs[Keys.DARK_MODE] ?: false,
+            darkMode = legacyDarkMode,
+            themeMode = themeMode,
+            accentChoice = AccentChoice.fromKey(prefs[Keys.ACCENT_CHOICE]),
             fontChoice = AppFontChoice.fromKey(prefs[Keys.FONT_CHOICE] ?: AppFontChoice.NASKH.key),
+            readingFontChoice = ReadingFontChoice.fromKey(prefs[Keys.READING_FONT_CHOICE]),
             readingFontScale = prefs[Keys.READING_FONT_SCALE] ?: 1.15f,
+            uiFontScale = prefs[Keys.UI_FONT_SCALE] ?: 1.0f,
+            lineSpacing = LineSpacingOption.fromKey(prefs[Keys.LINE_SPACING]),
+            cardDensity = CardDensity.fromKey(prefs[Keys.CARD_DENSITY]),
+            quranBackground = QuranBackgroundStyle.fromKey(prefs[Keys.QURAN_BACKGROUND]),
+            quranAutoScrollEnabled = prefs[Keys.QURAN_AUTO_SCROLL] ?: false,
+            quranAutoScrollSpeed = prefs[Keys.QURAN_AUTO_SCROLL_SPEED] ?: 1.0f,
             prayerCalcMethodCode = prefs[Keys.CALC_METHOD] ?: PrayerCalcMethod.JAFARI.apiCode,
             prayerOffsets = PrayerMinuteOffsets(
                 fajr = prefs[Keys.TUNE_FAJR] ?: 0,
@@ -101,11 +315,16 @@ class UserPreferencesRepository(private val context: Context) {
                 isha = prefs[Keys.TUNE_ISHA] ?: 0
             ),
             hijriOffsetDays = (prefs[Keys.HIJRI_OFFSET] ?: 0).coerceIn(-2, 2),
+            timeFormat = TimeFormat.fromKey(prefs[Keys.TIME_FORMAT]),
             notifyPrayers = prefs[Keys.NOTIFY_PRAYERS] ?: false,
-            notifyMinutesBefore = prefs[Keys.NOTIFY_MIN_BEFORE] ?: 5,
+            notifyMinutesBefore = notifyMinutesBefore,
+            prayerAlertProfile = PrayerAlertProfile(
+                alerts = prayerAlerts,
+                quietHours = QuietHours.decode(prefs[Keys.QUIET_HOURS])
+            ),
             notifyOccasions = prefs[Keys.NOTIFY_OCCASIONS] ?: true,
             notifyAdhkar = prefs[Keys.NOTIFY_ADHKAR] ?: true,
-            hapticTasbihEnabled = prefs[Keys.HAPTIC_TASBIH] ?: true,
+            hapticTasbihEnabled = prefs[Keys.HAPTIC_TASBIH] ?: false,
             dailyTasbihGoal = prefs[Keys.DAILY_TASBIH_GOAL] ?: 100,
             dailyTasbihCount = prefs[Keys.DAILY_TASBIH_COUNT] ?: 0,
             dailyTasbihDayKey = prefs[Keys.DAILY_TASBIH_DAY_KEY] ?: "",
@@ -114,7 +333,15 @@ class UserPreferencesRepository(private val context: Context) {
             lastAyahNumber = prefs[Keys.LAST_AYAH_NUM] ?: 1,
             selectedReciterId = prefs[Keys.RECITER_ID] ?: "afasy",
             playbackSpeed = prefs[Keys.PLAYBACK_SPEED] ?: 1.0f,
-            adminPinSha256 = prefs[Keys.ADMIN_PIN_HASH] ?: ""
+            adminPinSha256 = prefs[Keys.ADMIN_PIN_HASH] ?: "",
+            homeCards = homeCards,
+            hiddenHomeCards = hiddenHomeCards,
+            dailyGoals = DailyGoal.decode(prefs[Keys.DAILY_GOALS]),
+            tasbihPresetId = prefs[Keys.TASBIH_PRESET_ID] ?: "zahra",
+            tasbihStageIndex = (prefs[Keys.TASBIH_STAGE_INDEX] ?: 0).coerceIn(0, 2),
+            tasbihStageCount = (prefs[Keys.TASBIH_STAGE_COUNT] ?: 0).coerceAtLeast(0),
+            tasbihTotalCount = (prefs[Keys.TASBIH_TOTAL_COUNT] ?: 0).coerceAtLeast(0),
+            tasbihCustomTarget = (prefs[Keys.TASBIH_CUSTOM_TARGET] ?: 70).coerceIn(1, 10000)
         )
     }
 
@@ -151,6 +378,85 @@ class UserPreferencesRepository(private val context: Context) {
 
     suspend fun setDarkMode(enabled: Boolean) {
         context.alHadithiDataStore.edit { it[Keys.DARK_MODE] = enabled }
+    }
+
+    suspend fun setThemeMode(mode: ThemeMode) {
+        context.alHadithiDataStore.edit { prefs ->
+            prefs[Keys.THEME_MODE] = mode.key
+            // Keep the legacy flag in sync so any remaining reader of it stays consistent.
+            prefs[Keys.DARK_MODE] = mode == ThemeMode.DARK
+        }
+    }
+
+    suspend fun setAccentChoice(choice: AccentChoice) {
+        context.alHadithiDataStore.edit { it[Keys.ACCENT_CHOICE] = choice.key }
+    }
+
+    suspend fun setReadingFontChoice(choice: ReadingFontChoice) {
+        context.alHadithiDataStore.edit { it[Keys.READING_FONT_CHOICE] = choice.key }
+    }
+
+    suspend fun setUiFontScale(scale: Float) {
+        context.alHadithiDataStore.edit { it[Keys.UI_FONT_SCALE] = scale.coerceIn(0.85f, 1.45f) }
+    }
+
+    suspend fun setLineSpacing(option: LineSpacingOption) {
+        context.alHadithiDataStore.edit { it[Keys.LINE_SPACING] = option.key }
+    }
+
+    suspend fun setCardDensity(density: CardDensity) {
+        context.alHadithiDataStore.edit { it[Keys.CARD_DENSITY] = density.key }
+    }
+
+    suspend fun setQuranBackground(background: QuranBackgroundStyle) {
+        context.alHadithiDataStore.edit { it[Keys.QURAN_BACKGROUND] = background.key }
+    }
+
+    suspend fun setQuranAutoScroll(enabled: Boolean, speed: Float = 1.0f) {
+        context.alHadithiDataStore.edit { prefs ->
+            prefs[Keys.QURAN_AUTO_SCROLL] = enabled
+            prefs[Keys.QURAN_AUTO_SCROLL_SPEED] = speed.coerceIn(0.25f, 3.0f)
+        }
+    }
+
+    suspend fun setTimeFormat(format: TimeFormat) {
+        context.alHadithiDataStore.edit { it[Keys.TIME_FORMAT] = format.key }
+    }
+
+    suspend fun setPrayerAlert(prayer: PrayerKey, settings: PrayerAlertSettings) {
+        context.alHadithiDataStore.edit { it[Keys.prayerAlertKey(prayer)] = settings.encode() }
+    }
+
+    suspend fun setQuietHours(quietHours: QuietHours) {
+        context.alHadithiDataStore.edit { it[Keys.QUIET_HOURS] = quietHours.encode() }
+    }
+
+    suspend fun setHomeLayout(cards: List<HomeCard>, hidden: Set<HomeCard>) {
+        context.alHadithiDataStore.edit { it[Keys.HOME_LAYOUT] = HomeLayoutCodec.encode(cards, hidden) }
+    }
+
+    suspend fun setDailyGoals(goals: Set<DailyGoal>) {
+        context.alHadithiDataStore.edit { it[Keys.DAILY_GOALS] = DailyGoal.encode(goals) }
+    }
+
+    /**
+     * Stores the state of the electronic tasbih so the count is never lost when the screen is
+     * recreated, the device is rotated or the user navigates to another section.
+     */
+    suspend fun saveTasbihScreenState(
+        presetId: String,
+        stageIndex: Int,
+        stageCount: Int,
+        totalCount: Int,
+        customTarget: Int
+    ) {
+        context.alHadithiDataStore.edit { prefs ->
+            prefs[Keys.TASBIH_PRESET_ID] = presetId
+            prefs[Keys.TASBIH_STAGE_INDEX] = stageIndex.coerceIn(0, 2)
+            prefs[Keys.TASBIH_STAGE_COUNT] = stageCount.coerceAtLeast(0)
+            prefs[Keys.TASBIH_TOTAL_COUNT] = totalCount.coerceAtLeast(0)
+            prefs[Keys.TASBIH_CUSTOM_TARGET] = customTarget.coerceIn(1, 10000)
+        }
     }
 
     suspend fun setFontChoice(choice: AppFontChoice) {
@@ -205,9 +511,10 @@ class UserPreferencesRepository(private val context: Context) {
     suspend fun incrementDailyTasbih(dayKey: String, delta: Int = 1) {
         context.alHadithiDataStore.edit { prefs ->
             val currentDay = prefs[Keys.DAILY_TASBIH_DAY_KEY] ?: ""
-            val base = if (currentDay == dayKey) (prefs[Keys.DAILY_TASBIH_COUNT] ?: 0) else 0
+            val currentCount = prefs[Keys.DAILY_TASBIH_COUNT] ?: 0
             prefs[Keys.DAILY_TASBIH_DAY_KEY] = dayKey
-            prefs[Keys.DAILY_TASBIH_COUNT] = (base + delta).coerceAtLeast(0)
+            prefs[Keys.DAILY_TASBIH_COUNT] =
+                TasbihProgress.nextCount(currentDay, currentCount, dayKey, delta)
         }
     }
 

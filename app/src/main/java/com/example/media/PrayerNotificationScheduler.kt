@@ -7,9 +7,13 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import com.example.domain.DailyPrayerSchedule
+import com.example.domain.PrayerAlertProfile
+import com.example.domain.PrayerAlertSettings
 import com.example.domain.PrayerAndHijriCalculator
 import com.example.domain.PrayerCalcMethod
+import com.example.domain.PrayerKey
 import com.example.domain.PrayerMinuteOffsets
+import com.example.domain.QuietHours
 import com.example.data.remote.PrayerNetworkClient
 import java.util.Calendar
 import java.util.Locale
@@ -37,6 +41,8 @@ object PrayerNotificationScheduler {
     private const val KEY_AREA = "area_name"
     private const val KEY_PENDING_URIS = "pending_uris"
     private const val KEY_API_SCHEDULES = "api_month_schedule_entries"
+    private const val KEY_QUIET_HOURS = "quiet_hours"
+    private const val KEY_ALERT_PREFIX = "alert_"
     private const val REFRESH_URI = "alhadithi://prayer/refresh"
     private const val REFRESH_HOUR = 0
     private const val REFRESH_MINUTE = 5
@@ -61,7 +67,8 @@ object PrayerNotificationScheduler {
         enabled: Boolean,
         apiYear: Int,
         apiMonth: Int,
-        apiMonthSchedules: List<DailyPrayerSchedule>
+        apiMonthSchedules: List<DailyPrayerSchedule>,
+        alertProfile: PrayerAlertProfile = PrayerAlertProfile()
     ) {
         if (!enabled) {
             disable(context)
@@ -74,7 +81,7 @@ object PrayerNotificationScheduler {
             return
         }
 
-        saveConfig(context, latitude, longitude, method, offsets, areaName, enabled = true)
+        saveConfig(context, latitude, longitude, method, offsets, areaName, enabled = true, alertProfile)
         val apiTimesByDate = buildApiTimesMap(apiYear, apiMonth, apiMonthSchedules)
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
             .putStringSet(KEY_API_SCHEDULES, apiTimesByDate.map { (date, times) ->
@@ -88,7 +95,8 @@ object PrayerNotificationScheduler {
             method = method,
             offsets = offsets,
             areaName = areaName,
-            apiTimesByDate = apiTimesByDate
+            apiTimesByDate = apiTimesByDate,
+            alertProfile = alertProfile
         )
     }
 
@@ -146,7 +154,8 @@ object PrayerNotificationScheduler {
             enabled = true,
             apiYear = year,
             apiMonth = month,
-            apiMonthSchedules = monthly
+            apiMonthSchedules = monthly,
+            alertProfile = readStoredAlertProfile(context)
         )
     }
 
@@ -181,7 +190,8 @@ object PrayerNotificationScheduler {
             method = method,
             offsets = offsets,
             areaName = areaName,
-            apiTimesByDate = apiTimesByDate
+            apiTimesByDate = apiTimesByDate,
+            alertProfile = readStoredAlertProfile(context)
         )
     }
 
@@ -192,9 +202,10 @@ object PrayerNotificationScheduler {
         method: PrayerCalcMethod,
         offsets: PrayerMinuteOffsets,
         areaName: String,
-        enabled: Boolean
+        enabled: Boolean,
+        alertProfile: PrayerAlertProfile
     ) {
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+        val editor = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
             .putBoolean(KEY_ENABLED, enabled)
             .putString(KEY_LAT, latitude.toString())
             .putString(KEY_LON, longitude.toString())
@@ -206,7 +217,23 @@ object PrayerNotificationScheduler {
             .putInt(KEY_MAGHRIB, offsets.maghrib)
             .putInt(KEY_ISHA, offsets.isha)
             .putString(KEY_AREA, areaName)
-            .apply()
+            .putString(KEY_QUIET_HOURS, alertProfile.quietHours.encode())
+        PrayerKey.entries.forEach { prayer ->
+            editor.putString(KEY_ALERT_PREFIX + prayer.key, alertProfile.settingsFor(prayer).encode())
+        }
+        editor.apply()
+    }
+
+    /** Reads the persisted per-prayer reminder configuration back after a reboot or time change. */
+    private fun readStoredAlertProfile(context: Context): PrayerAlertProfile {
+        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val alerts = PrayerKey.entries.associateWith { prayer ->
+            PrayerAlertSettings.decode(prefs.getString(KEY_ALERT_PREFIX + prayer.key, null))
+        }
+        return PrayerAlertProfile(
+            alerts = alerts,
+            quietHours = QuietHours.decode(prefs.getString(KEY_QUIET_HOURS, null))
+        )
     }
 
     private fun scheduleWindow(
@@ -216,7 +243,8 @@ object PrayerNotificationScheduler {
         method: PrayerCalcMethod,
         offsets: PrayerMinuteOffsets,
         areaName: String,
-        apiTimesByDate: Map<String, PrayerTimesForDate>
+        apiTimesByDate: Map<String, PrayerTimesForDate>,
+        alertProfile: PrayerAlertProfile
     ) {
         cancelPrayerAlarms(context)
         val now = System.currentTimeMillis()
@@ -240,11 +268,11 @@ object PrayerNotificationScheduler {
             val apiTimes = apiTimesByDate[dateKey]
             val prayers = if (apiTimes != null) {
                 listOf(
-                    PrayerAlarm("fajr", "الفجر", apiTimes.fajr),
-                    PrayerAlarm("dhuhr", "الظهر", apiTimes.dhuhr),
-                    PrayerAlarm("asr", "العصر", apiTimes.asr),
-                    PrayerAlarm("maghrib", "المغرب", apiTimes.maghrib),
-                    PrayerAlarm("isha", "العشاء", apiTimes.isha)
+                    PrayerAlarm(PrayerKey.FAJR, "الفجر", apiTimes.fajr),
+                    PrayerAlarm(PrayerKey.DHUHR, "الظهر", apiTimes.dhuhr),
+                    PrayerAlarm(PrayerKey.ASR, "العصر", apiTimes.asr),
+                    PrayerAlarm(PrayerKey.MAGHRIB, "المغرب", apiTimes.maghrib),
+                    PrayerAlarm(PrayerKey.ISHA, "العشاء", apiTimes.isha)
                 )
             } else {
                 val localSchedule = PrayerAndHijriCalculator.calculateLocalPrayerSchedule(
@@ -256,20 +284,28 @@ object PrayerNotificationScheduler {
                     sourceLabel = "حساب محلي للموقع المحدد"
                 )
                 listOf(
-                    PrayerAlarm("fajr", "الفجر", localSchedule.fajrMinutes),
-                    PrayerAlarm("dhuhr", "الظهر", localSchedule.dhuhrMinutes),
-                    PrayerAlarm("asr", "العصر", localSchedule.asrMinutes),
-                    PrayerAlarm("maghrib", "المغرب", localSchedule.maghribMinutes),
-                    PrayerAlarm("isha", "العشاء", localSchedule.ishaMinutes)
+                    PrayerAlarm(PrayerKey.FAJR, "الفجر", localSchedule.fajrMinutes),
+                    PrayerAlarm(PrayerKey.DHUHR, "الظهر", localSchedule.dhuhrMinutes),
+                    PrayerAlarm(PrayerKey.ASR, "العصر", localSchedule.asrMinutes),
+                    PrayerAlarm(PrayerKey.MAGHRIB, "المغرب", localSchedule.maghribMinutes),
+                    PrayerAlarm(PrayerKey.ISHA, "العشاء", localSchedule.ishaMinutes)
                 )
             }
 
             prayers.forEach { prayer ->
-                val at = (date.clone() as Calendar).apply {
+                val alertSettings = alertProfile.settingsFor(prayer.key)
+                // A prayer the user switched off individually must not produce any alarm.
+                if (!alertSettings.enabled) return@forEach
+
+                val prayerMoment = (date.clone() as Calendar).apply {
                     set(Calendar.HOUR_OF_DAY, prayer.minutesOfDay / 60)
                     set(Calendar.MINUTE, prayer.minutesOfDay % 60)
                     set(Calendar.SECOND, 0)
                     set(Calendar.MILLISECOND, 0)
+                }
+                // The reminder may fire before the prayer time, possibly on the previous day.
+                val at = (prayerMoment.clone() as Calendar).apply {
+                    add(Calendar.MINUTE, -alertSettings.leadMinutes)
                 }.timeInMillis
                 if (at <= now + 5_000L) return@forEach
 
@@ -279,7 +315,10 @@ object PrayerNotificationScheduler {
                     uri = uri,
                     prayerName = prayer.arabicName,
                     timeText = String.format(Locale.US, "%02d:%02d", prayer.minutesOfDay / 60, prayer.minutesOfDay % 60),
-                    areaName = areaName
+                    areaName = areaName,
+                    soundEnabled = alertSettings.soundEnabled,
+                    vibrateEnabled = alertSettings.vibrateEnabled,
+                    quietHours = alertProfile.quietHours
                 )
                 scheduleAlarm(context, at, pendingIntent)
                 scheduledUris += uri
@@ -333,7 +372,7 @@ object PrayerNotificationScheduler {
     }
 
     private data class PrayerAlarm(
-        val key: String,
+        val key: PrayerKey,
         val arabicName: String,
         val minutesOfDay: Int
     )
@@ -343,7 +382,10 @@ object PrayerNotificationScheduler {
         uri: String,
         prayerName: String,
         timeText: String,
-        areaName: String
+        areaName: String,
+        soundEnabled: Boolean,
+        vibrateEnabled: Boolean,
+        quietHours: QuietHours
     ): PendingIntent {
         val intent = Intent(context, PrayerAlarmReceiver::class.java).apply {
             action = ACTION_PRAYER
@@ -351,6 +393,9 @@ object PrayerNotificationScheduler {
             putExtra(PrayerAlarmReceiver.EXTRA_PRAYER_NAME, prayerName)
             putExtra(PrayerAlarmReceiver.EXTRA_TIME_TEXT, timeText)
             putExtra(PrayerAlarmReceiver.EXTRA_AREA_NAME, areaName)
+            putExtra(PrayerAlarmReceiver.EXTRA_SOUND_ENABLED, soundEnabled)
+            putExtra(PrayerAlarmReceiver.EXTRA_VIBRATE_ENABLED, vibrateEnabled)
+            putExtra(PrayerAlarmReceiver.EXTRA_QUIET_HOURS, quietHours.encode())
         }
         return PendingIntent.getBroadcast(
             context,

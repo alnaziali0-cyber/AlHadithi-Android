@@ -38,6 +38,19 @@
             android:exported="false"
             android:foregroundServiceType="mediaPlayback" />
 
+        <!-- Publishes the Quran recitation to the system notification and the lock screen so the
+             audio can be controlled while the app is in the background. -->
+        <service
+            android:name=".media.AlHadithiPlaybackService"
+            android:enabled="true"
+            android:exported="true"
+            android:foregroundServiceType="mediaPlayback">
+            <intent-filter>
+                <action android:name="androidx.media3.session.MediaSessionService" />
+                <action android:name="android.media.browse.MediaBrowserService" />
+            </intent-filter>
+        </service>
+
         <receiver
             android:name=".media.PrayerAlarmReceiver"
             android:enabled="true"

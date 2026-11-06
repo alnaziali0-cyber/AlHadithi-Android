@@ -50,8 +50,10 @@ import com.example.ui.components.GlassCard
 import com.example.ui.components.GlassFilterChip
 import com.example.ui.components.SourceCitationBadge
 import com.example.ui.components.SubScreenTopBar
+import com.example.ui.theme.LocalLineSpacing
+import com.example.ui.theme.LocalReadingFontChoice
 import com.example.ui.theme.LocalReadingFontScale
-import com.example.ui.theme.quranAndHeritageStyle
+import com.example.ui.theme.heritageReadingStyle
 import com.example.util.SystemActionsHelper
 
 private data class ParsedChapter(val title: String, val body: String)
@@ -373,7 +375,11 @@ private fun BookReaderView(
                     Spacer(modifier = Modifier.height(10.dp))
                     Text(
                         text = currentChapter.body,
-                        style = quranAndHeritageStyle(fontScale * 0.92f).copy(lineHeight = 40.sp),
+                        style = heritageReadingStyle(
+                            fontScale * 0.92f,
+                            fontChoice = LocalReadingFontChoice.current,
+                            lineSpacing = LocalLineSpacing.current
+                        ).copy(lineHeight = 40.sp),
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Spacer(modifier = Modifier.height(14.dp))

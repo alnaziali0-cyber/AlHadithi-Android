@@ -10,6 +10,7 @@ import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import android.net.Uri
+import android.os.Build
 import android.speech.tts.TextToSpeech
 import android.util.Log
 import kotlinx.coroutines.CoroutineScope
@@ -112,6 +113,29 @@ object AudioPlayerController {
         }
     }
 
+    /** The shared player, published so the playback service can wrap it in a media session. */
+    val playerInstance: ExoPlayer?
+        get() = exoPlayer
+
+    /**
+     * Starts the playback service that publishes the recitation to the system notification.
+     * Any failure is swallowed: the audio must keep playing even if the notification cannot be
+     * shown (for example when the background start restrictions of the system apply).
+     */
+    private fun ensurePlaybackService() {
+        val ctx = appContext ?: return
+        runCatching {
+            val intent = AlHadithiPlaybackService.intent(ctx)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                ctx.startForegroundService(intent)
+            } else {
+                ctx.startService(intent)
+            }
+        }.onFailure { error ->
+            Log.w(TAG, "Could not start the playback service", error)
+        }
+    }
+
     /** One application-scoped ExoPlayer is reused across Compose screens. */
     private fun initializePlayer(context: Context) {
         if (exoPlayer != null) return
@@ -144,7 +168,14 @@ object AudioPlayerController {
 
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 _state.update { it.copy(isPlaying = isPlaying, isPreparing = if (isPlaying) false else it.isPreparing) }
-                if (isPlaying) startProgressTicker() else tickerJob?.cancel()
+                if (isPlaying) {
+                    startProgressTicker()
+                    // The playback service publishes the session to the system notification and
+                    // keeps the recitation running while the app is in the background.
+                    ensurePlaybackService()
+                } else {
+                    tickerJob?.cancel()
+                }
             }
 
             override fun onPlayerError(error: PlaybackException) {

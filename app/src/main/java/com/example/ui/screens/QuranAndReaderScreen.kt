@@ -1,9 +1,12 @@
 package com.example.ui.screens
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -44,8 +47,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Slider
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.foundation.interaction.collectIsDraggedAsState
+import androidx.compose.foundation.gestures.scrollBy
+import androidx.compose.material.icons.outlined.PauseCircle
+import androidx.compose.material.icons.outlined.PlayCircle
+import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
@@ -70,14 +80,21 @@ import androidx.compose.ui.unit.dp
 import com.example.data.local.CachedAyahEntity
 import com.example.domain.SurahCatalog
 import com.example.domain.SurahMeta
+import com.example.domain.filterSurahs
 import com.example.media.AudioPlayerController
 import com.example.ui.components.GlassCard
 import com.example.ui.components.GlassFilterChip
 import com.example.ui.components.SourceCitationBadge
 import com.example.ui.components.SubScreenTopBar
+import com.example.ui.theme.LocalIsDarkThemeActive
+import com.example.ui.theme.LocalLineSpacing
 import com.example.ui.theme.LocalReadingFontScale
+import com.example.ui.theme.QuranBackgroundStyle
+import com.example.ui.theme.ReadingFontChoice
 import com.example.ui.theme.quranAndHeritageStyle
+import com.example.ui.theme.readerBackdropFor
 import com.example.util.SystemActionsHelper
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -92,12 +109,19 @@ fun QuranIndexAndReaderScreen(
     lastAyahNumber: Int,
     selectedReciterId: String,
     darkMode: Boolean,
+    readingFontChoice: ReadingFontChoice,
+    quranBackground: QuranBackgroundStyle,
+    autoScrollEnabled: Boolean,
+    autoScrollSpeed: Float,
     onSelectSurahToRead: (Int) -> Unit,
     onCloseReaderToIndex: () -> Unit,
     onPlaySurahAudio: (Int) -> Unit,
     onSelectReciter: (String) -> Unit,
     onChangeFontScale: (Float) -> Unit,
     onToggleDarkMode: (Boolean) -> Unit,
+    onChangeReadingFont: (ReadingFontChoice) -> Unit,
+    onChangeBackground: (QuranBackgroundStyle) -> Unit,
+    onChangeAutoScroll: (Boolean, Float) -> Unit,
     onSaveLastReadAyah: (Int, Int) -> Unit,
     onSaveFavorite: (String, String, String, String, String) -> Unit
 ) {
@@ -109,11 +133,18 @@ fun QuranIndexAndReaderScreen(
             isLoading = isLoadingSurah,
             errorMsg = surahError,
             darkMode = darkMode,
+            readingFontChoice = readingFontChoice,
+            quranBackground = quranBackground,
+            autoScrollEnabled = autoScrollEnabled,
+            autoScrollSpeed = autoScrollSpeed,
             onBack = onCloseReaderToIndex,
             onPlayAudio = { onPlaySurahAudio(activeSurahNumber) },
             onRetry = { onSelectSurahToRead(activeSurahNumber) },
             onChangeFontScale = onChangeFontScale,
             onToggleDarkMode = onToggleDarkMode,
+            onChangeReadingFont = onChangeReadingFont,
+            onChangeBackground = onChangeBackground,
+            onChangeAutoScroll = onChangeAutoScroll,
             onSaveLastReadAyah = onSaveLastReadAyah,
             onSaveFavorite = onSaveFavorite
         )
@@ -124,15 +155,15 @@ fun QuranIndexAndReaderScreen(
     var tabIndex by remember { mutableIntStateOf(0) } // 0=السور, 1=الأجزاء, 2=الأحزاب, 3=العزائم والسجدات
 
     val filteredSurahs = remember(filterQuery, tabIndex) {
-        val base = when (tabIndex) {
-            3 -> SurahCatalog.allSurahs.filter { it.hasSajdah }
-            else -> SurahCatalog.allSurahs
-        }
-        if (filterQuery.isBlank()) base
-        else base.filter {
-            it.arabicName.contains(filterQuery.trim()) ||
-                it.number.toString() == filterQuery.trim()
-        }
+        filterSurahs(
+            surahs = if (tabIndex == 3) {
+                SurahCatalog.allSurahs.filter { it.hasSajdah }
+            } else {
+                SurahCatalog.allSurahs
+            },
+            query = filterQuery,
+            onlySajdah = false
+        )
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -146,12 +177,19 @@ fun QuranIndexAndReaderScreen(
             shape = RoundedCornerShape(14.dp),
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp)
         ) {
-            Text(
-                text = "طريق الرواية المذكور في كتب القراءات: حفص عن عاصم، عن أبي عبد الرحمن السلمي، عن أمير المؤمنين علي بن أبي طالب (ع).",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSecondaryContainer,
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)
-            )
+            Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
+                Text(
+                    text = "طريق الرواية المذكور في كتب القراءات: حفص عن عاصم، عن أبي عبد الرحمن السلمي، عن أمير المؤمنين علي بن أبي طالب (ع).",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = "نص السورة يُجلب بالرسم العثماني من خدمة Al Quran Cloud عند فتحها لأول مرة، ثم يُحفظ على جهازك وتبقى متاحة دون إنترنت. السور التي لم تُفتح بعد تحتاج إلى اتصال. النص معروض كما ورد دون تعديل أو إعادة صياغة.",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.85f)
+                )
+            }
         }
 
         LazyColumn(
@@ -397,7 +435,7 @@ private fun SurahRowCard(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 private fun SurahReaderView(
     surahNumber: Int,
@@ -406,11 +444,18 @@ private fun SurahReaderView(
     isLoading: Boolean,
     errorMsg: String?,
     darkMode: Boolean,
+    readingFontChoice: ReadingFontChoice,
+    quranBackground: QuranBackgroundStyle,
+    autoScrollEnabled: Boolean,
+    autoScrollSpeed: Float,
     onBack: () -> Unit,
     onPlayAudio: () -> Unit,
     onRetry: () -> Unit,
     onChangeFontScale: (Float) -> Unit,
     onToggleDarkMode: (Boolean) -> Unit,
+    onChangeReadingFont: (ReadingFontChoice) -> Unit,
+    onChangeBackground: (QuranBackgroundStyle) -> Unit,
+    onChangeAutoScroll: (Boolean, Float) -> Unit,
     onSaveLastReadAyah: (Int, Int) -> Unit,
     onSaveFavorite: (String, String, String, String, String) -> Unit
 ) {
@@ -427,10 +472,13 @@ private fun SurahReaderView(
     val isSurahDownloaded = downloadKey in playerState.downloadedKeys
     val downloadProgress = playerState.downloadProgress[downloadKey] ?: -1f
     val fontScale = LocalReadingFontScale.current
+    val lineSpacing = LocalLineSpacing.current
     val scrollState = rememberScrollState()
     var quranTextLayout by remember { mutableStateOf<TextLayoutResult?>(null) }
     var quranTextTopPx by remember { mutableIntStateOf(0) }
     val readerTopPaddingPx = with(LocalDensity.current) { 14.dp.roundToPx() }
+    val isDarkReader = LocalIsDarkThemeActive.current
+    val backdrop = remember(quranBackground, isDarkReader) { readerBackdropFor(quranBackground, isDarkReader) }
     val accentColor = MaterialTheme.colorScheme.primary
     val sortedAyahs = remember(ayahs) { ayahs.sortedBy { it.ayahNumberInSurah } }
     val quranContent = remember(sortedAyahs, accentColor) {
@@ -443,6 +491,24 @@ private fun SurahReaderView(
     var selectedAyahForTafsir by remember { mutableStateOf<CachedAyahEntity?>(null) }
     var showJumpDialog by remember { mutableStateOf(false) }
     var jumpInput by remember { mutableStateOf("") }
+    var showReaderSettings by remember { mutableStateOf(false) }
+    var localAutoScroll by remember { mutableStateOf(autoScrollEnabled) }
+
+    // The auto scroll pauses as soon as the reader drags the text by hand and resumes afterwards.
+    val isUserDragging by scrollState.interactionSource.collectIsDraggedAsState()
+
+    LaunchedEffect(localAutoScroll, autoScrollSpeed, isUserDragging, sortedAyahs.size) {
+        if (!localAutoScroll || isUserDragging) return@LaunchedEffect
+        val stepPx = (2.2f * autoScrollSpeed.coerceIn(0.25f, 3f)).toInt().coerceAtLeast(1)
+        while (scrollState.value < scrollState.maxValue) {
+            delay(40L)
+            scrollState.scrollBy(stepPx.toFloat())
+        }
+    }
+
+    LaunchedEffect(autoScrollEnabled) {
+        localAutoScroll = autoScrollEnabled
+    }
 
     LaunchedEffect(surahNumber) {
         scrollState.scrollTo(0)
@@ -471,6 +537,37 @@ private fun SurahReaderView(
                     }
                     IconButton(onClick = { onToggleDarkMode(!darkMode) }) {
                         Icon(Icons.Outlined.DarkMode, contentDescription = "الوضع الليلي")
+                    }
+                    IconButton(
+                        onClick = {
+                            localAutoScroll = !localAutoScroll
+                            onChangeAutoScroll(localAutoScroll, autoScrollSpeed)
+                        },
+                        modifier = Modifier.testTag("quran_auto_scroll_toggle")
+                    ) {
+                        Icon(
+                            imageVector = if (localAutoScroll) {
+                                Icons.Outlined.PauseCircle
+                            } else {
+                                Icons.Outlined.PlayCircle
+                            },
+                            contentDescription = if (localAutoScroll) {
+                                "إيقاف التمرير التلقائي"
+                            } else {
+                                "تشغيل التمرير التلقائي"
+                            },
+                            tint = if (localAutoScroll) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            }
+                        )
+                    }
+                    IconButton(
+                        onClick = { showReaderSettings = true },
+                        modifier = Modifier.testTag("quran_reader_settings_button")
+                    ) {
+                        Icon(Icons.Outlined.Tune, contentDescription = "إعدادات القراءة")
                     }
                     IconButton(onClick = onPlayAudio) {
                         Icon(
@@ -577,6 +674,7 @@ private fun SurahReaderView(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
+                        .background(backdrop.background)
                         .verticalScroll(scrollState)
                         .testTag("quran_surah_continuous_page")
                 ) {
@@ -589,7 +687,11 @@ private fun SurahReaderView(
                         if (surahNumber != 1 && surahNumber != 9) {
                             Text(
                                 text = "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ",
-                                style = quranAndHeritageStyle(fontScale).copy(
+                                style = quranAndHeritageStyle(
+                                    fontScale,
+                                    fontChoice = readingFontChoice,
+                                    lineSpacing = lineSpacing
+                                ).copy(
                                     color = MaterialTheme.colorScheme.primary,
                                     textAlign = TextAlign.Center
                                 ),
@@ -601,15 +703,19 @@ private fun SurahReaderView(
                             Text(
                                 text = "لم يصل نص السورة بعد. تحقق من اتصال الإنترنت ثم أعد المحاولة.",
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = backdrop.onBackground
                             )
                             Spacer(modifier = Modifier.height(12.dp))
                             Button(onClick = onRetry) { Text("إعادة تحميل السورة") }
                         } else {
                             ClickableText(
                                 text = quranContent.annotatedText,
-                                style = quranAndHeritageStyle(fontScale).copy(
-                                    color = MaterialTheme.colorScheme.onSurface,
+                                style = quranAndHeritageStyle(
+                                    fontScale,
+                                    fontChoice = readingFontChoice,
+                                    lineSpacing = lineSpacing
+                                ).copy(
+                                    color = backdrop.onBackground,
                                     textAlign = TextAlign.Justify
                                 ),
                                 modifier = Modifier
@@ -641,6 +747,105 @@ private fun SurahReaderView(
                         }
                     }
                 }
+            }
+        }
+    }
+
+    if (showReaderSettings) {
+        ModalBottomSheet(
+            onDismissRequest = { showReaderSettings = false },
+            containerColor = MaterialTheme.colorScheme.surface
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 12.dp)
+                    .testTag("quran_reader_settings_sheet")
+            ) {
+                Text(
+                    text = "إعدادات القراءة",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "تُحفظ هذه الخيارات محلياً وتُطبَّق فوراً على القارئ.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                Spacer(modifier = Modifier.height(14.dp))
+                Text("خط النصوص القرآنية:", style = MaterialTheme.typography.labelLarge)
+                Spacer(modifier = Modifier.height(6.dp))
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    ReadingFontChoice.entries.forEach { choice ->
+                        GlassFilterChip(
+                            label = choice.arabicLabel,
+                            selected = readingFontChoice == choice,
+                            onClick = { onChangeReadingFont(choice) }
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(14.dp))
+                Text("خلفية الصفحة:", style = MaterialTheme.typography.labelLarge)
+                Spacer(modifier = Modifier.height(6.dp))
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    QuranBackgroundStyle.entries.forEach { style ->
+                        GlassFilterChip(
+                            label = style.arabicLabel,
+                            selected = quranBackground == style,
+                            onClick = { onChangeBackground(style) }
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(14.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("التمرير التلقائي أثناء التلاوة", style = MaterialTheme.typography.labelLarge)
+                    androidx.compose.material3.Switch(
+                        checked = localAutoScroll,
+                        onCheckedChange = { checked ->
+                            localAutoScroll = checked
+                            onChangeAutoScroll(checked, autoScrollSpeed)
+                        },
+                        modifier = Modifier.testTag("quran_auto_scroll_switch")
+                    )
+                }
+                if (localAutoScroll) {
+                    Text(
+                        text = "سرعة التمرير: ${"%.1f".format(java.util.Locale.US, autoScrollSpeed)}×",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Slider(
+                        value = autoScrollSpeed,
+                        onValueChange = { onChangeAutoScroll(localAutoScroll, it) },
+                        valueRange = 0.25f..3.0f,
+                        modifier = Modifier.testTag("quran_auto_scroll_speed")
+                    )
+                    Text(
+                        text = "يتوقف التمرير تلقائياً عند تحريك النص يدوياً، ويُستأنف بعد رفع الإصبع.",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    text = "مصدر النص: خدمة Al Quran Cloud بالرسم العثماني، ويُحفظ محلياً بعد فتح السورة. النص لا يُعاد صياغته داخل التطبيق.",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(20.dp))
             }
         }
     }
@@ -702,7 +907,11 @@ private fun SurahReaderView(
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "﴿ ${a.uthmaniText} ﴾",
-                    style = quranAndHeritageStyle(fontScale * 0.95f),
+                    style = quranAndHeritageStyle(
+                        fontScale * 0.95f,
+                        fontChoice = readingFontChoice,
+                        lineSpacing = lineSpacing
+                    ),
                     color = MaterialTheme.colorScheme.primary
                 )
                 Spacer(modifier = Modifier.height(12.dp))
