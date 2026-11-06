@@ -23,8 +23,18 @@ jobs:
           distribution: temurin
           java-version: "21"
 
+      - name: Install Android command-line tools
+        run: |
+          mkdir -p "$ANDROID_HOME/cmdline-tools"
+          curl -fsSL https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -o /tmp/android-tools.zip
+          unzip -q /tmp/android-tools.zip -d /tmp/android-tools
+          mkdir -p "$ANDROID_HOME/cmdline-tools/latest"
+          mv /tmp/android-tools/cmdline-tools/* "$ANDROID_HOME/cmdline-tools/latest/"
+
       - name: Install Android SDK packages
-        run: yes | "$ANDROID_HOME/cmdline-tools/16.0/bin/sdkmanager" "platform-tools" "platforms;android-36" "build-tools;36.0.0"
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platform-tools" "platforms;android-36" "build-tools;36.0.0"
 
       - name: Build debug APK
         run: ./gradlew --no-daemon assembleDebug
