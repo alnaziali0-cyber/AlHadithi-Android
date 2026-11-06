@@ -1,0 +1,295 @@
+{
+  "schema_version": "1.0.0",
+  "collection_title": "مكتبة تلاوات القرآن - الحديثي",
+  "language": "ar",
+  "audio_files_included": false,
+  "important_note": "هذه الحزمة فهرس وروابط مصادر وليست أرشيف MP3. لا تدمج أي تسجيل في APK ولا تعِد استضافته قبل الحصول على إذن مكتوب من صاحب حقوق التسجيل أو الناشر.",
+  "reciters": [
+    {
+      "id": "shahriar-parhizgar",
+      "name_ar": "شهريار پرهيزگار",
+      "name_en": "Shahriar Parhizgar",
+      "country": "إيران",
+      "classification": "قارئ إيراني؛ وصف ملفه في Wikimedia Commons يذكر أنه من القرّاء الشيعة",
+      "classification_status": "source_description",
+      "riwaya": "حفص عن عاصم",
+      "style": "مرتل",
+      "coverage": {
+        "unit": "surah",
+        "count": 114,
+        "complete_quran": true
+      },
+      "source_page": "https://ar.assabile.com/shahriar-parhizgar/quran",
+      "download_method": "التنزيل من صفحة المصدر سورةً سورة؛ لم يتم إدراج روابط MP3 مباشرة لأن المصدر يعرض أزرار التحميل داخل الصفحة.",
+      "rights_status": "غير محسوم لإعادة التوزيع داخل التطبيق؛ يلزم إذن صاحب التسجيل/الناشر",
+      "evidence_urls": [
+        "https://commons.wikimedia.org/wiki/File:%D8%B4%D9%87%D8%B1%DB%8C%D8%A7%D8%B1_%D9%BE%D8%B1%D9%87%DB%8C%D8%B2%DA%A9%D8%A7%D8%B1_01.jpg",
+        "https://ar.assabile.com/shahriar-parhizgar/quran"
+      ]
+    },
+    {
+      "id": "hamed-shakernejad",
+      "name_ar": "حامد شاكرنژاد",
+      "name_en": "Hamed Shakernejad",
+      "country": "إيران",
+      "classification": "موجود ضمن قسم القرّاء في موقع Shia Source؛ لا يعني ذلك وحده إثبات الانتماء الشخصي",
+      "classification_status": "listed_in_shia_audio_catalog",
+      "riwaya": "غير موضح في صفحة مصدر الأجزاء",
+      "style": "ترتيل",
+      "coverage": {
+        "unit": "juz",
+        "count": 30,
+        "complete_quran": true
+      },
+      "source_page": "https://www.mohtavanashr.ir/4031214008/",
+      "download_method": "المصدر يعرض 30 ملف MP3 منفصلاً، ملف لكل جزء.",
+      "tracks": [
+        {
+          "juz": 1,
+          "title_ar": "الجزء 01",
+          "format": "mp3",
+          "source_url": "https://www.mohtavanashr.ir/wp-content/uploads/2025/03/%D8%AD%D8%A7%D9%85%D8%AF-%D8%B4%D8%A7%DA%A9%D8%B1%D9%86%DA%98%D8%A7%D8%AF_%D8%AA%D8%B1%D8%AA%DB%8C%D9%84_%D8%AC%D8%B2%D8%A1_01.mp3",
+          "source_page": "https://www.mohtavanashr.ir/4031214008/"
+        },
+        {
+          "juz": 2,
+          "title_ar": "الجزء 02",
+          "format": "mp3",
+          "source_url": "https://www.mohtavanashr.ir/wp-content/uploads/2025/03/%D8%AD%D8%A7%D9%85%D8%AF-%D8%B4%D8%A7%DA%A9%D8%B1%D9%86%DA%98%D8%A7%D8%AF_%D8%AA%D8%B1%D8%AA%DB%8C%D9%84_%D8%AC%D8%B2%D8%A1_02.mp3",
+          "source_page": "https://www.mohtavanashr.ir/4031214008/"
+        },
+        {
+          "juz": 3,
+          "title_ar": "الجزء 03",
+          "format": "mp3",
+          "source_url": "https://www.mohtavanashr.ir/wp-content/uploads/2025/03/%D8%AD%D8%A7%D9%85%D8%AF-%D8%B4%D8%A7%DA%A9%D8%B1%D9%86%DA%98%D8%A7%D8%AF_%D8%AA%D8%B1%D8%AA%DB%8C%D9%84_%D8%AC%D8%B2%D8%A1_03.mp3",
+          "source_page": "https://www.mohtavanashr.ir/4031214008/"
+        },
+        {
+          "juz": 4,
+          "title_ar": "الجزء 04",
+          "format": "mp3",
+          "source_url": "https://www.mohtavanashr.ir/wp-content/uploads/2025/03/%D8%AD%D8%A7%D9%85%D8%AF-%D8%B4%D8%A7%DA%A9%D8%B1%D9%86%DA%98%D8%A7%D8%AF_%D8%AA%D8%B1%D8%AA%DB%8C%D9%84_%D8%AC%D8%B2%D8%A1_04.mp3",
+          "source_page": "https://www.mohtavanashr.ir/4031214008/"
+        },
+        {
+          "juz": 5,
+          "title_ar": "الجزء 05",
+          "format": "mp3",
+          "source_url": "https://www.mohtavanashr.ir/wp-content/uploads/2025/03/%D8%AD%D8%A7%D9%85%D8%AF-%D8%B4%D8%A7%DA%A9%D8%B1%D9%86%DA%98%D8%A7%D8%AF_%D8%AA%D8%B1%D8%AA%DB%8C%D9%84_%D8%AC%D8%B2%D8%A1_05.mp3",
+          "source_page": "https://www.mohtavanashr.ir/4031214008/"
+        },
+        {
+          "juz": 6,
+          "title_ar": "الجزء 06",
+          "format": "mp3",
+          "source_url": "https://www.mohtavanashr.ir/wp-content/uploads/2025/03/%D8%AD%D8%A7%D9%85%D8%AF-%D8%B4%D8%A7%DA%A9%D8%B1%D9%86%DA%98%D8%A7%D8%AF_%D8%AA%D8%B1%D8%AA%DB%8C%D9%84_%D8%AC%D8%B2%D8%A1_06.mp3",
+          "source_page": "https://www.mohtavanashr.ir/4031214008/"
+        },
+        {
+          "juz": 7,
+          "title_ar": "الجزء 07",
+          "format": "mp3",
+          "source_url": "https://www.mohtavanashr.ir/wp-content/uploads/2025/03/%D8%AD%D8%A7%D9%85%D8%AF-%D8%B4%D8%A7%DA%A9%D8%B1%D9%86%DA%98%D8%A7%D8%AF_%D8%AA%D8%B1%D8%AA%DB%8C%D9%84_%D8%AC%D8%B2%D8%A1_07.mp3",
+          "source_page": "https://www.mohtavanashr.ir/4031214008/"
+        },
+        {
+          "juz": 8,
+          "title_ar": "الجزء 08",
+          "format": "mp3",
+          "source_url": "https://www.mohtavanashr.ir/wp-content/uploads/2025/03/%D8%AD%D8%A7%D9%85%D8%AF-%D8%B4%D8%A7%DA%A9%D8%B1%D9%86%DA%98%D8%A7%D8%AF_%D8%AA%D8%B1%D8%AA%DB%8C%D9%84_%D8%AC%D8%B2%D8%A1_08.mp3",
+          "source_page": "https://www.mohtavanashr.ir/4031214008/"
+        },
+        {
+          "juz": 9,
+          "title_ar": "الجزء 09",
+          "format": "mp3",
+          "source_url": "https://www.mohtavanashr.ir/wp-content/uploads/2025/03/%D8%AD%D8%A7%D9%85%D8%AF-%D8%B4%D8%A7%DA%A9%D8%B1%D9%86%DA%98%D8%A7%D8%AF_%D8%AA%D8%B1%D8%AA%DB%8C%D9%84_%D8%AC%D8%B2%D8%A1_09.mp3",
+          "source_page": "https://www.mohtavanashr.ir/4031214008/"
+        },
+        {
+          "juz": 10,
+          "title_ar": "الجزء 10",
+          "format": "mp3",
+          "source_url": "https://www.mohtavanashr.ir/wp-content/uploads/2025/03/%D8%AD%D8%A7%D9%85%D8%AF-%D8%B4%D8%A7%DA%A9%D8%B1%D9%86%DA%98%D8%A7%D8%AF_%D8%AA%D8%B1%D8%AA%DB%8C%D9%84_%D8%AC%D8%B2%D8%A1_10.mp3",
+          "source_page": "https://www.mohtavanashr.ir/4031214008/"
+        },
+        {
+          "juz": 11,
+          "title_ar": "الجزء 11",
+          "format": "mp3",
+          "source_url": "https://www.mohtavanashr.ir/wp-content/uploads/2025/03/%D8%AD%D8%A7%D9%85%D8%AF-%D8%B4%D8%A7%DA%A9%D8%B1%D9%86%DA%98%D8%A7%D8%AF_%D8%AA%D8%B1%D8%AA%DB%8C%D9%84_%D8%AC%D8%B2%D8%A1_11.mp3",
+          "source_page": "https://www.mohtavanashr.ir/4031214008/"
+        },
+        {
+          "juz": 12,
+          "title_ar": "الجزء 12",
+          "format": "mp3",
+          "source_url": "https://www.mohtavanashr.ir/wp-content/uploads/2025/03/%D8%AD%D8%A7%D9%85%D8%AF-%D8%B4%D8%A7%DA%A9%D8%B1%D9%86%DA%98%D8%A7%D8%AF_%D8%AA%D8%B1%D8%AA%DB%8C%D9%84_%D8%AC%D8%B2%D8%A1_12.mp3",
+          "source_page": "https://www.mohtavanashr.ir/4031214008/"
+        },
+        {
+          "juz": 13,
+          "title_ar": "الجزء 13",
+          "format": "mp3",
+          "source_url": "https://www.mohtavanashr.ir/wp-content/uploads/2025/03/%D8%AD%D8%A7%D9%85%D8%AF-%D8%B4%D8%A7%DA%A9%D8%B1%D9%86%DA%98%D8%A7%D8%AF_%D8%AA%D8%B1%D8%AA%DB%8C%D9%84_%D8%AC%D8%B2%D8%A1_13.mp3",
+          "source_page": "https://www.mohtavanashr.ir/4031214008/"
+        },
+        {
+          "juz": 14,
+          "title_ar": "الجزء 14",
+          "format": "mp3",
+          "source_url": "https://www.mohtavanashr.ir/wp-content/uploads/2025/03/%D8%AD%D8%A7%D9%85%D8%AF-%D8%B4%D8%A7%DA%A9%D8%B1%D9%86%DA%98%D8%A7%D8%AF_%D8%AA%D8%B1%D8%AA%DB%8C%D9%84_%D8%AC%D8%B2%D8%A1_14.mp3",
+          "source_page": "https://www.mohtavanashr.ir/4031214008/"
+        },
+        {
+          "juz": 15,
+          "title_ar": "الجزء 15",
+          "format": "mp3",
+          "source_url": "https://www.mohtavanashr.ir/wp-content/uploads/2025/03/%D8%AD%D8%A7%D9%85%D8%AF-%D8%B4%D8%A7%DA%A9%D8%B1%D9%86%DA%98%D8%A7%D8%AF_%D8%AA%D8%B1%D8%AA%DB%8C%D9%84_%D8%AC%D8%B2%D8%A1_15.mp3",
+          "source_page": "https://www.mohtavanashr.ir/4031214008/"
+        },
+        {
+          "juz": 16,
+          "title_ar": "الجزء 16",
+          "format": "mp3",
+          "source_url": "https://www.mohtavanashr.ir/wp-content/uploads/2025/03/%D8%AD%D8%A7%D9%85%D8%AF-%D8%B4%D8%A7%DA%A9%D8%B1%D9%86%DA%98%D8%A7%D8%AF_%D8%AA%D8%B1%D8%AA%DB%8C%D9%84_%D8%AC%D8%B2%D8%A1_16.mp3",
+          "source_page": "https://www.mohtavanashr.ir/4031214008/"
+        },
+        {
+          "juz": 17,
+          "title_ar": "الجزء 17",
+          "format": "mp3",
+          "source_url": "https://www.mohtavanashr.ir/wp-content/uploads/2025/03/%D8%AD%D8%A7%D9%85%D8%AF-%D8%B4%D8%A7%DA%A9%D8%B1%D9%86%DA%98%D8%A7%D8%AF_%D8%AA%D8%B1%D8%AA%DB%8C%D9%84_%D8%AC%D8%B2%D8%A1_17.mp3",
+          "source_page": "https://www.mohtavanashr.ir/4031214008/"
+        },
+        {
+          "juz": 18,
+          "title_ar": "الجزء 18",
+          "format": "mp3",
+          "source_url": "https://www.mohtavanashr.ir/wp-content/uploads/2025/03/%D8%AD%D8%A7%D9%85%D8%AF-%D8%B4%D8%A7%DA%A9%D8%B1%D9%86%DA%98%D8%A7%D8%AF_%D8%AA%D8%B1%D8%AA%DB%8C%D9%84_%D8%AC%D8%B2%D8%A1_18.mp3",
+          "source_page": "https://www.mohtavanashr.ir/4031214008/"
+        },
+        {
+          "juz": 19,
+          "title_ar": "الجزء 19",
+          "format": "mp3",
+          "source_url": "https://www.mohtavanashr.ir/wp-content/uploads/2025/03/%D8%AD%D8%A7%D9%85%D8%AF-%D8%B4%D8%A7%DA%A9%D8%B1%D9%86%DA%98%D8%A7%D8%AF_%D8%AA%D8%B1%D8%AA%DB%8C%D9%84_%D8%AC%D8%B2%D8%A1_19.mp3",
+          "source_page": "https://www.mohtavanashr.ir/4031214008/"
+        },
+        {
+          "juz": 20,
+          "title_ar": "الجزء 20",
+          "format": "mp3",
+          "source_url": "https://www.mohtavanashr.ir/wp-content/uploads/2025/03/%D8%AD%D8%A7%D9%85%D8%AF-%D8%B4%D8%A7%DA%A9%D8%B1%D9%86%DA%98%D8%A7%D8%AF_%D8%AA%D8%B1%D8%AA%DB%8C%D9%84_%D8%AC%D8%B2%D8%A1_20.mp3",
+          "source_page": "https://www.mohtavanashr.ir/4031214008/"
+        },
+        {
+          "juz": 21,
+          "title_ar": "الجزء 21",
+          "format": "mp3",
+          "source_url": "https://www.mohtavanashr.ir/wp-content/uploads/2025/03/%D8%AD%D8%A7%D9%85%D8%AF-%D8%B4%D8%A7%DA%A9%D8%B1%D9%86%DA%98%D8%A7%D8%AF_%D8%AA%D8%B1%D8%AA%DB%8C%D9%84_%D8%AC%D8%B2%D8%A1_21.mp3",
+          "source_page": "https://www.mohtavanashr.ir/4031214008/"
+        },
+        {
+          "juz": 22,
+          "title_ar": "الجزء 22",
+          "format": "mp3",
+          "source_url": "https://www.mohtavanashr.ir/wp-content/uploads/2025/03/%D8%AD%D8%A7%D9%85%D8%AF-%D8%B4%D8%A7%DA%A9%D8%B1%D9%86%DA%98%D8%A7%D8%AF_%D8%AA%D8%B1%D8%AA%DB%8C%D9%84_%D8%AC%D8%B2%D8%A1_22.mp3",
+          "source_page": "https://www.mohtavanashr.ir/4031214008/"
+        },
+        {
+          "juz": 23,
+          "title_ar": "الجزء 23",
+          "format": "mp3",
+          "source_url": "https://www.mohtavanashr.ir/wp-content/uploads/2025/03/%D8%AD%D8%A7%D9%85%D8%AF-%D8%B4%D8%A7%DA%A9%D8%B1%D9%86%DA%98%D8%A7%D8%AF_%D8%AA%D8%B1%D8%AA%DB%8C%D9%84_%D8%AC%D8%B2%D8%A1_23.mp3",
+          "source_page": "https://www.mohtavanashr.ir/4031214008/"
+        },
+        {
+          "juz": 24,
+          "title_ar": "الجزء 24",
+          "format": "mp3",
+          "source_url": "https://www.mohtavanashr.ir/wp-content/uploads/2025/03/%D8%AD%D8%A7%D9%85%D8%AF-%D8%B4%D8%A7%DA%A9%D8%B1%D9%86%DA%98%D8%A7%D8%AF_%D8%AA%D8%B1%D8%AA%DB%8C%D9%84_%D8%AC%D8%B2%D8%A1_24.mp3",
+          "source_page": "https://www.mohtavanashr.ir/4031214008/"
+        },
+        {
+          "juz": 25,
+          "title_ar": "الجزء 25",
+          "format": "mp3",
+          "source_url": "https://www.mohtavanashr.ir/wp-content/uploads/2025/03/%D8%AD%D8%A7%D9%85%D8%AF-%D8%B4%D8%A7%DA%A9%D8%B1%D9%86%DA%98%D8%A7%D8%AF_%D8%AA%D8%B1%D8%AA%DB%8C%D9%84_%D8%AC%D8%B2%D8%A1_25.mp3",
+          "source_page": "https://www.mohtavanashr.ir/4031214008/"
+        },
+        {
+          "juz": 26,
+          "title_ar": "الجزء 26",
+          "format": "mp3",
+          "source_url": "https://www.mohtavanashr.ir/wp-content/uploads/2025/03/%D8%AD%D8%A7%D9%85%D8%AF-%D8%B4%D8%A7%DA%A9%D8%B1%D9%86%DA%98%D8%A7%D8%AF_%D8%AA%D8%B1%D8%AA%DB%8C%D9%84_%D8%AC%D8%B2%D8%A1_26.mp3",
+          "source_page": "https://www.mohtavanashr.ir/4031214008/"
+        },
+        {
+          "juz": 27,
+          "title_ar": "الجزء 27",
+          "format": "mp3",
+          "source_url": "https://www.mohtavanashr.ir/wp-content/uploads/2025/03/%D8%AD%D8%A7%D9%85%D8%AF-%D8%B4%D8%A7%DA%A9%D8%B1%D9%86%DA%98%D8%A7%D8%AF_%D8%AA%D8%B1%D8%AA%DB%8C%D9%84_%D8%AC%D8%B2%D8%A1_27.mp3",
+          "source_page": "https://www.mohtavanashr.ir/4031214008/"
+        },
+        {
+          "juz": 28,
+          "title_ar": "الجزء 28",
+          "format": "mp3",
+          "source_url": "https://www.mohtavanashr.ir/wp-content/uploads/2025/03/%D8%AD%D8%A7%D9%85%D8%AF-%D8%B4%D8%A7%DA%A9%D8%B1%D9%86%DA%98%D8%A7%D8%AF_%D8%AA%D8%B1%D8%AA%DB%8C%D9%84_%D8%AC%D8%B2%D8%A1_28.mp3",
+          "source_page": "https://www.mohtavanashr.ir/4031214008/"
+        },
+        {
+          "juz": 29,
+          "title_ar": "الجزء 29",
+          "format": "mp3",
+          "source_url": "https://www.mohtavanashr.ir/wp-content/uploads/2025/03/%D8%AD%D8%A7%D9%85%D8%AF-%D8%B4%D8%A7%DA%A9%D8%B1%D9%86%DA%98%D8%A7%D8%AF_%D8%AA%D8%B1%D8%AA%DB%8C%D9%84_%D8%AC%D8%B2%D8%A1_29.mp3",
+          "source_page": "https://www.mohtavanashr.ir/4031214008/"
+        },
+        {
+          "juz": 30,
+          "title_ar": "الجزء 30",
+          "format": "mp3",
+          "source_url": "https://www.mohtavanashr.ir/wp-content/uploads/2025/03/%D8%AD%D8%A7%D9%85%D8%AF-%D8%B4%D8%A7%DA%A9%D8%B1%D9%86%DA%98%D8%A7%D8%AF_%D8%AA%D8%B1%D8%AA%DB%8C%D9%84_%D8%AC%D8%B2%D8%A1_30.mp3",
+          "source_page": "https://www.mohtavanashr.ir/4031214008/"
+        }
+      ],
+      "rights_status": "لم يُعثر على ترخيص إعادة توزيع؛ يلزم إذن الناشر/صاحب التسجيل قبل تضمين الملفات في APK.",
+      "evidence_urls": [
+        "https://www.shiasource.com/reciters/hamed-shakernejad/",
+        "https://www.mohtavanashr.ir/4031214008/"
+      ]
+    },
+    {
+      "id": "karim-mansouri",
+      "name_ar": "كريم منصوري",
+      "name_en": "Karim Mansouri",
+      "country": "إيران",
+      "classification": "قارئ إيراني؛ لم أجد في صفحة مصدر المصحف تصريحاً واضحاً يحدد الانتماء المذهبي، لذلك أُدرج كمصدر إضافي غير مصنّف مذهبياً",
+      "classification_status": "not_verified",
+      "riwaya": "حفص عن عاصم",
+      "style": "مجود",
+      "coverage": {
+        "unit": "surah",
+        "count": 114,
+        "complete_quran": true
+      },
+      "source_page": "https://ar.assabile.com/karim-mansouri/quran",
+      "download_method": "التنزيل من صفحة المصدر سورةً سورة؛ لا توجد في هذا الفهرس روابط MP3 مباشرة.",
+      "rights_status": "غير محسوم لإعادة التوزيع داخل التطبيق؛ يلزم إذن صاحب التسجيل/الناشر",
+      "evidence_urls": [
+        "https://ar.assabile.com/karim-mansouri/quran",
+        "https://www.islam4u.com/ar/authors/%D9%83%D8%B1%D9%8A%D9%85-%D8%A7%D9%84%D9%85%D9%86%D8%B5%D9%88%D8%B1%D9%8A"
+      ]
+    }
+  ],
+  "platform_sources": [
+    {
+      "id": "rawda",
+      "name": "Rawda / روضة",
+      "url": "https://rawda.app/",
+      "description": "منصة صوتية شيعية تعرض تلاوات القرآن ومحتوىً دينياً؛ استخدمها كمصدر استماع/اكتشاف ولا تفترض أن التسجيلات قابلة لإعادة التوزيع."
+    }
+  ]
+}

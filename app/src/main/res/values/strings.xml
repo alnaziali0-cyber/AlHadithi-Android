@@ -1,0 +1,44 @@
+<resources>
+    <string name="app_name">الحديثي</string>
+    <string name="app_brand_subtitle">AL-HADITHI · الموسوعة الإسلامية المتكاملة</string>
+    <string name="nav_home">الرئيسية</string>
+    <string name="nav_quran">القرآن</string>
+    <string name="nav_library">المكتبة</string>
+    <string name="nav_duas">الأدعية</string>
+    <string name="nav_more">الأقسام</string>
+
+    <string name="select_governorate_title">اختر محافظتك</string>
+    <string name="select_governorate_subtitle">تُحفظ إعداداتك ومفضلتك محلياً على جهازك دون الحاجة لإنشاء حساب.</string>
+    <string name="use_my_location">استخدم موقعي الحالي</string>
+    <string name="start_button">حفظ المحافظة والمتابعة</string>
+
+    <string name="next_prayer_label">الصلاة القادمة</string>
+    <string name="remaining_time_label">المتبقي للأذان</string>
+    <string name="prayer_fajr">الفجر</string>
+    <string name="prayer_sunrise">الشروق</string>
+    <string name="prayer_dhuhr">الظهر</string>
+    <string name="prayer_asr">العصر</string>
+    <string name="prayer_maghrib">المغرب</string>
+    <string name="prayer_isha">العشاء</string>
+    <string name="prayer_midnight">منتصف الليل الشرعي</string>
+
+    <string name="daily_verse_title">آية اليوم</string>
+    <string name="daily_hadith_title">حديث اليوم الموثق</string>
+    <string name="daily_dua_title">دعاء وذكر اليوم</string>
+    <string name="quick_access_title">الوصول السريع</string>
+
+    <string name="search_hint">ابحث في القرآن، الحديث، الأدعية، الكتب، والمناسبات…</string>
+    <string name="ai_scholar_title">الباحث العلمي المتعمق (التفكير العالي)</string>
+    <string name="ai_scholar_disclaimer">تنبيه علمي: يعتمد الباحث الذكي على المصادر الإسلامية الموثقة للشرح والربط الموضوعي فقط، ولا يُنشئ آيات قرآنية أو يُصدر فتاوى شرعية مستقلة. يُرجع في الأحكام العملية إلى الرسالة العملية لمرجع التقليد.</string>
+
+    <string name="ad_free_title">إزالة الإعلانات</string>
+    <string name="ad_free_message">تطبيق الحديثي خالٍ تماماً من الإعلانات التجارية حالياً لوجه الله تعالى وخدمةً للقارئ الكريم، ولا توجد أي رسوم أو اشتراكات مخفية.</string>
+
+    <string name="cd_logo">شعار تطبيق الحديثي</string>
+    <string name="cd_back">رجوع</string>
+    <string name="cd_search">البحث الشامل</string>
+    <string name="cd_settings">الإعدادات</string>
+    <string name="cd_favorites">المفضلة والسجل</string>
+    <string name="cd_play_pause">تشغيل أو إيقاف الصوت</string>
+    <string name="cd_close_player">إغلاق المشغل</string>
+</resources>
