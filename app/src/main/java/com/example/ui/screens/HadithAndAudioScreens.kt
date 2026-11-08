@@ -35,6 +35,15 @@ import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.ui.res.stringResource
+import com.example.R
+import androidx.compose.ui.draw.clip
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.background
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -57,6 +66,7 @@ import com.example.data.local.AudioTrackEntity
 import com.example.data.local.HadithEntity
 import com.example.media.AudioPlayerController
 import com.example.ui.components.GlassCard
+import com.example.ui.components.GlassSurface
 import com.example.ui.components.GlassFilterChip
 import com.example.ui.components.SourceCitationBadge
 import com.example.ui.components.SubScreenTopBar
@@ -269,6 +279,70 @@ fun AudioLibraryScreen(
             subtitle = "لطميات · نعي حسيني · أدعية وزيارات · تلاوات — بث وتنزيل للمقاطع المتاحة",
             onBack = onBack
         )
+
+        // بطاقة التشغيل الحالية: سطح زجاجي حقيقي فوق بقية المحتوى.
+        val currentTrack = playerState.currentTrack
+        if (currentTrack != null) {
+            GlassSurface(
+                shape = RoundedCornerShape(24.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .testTag("audio_now_playing_glass"),
+                content = {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "قيد التشغيل",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                Text(
+                                    text = currentTrack.title,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Text(
+                                    text = currentTrack.performer,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                            IconButton(
+                                onClick = { AudioPlayerController.togglePlayPause() },
+                                modifier = Modifier.testTag("audio_now_playing_toggle")
+                            ) {
+                                Icon(
+                                    imageVector = if (playerState.isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                                    contentDescription = stringResource(R.string.cd_play_pause)
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        LinearProgressIndicator(
+                            progress = { playerState.progressFraction },
+                            modifier = Modifier.fillMaxWidth().height(4.dp).clip(RoundedCornerShape(2.dp))
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = "${playerState.formattedPosition()} · ${currentTrack.category}",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            )
+        }
+
 
         LazyColumn(
             modifier = Modifier

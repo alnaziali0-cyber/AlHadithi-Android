@@ -34,13 +34,29 @@ enum class AccentChoice(val key: String, val arabicLabel: String) {
 
 /** Font family used for long-form reading (Quran, adhkar, duas) — independent of the UI font. */
 enum class ReadingFontChoice(val key: String, val arabicLabel: String) {
+    UTHMANI("UTHMANI", "خط قرآني نسخي (للآيات)"),
     AMIRI("AMIRI", "أميري (تراثي)"),
     NASKH("NASKH", "نسخ واضح"),
     TAJAWAL("TAJAWAL", "تجوّل");
 
     companion object {
+        /**
+         * الافتراضي هو الخط القرآني النسخي المعتمد لأنه يغطي كامل علامات الضبط
+         * والوقف القرآنية دون إظهار مربعات بدل الحروف.
+         */
         fun fromKey(key: String?): ReadingFontChoice =
-            entries.firstOrNull { it.key == key } ?: AMIRI
+            entries.firstOrNull { it.key == key } ?: UTHMANI
+    }
+}
+
+/** طريقة عرض نص القرآن في القارئ. */
+enum class QuranReadingLayout(val key: String, val arabicLabel: String) {
+    CARDS("CARDS", "بطاقات (كما في المصحف)"),
+    CONTINUOUS("CONTINUOUS", "نص متصل");
+
+    companion object {
+        fun fromKey(key: String?): QuranReadingLayout =
+            entries.firstOrNull { it.key == key } ?: CARDS
     }
 }
 

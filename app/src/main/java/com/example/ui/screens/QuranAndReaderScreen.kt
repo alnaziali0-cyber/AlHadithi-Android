@@ -35,6 +35,8 @@ import androidx.compose.material.icons.outlined.MenuBook
 import androidx.compose.material.icons.outlined.PlayCircle
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material.icons.outlined.ViewAgenda
+import androidx.compose.material.icons.outlined.Notes
 import androidx.compose.material.icons.outlined.ZoomIn
 import androidx.compose.material.icons.outlined.ZoomOut
 import androidx.compose.material3.AlertDialog
@@ -68,6 +70,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
@@ -83,6 +86,7 @@ import com.example.domain.SurahMeta
 import com.example.domain.filterSurahs
 import com.example.media.AudioPlayerController
 import com.example.ui.components.GlassCard
+import com.example.ui.components.QuranAyahCard
 import com.example.ui.components.GlassFilterChip
 import com.example.ui.components.SourceCitationBadge
 import com.example.ui.components.SubScreenTopBar
@@ -90,6 +94,7 @@ import com.example.ui.theme.LocalIsDarkThemeActive
 import com.example.ui.theme.LocalLineSpacing
 import com.example.ui.theme.LocalReadingFontScale
 import com.example.ui.theme.QuranBackgroundStyle
+import com.example.ui.theme.QuranReadingLayout
 import com.example.ui.theme.ReadingFontChoice
 import com.example.ui.theme.quranAndHeritageStyle
 import com.example.ui.theme.readerBackdropFor
@@ -111,6 +116,7 @@ fun QuranIndexAndReaderScreen(
     darkMode: Boolean,
     readingFontChoice: ReadingFontChoice,
     quranBackground: QuranBackgroundStyle,
+    readingLayout: QuranReadingLayout,
     autoScrollEnabled: Boolean,
     autoScrollSpeed: Float,
     onSelectSurahToRead: (Int) -> Unit,
@@ -121,6 +127,7 @@ fun QuranIndexAndReaderScreen(
     onToggleDarkMode: (Boolean) -> Unit,
     onChangeReadingFont: (ReadingFontChoice) -> Unit,
     onChangeBackground: (QuranBackgroundStyle) -> Unit,
+    onChangeReadingLayout: (QuranReadingLayout) -> Unit,
     onChangeAutoScroll: (Boolean, Float) -> Unit,
     onSaveLastReadAyah: (Int, Int) -> Unit,
     onSaveFavorite: (String, String, String, String, String) -> Unit
@@ -135,6 +142,7 @@ fun QuranIndexAndReaderScreen(
             darkMode = darkMode,
             readingFontChoice = readingFontChoice,
             quranBackground = quranBackground,
+            readingLayout = readingLayout,
             autoScrollEnabled = autoScrollEnabled,
             autoScrollSpeed = autoScrollSpeed,
             onBack = onCloseReaderToIndex,
@@ -144,6 +152,7 @@ fun QuranIndexAndReaderScreen(
             onToggleDarkMode = onToggleDarkMode,
             onChangeReadingFont = onChangeReadingFont,
             onChangeBackground = onChangeBackground,
+            onChangeReadingLayout = onChangeReadingLayout,
             onChangeAutoScroll = onChangeAutoScroll,
             onSaveLastReadAyah = onSaveLastReadAyah,
             onSaveFavorite = onSaveFavorite
@@ -446,6 +455,7 @@ private fun SurahReaderView(
     darkMode: Boolean,
     readingFontChoice: ReadingFontChoice,
     quranBackground: QuranBackgroundStyle,
+    readingLayout: QuranReadingLayout,
     autoScrollEnabled: Boolean,
     autoScrollSpeed: Float,
     onBack: () -> Unit,
@@ -455,6 +465,7 @@ private fun SurahReaderView(
     onToggleDarkMode: (Boolean) -> Unit,
     onChangeReadingFont: (ReadingFontChoice) -> Unit,
     onChangeBackground: (QuranBackgroundStyle) -> Unit,
+    onChangeReadingLayout: (QuranReadingLayout) -> Unit,
     onChangeAutoScroll: (Boolean, Float) -> Unit,
     onSaveLastReadAyah: (Int, Int) -> Unit,
     onSaveFavorite: (String, String, String, String, String) -> Unit
@@ -529,6 +540,32 @@ private fun SurahReaderView(
             onBack = onBack,
             trailing = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
+                    // التبديل بين عرض البطاقات (كما في الصورة المرجعية) والنص المتصل.
+                    IconButton(
+                        onClick = {
+                            onChangeReadingLayout(
+                                if (readingLayout == QuranReadingLayout.CARDS) {
+                                    QuranReadingLayout.CONTINUOUS
+                                } else {
+                                    QuranReadingLayout.CARDS
+                                }
+                            )
+                        },
+                        modifier = Modifier.testTag("quran_layout_toggle")
+                    ) {
+                        Icon(
+                            imageVector = if (readingLayout == QuranReadingLayout.CARDS) {
+                                Icons.Outlined.ViewAgenda
+                            } else {
+                                Icons.Outlined.Notes
+                            },
+                            contentDescription = if (readingLayout == QuranReadingLayout.CARDS) {
+                                "عرض النص متصلاً"
+                            } else {
+                                "عرض الآيات في بطاقات"
+                            }
+                        )
+                    }
                     IconButton(onClick = { onChangeFontScale(fontScale - 0.10f) }) {
                         Icon(Icons.Outlined.ZoomOut, contentDescription = "تصغير الخط")
                     }
@@ -707,6 +744,42 @@ private fun SurahReaderView(
                             )
                             Spacer(modifier = Modifier.height(12.dp))
                             Button(onClick = onRetry) { Text("إعادة تحميل السورة") }
+                        } else if (readingLayout == QuranReadingLayout.CARDS) {
+                            // عرض البطاقات: يطابق الصورة المرجعية — بطاقة لكل آية.
+                            val cardContainer = if (isDarkReader) {
+                                Color(0xFF16211F).copy(alpha = 0.72f)
+                            } else {
+                                Color.White.copy(alpha = 0.94f)
+                            }
+                            val cardBorder = if (isDarkReader) {
+                                Color.White.copy(alpha = 0.12f)
+                            } else {
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)
+                            }
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                sortedAyahs.forEach { ayah ->
+                                    QuranAyahCard(
+                                        ayahNumber = ayah.ayahNumberInSurah,
+                                        ayahText = ayah.uthmaniText,
+                                        textStyle = quranAndHeritageStyle(
+                                            fontScale,
+                                            fontChoice = readingFontChoice,
+                                            lineSpacing = lineSpacing
+                                        ).copy(color = backdrop.onBackground),
+                                        containerColor = cardContainer,
+                                        borderColor = cardBorder,
+                                        numberColor = backdrop.markerColor,
+                                        textColor = backdrop.onBackground,
+                                        onClick = {
+                                            selectedAyahForTafsir = ayah
+                                            onSaveLastReadAyah(surahNumber, ayah.ayahNumberInSurah)
+                                        }
+                                    )
+                                }
+                            }
                         } else {
                             ClickableText(
                                 text = quranContent.annotatedText,

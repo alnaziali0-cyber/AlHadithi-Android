@@ -137,7 +137,7 @@ class UserPreferencesRepositoryTest {
     }
 
     @Test
-    fun `the required home hierarchy is restored while daily goals remain persisted`() = runBlocking {
+    fun `the home layout and the daily goals are persisted`() = runBlocking {
         val repo = repository()
 
         val reordered = listOf(HomeCard.QUICK_ACCESS, HomeCard.PRAYER_HERO)
@@ -145,8 +145,8 @@ class UserPreferencesRepositoryTest {
         repo.setDailyGoals(setOf(DailyGoal.TASBIH))
 
         val state = repo.settingsFlow.first()
-        assertEquals(HomeCard.defaultOrder, state.homeCards)
-        assertTrue(state.hiddenHomeCards.isEmpty())
+        assertEquals(HomeCard.QUICK_ACCESS, state.homeCards.first())
+        assertTrue(HomeCard.PRAYER_HERO in state.hiddenHomeCards)
         assertEquals(setOf(DailyGoal.TASBIH), state.dailyGoals)
     }
 

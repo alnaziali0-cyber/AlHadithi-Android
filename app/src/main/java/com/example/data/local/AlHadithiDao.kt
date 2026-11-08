@@ -121,9 +121,6 @@ interface AlHadithiDao {
     @Query("SELECT COUNT(*) FROM curriculum_courses")
     suspend fun countCourses(): Int
 
-    @Query("SELECT COUNT(*) FROM curriculum_courses WHERE title = :title")
-    suspend fun countCourseByTitle(title: String): Int
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCourses(courses: List<CurriculumCourseEntity>)
 
@@ -213,19 +210,6 @@ interface AlHadithiDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertReadingHistory(entry: ReadingHistoryEntity)
 
-    // --- Daily Prayer Completion ---
-    @Query("SELECT * FROM prayer_daily_completions WHERE profileKey = :profileKey AND dayKey = :dayKey ORDER BY prayerKey ASC")
-    fun observePrayerCompletionsForDay(profileKey: String, dayKey: String): Flow<List<PrayerCompletionEntity>>
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun upsertPrayerCompletion(record: PrayerCompletionEntity)
-
-    @Query("DELETE FROM prayer_daily_completions WHERE profileKey = :profileKey AND dayKey = :dayKey AND prayerKey = :prayerKey")
-    suspend fun deletePrayerCompletion(profileKey: String, dayKey: String, prayerKey: String)
-
-    @Query("DELETE FROM prayer_daily_completions")
-    suspend fun deleteAllPrayerCompletions()
-
     // --- Tasbih Sessions ---
     @Query("SELECT * FROM tasbih_sessions ORDER BY completedAtMillis DESC LIMIT 60")
     fun observeTasbihSessions(): Flow<List<TasbihSessionEntity>>
@@ -291,4 +275,65 @@ interface AlHadithiDao {
 
     @Query("DELETE FROM cached_ayahs")
     suspend fun deleteAllCachedAyahs()
+
+    // --- متابعة الصلوات اليومية ("صلواتي اليوم") ---
+
+    @Query("SELECT * FROM prayer_daily_state WHERE ownerKey = :ownerKey AND prayerDate = :prayerDate")
+    fun observePrayerStatesForDate(ownerKey: String, prayerDate: String): Flow<List<PrayerDailyStateEntity>>
+
+    @Query("SELECT * FROM prayer_daily_state WHERE ownerKey = :ownerKey AND prayerDate = :prayerDate")
+    suspend fun getPrayerStatesForDate(ownerKey: String, prayerDate: String): List<PrayerDailyStateEntity>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertPrayerState(state: PrayerDailyStateEntity)
+
+    @Query("DELETE FROM prayer_daily_state WHERE ownerKey = :ownerKey")
+    suspend fun deleteAllPrayerStates(ownerKey: String)
+
+    @Query("SELECT prayerDate AS date, COUNT(*) AS total, SUM(CASE WHEN status IN ('done','on_time','late') THEN 1 ELSE 0 END) AS done FROM prayer_daily_state WHERE ownerKey = :ownerKey AND prayerDate >= :fromDate GROUP BY prayerDate ORDER BY prayerDate DESC")
+    fun observePrayerHistory(ownerKey: String, fromDate: String): Flow<List<PrayerDaySummary>>
+
+    // --- قسم الأخلاقيات ---
+
+    @Query("SELECT * FROM akhlaq_categories ORDER BY sortOrder ASC")
+    fun observeAkhlaqCategories(): Flow<List<AkhlaqCategoryEntity>>
+
+    @Query("SELECT COUNT(*) FROM akhlaq_categories")
+    suspend fun countAkhlaqCategories(): Int
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAkhlaqCategories(items: List<AkhlaqCategoryEntity>)
+
+    @Query("SELECT * FROM akhlaq_lessons ORDER BY sortOrder ASC")
+    fun observeAkhlaqLessons(): Flow<List<AkhlaqLessonEntity>>
+
+    @Query("SELECT * FROM akhlaq_lessons WHERE id = :lessonId LIMIT 1")
+    fun observeAkhlaqLesson(lessonId: String): Flow<AkhlaqLessonEntity?>
+
+    @Query("SELECT COUNT(*) FROM akhlaq_lessons")
+    suspend fun countAkhlaqLessons(): Int
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAkhlaqLessons(items: List<AkhlaqLessonEntity>)
+
+    @Query("SELECT * FROM akhlaq_quizzes WHERE lessonId = :lessonId ORDER BY sortOrder ASC")
+    fun observeAkhlaqQuizzesForLesson(lessonId: String): Flow<List<AkhlaqQuizEntity>>
+
+    @Query("SELECT * FROM akhlaq_quizzes ORDER BY lessonId ASC, sortOrder ASC")
+    fun observeAllAkhlaqQuizzes(): Flow<List<AkhlaqQuizEntity>>
+
+    @Query("SELECT COUNT(*) FROM akhlaq_quizzes")
+    suspend fun countAkhlaqQuizzes(): Int
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAkhlaqQuizzes(items: List<AkhlaqQuizEntity>)
+
+    @Query("SELECT * FROM akhlaq_progress")
+    fun observeAkhlaqProgress(): Flow<List<AkhlaqProgressEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertAkhlaqProgress(progress: AkhlaqProgressEntity)
+
+    @Query("DELETE FROM akhlaq_progress")
+    suspend fun deleteAllAkhlaqProgress()
 }

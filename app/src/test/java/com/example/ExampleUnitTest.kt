@@ -78,14 +78,26 @@ class ExampleUnitTest {
         assertEquals(64, SurahCatalog.reciterById("minshawimujawwad").surahBitrate)
 
         reciters.forEach { reciter ->
-            for (surahNumber in 1..114) {
-                val url = reciter.buildSurahStreamUrl(surahNumber)
-                assertTrue(url.startsWith("https://cdn.islamic.network/quran/audio-surah/${reciter.surahBitrate}/"))
-                assertTrue(url.endsWith("/$surahNumber.mp3"))
-                assertTrue(reciter.surahBitrate in setOf(32, 40, 48, 64, 128, 192))
-                val fallback = reciter.buildMp3QuranFallbackUrl(surahNumber)
-                assertTrue(fallback == null || fallback.startsWith("https://"))
+            assertTrue(reciter.surahBitrate in setOf(32, 40, 48, 64, 128, 192))
+            // كل قارئ يملك مصدراً صوتياً واحداً على الأقل.
+            assertTrue(
+                reciter.hasSurahAudio || reciter.hasAyahAudio ||
+                    reciter.audioUnit == "external" || reciter.audioUnit == "juz"
+            )
+            if (reciter.hasSurahAudio) {
+                for (surahNumber in 1..114) {
+                    val url = reciter.buildSurahStreamUrl(surahNumber)
+                    assertTrue(url != null && url.startsWith("https://"))
+                    assertTrue(url!!.endsWith("/$surahNumber.mp3"))
+                }
             }
+            if (reciter.hasAyahAudio) {
+                val ayahUrl = reciter.buildAyahUrl(2, 255)
+                assertTrue(ayahUrl != null && ayahUrl.startsWith("https://"))
+                assertTrue(ayahUrl!!.endsWith("002255.mp3"))
+            }
+            val fallback = reciter.buildMp3QuranFallbackUrl(1)
+            assertTrue(fallback == null || fallback.startsWith("https://"))
             assertTrue(reciter.buildMp3QuranFallbackUrl(0) == null)
             assertTrue(reciter.buildMp3QuranFallbackUrl(115) == null)
         }

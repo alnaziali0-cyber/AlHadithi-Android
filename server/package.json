@@ -1,0 +1,17 @@
+{
+  "name": "alhadithi-notification-service",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "خدمة إرسال إشعارات الحديثي عبر Firebase Cloud Messaging (إعلانات التطبيق)",
+  "main": "src/index.js",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node src/index.js",
+    "once": "node -e \"import('./src/index.js').then(m=>m.processPendingAds()).then(r=>console.log(r))\"",
+    "dry-run": "DRY_RUN=true node src/index.js"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.0.2"
+  }
+}

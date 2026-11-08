@@ -24,6 +24,7 @@ import androidx.compose.material.icons.outlined.Bookmarks
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Explore
 import androidx.compose.material.icons.outlined.FormatQuote
+import androidx.compose.material.icons.outlined.Handshake
 import androidx.compose.material.icons.outlined.Headphones
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.OfflinePin
@@ -32,6 +33,7 @@ import androidx.compose.material.icons.outlined.School
 import androidx.compose.material.icons.outlined.Spa
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material.icons.outlined.Verified
+import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material.icons.outlined.Wallpaper
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -62,13 +64,22 @@ import com.example.data.local.ContentSourceEntity
 import com.example.data.local.UserSettingsState
 import com.example.domain.IraqGovernorates
 import com.example.domain.PrayerCalcMethod
+import com.example.ui.components.DashedSectionDivider
 import com.example.ui.components.GlassCard
 import com.example.ui.components.GlassFilterChip
+import com.example.ui.components.HubSectionTitle
+import com.example.ui.components.PastelIconTile
+import com.example.ui.components.PastelPalette
+import com.example.ui.components.PastelTileColors
 import com.example.ui.components.SubScreenTopBar
 import com.example.ui.navigation.AppDestination
 import com.example.ui.theme.AppFontChoice
 import com.example.ui.theme.LocalIsDarkThemeActive
 import kotlin.math.roundToInt
+import androidx.compose.material.icons.automirrored.outlined.MenuBook
+import androidx.compose.material.icons.outlined.LocalLibrary
+import androidx.compose.material.icons.outlined.Mosque
+import androidx.compose.material.icons.outlined.VolunteerActivism
 
 private data class HubMenuCard(
     val title: String,
@@ -81,74 +92,94 @@ private data class HubMenuCard(
 fun MoreHubScreen(
     onNavigate: (AppDestination) -> Unit
 ) {
-    // Admin/Developer panel is strictly HIDDEN here — revealed only when shaking the phone!
-    val items = remember {
-        listOf(
-            HubMenuCard("مواقيت الصلاة والتقويم الشهري", "الحساب الجعفري، منتصف الليل الشرعي، وضبط الدقائق", Icons.Outlined.Schedule, AppDestination.PRAYER_TIMES),
-            HubMenuCard("المسبحة الإلكترونية المطورة", "تسبيح الزهراء (ع) ٣٤/٣٣/٣٣، الأهداف اليومية، والاهتزاز", Icons.Outlined.Spa, AppDestination.TASBIH),
-            HubMenuCard("اتجاه القبلة الشريفة", "بوصلة حية بمستشعر الجهاز مع المسافة للكعبة المشرفة", Icons.Outlined.Explore, AppDestination.QIBLA),
-            HubMenuCard("المكتبة الصوتية الحسينية والقرآنية", "لطميات ونعي وأدعية وتلاوات؛ وبعض المواد تحتاج اتصالاً", Icons.Outlined.Headphones, AppDestination.AUDIO_LIBRARY),
-            HubMenuCard("موسوعة الحديث والروايات", "أحاديث النبي ﷺ والأئمة الاثني عشر (ع) مع المصادر", Icons.Outlined.FormatQuote, AppDestination.HADITH),
-            HubMenuCard("المناهج والعلوم الإسلامية", "دروس العقيدة والفقه الجعفري واختبارات تفاعلية", Icons.Outlined.School, AppDestination.CURRICULA),
-            HubMenuCard("الأخلاقيات", "الصدق والأمانة والحقوق والسلوك المسؤول والخصوصية الرقمية", Icons.Outlined.Verified, AppDestination.ETHICS),
-            HubMenuCard("التقويم الهجري والمناسبات", "مواليد وشهادات أهل البيت (ع) مع تصحيح الهلال", Icons.Outlined.CalendarMonth, AppDestination.CALENDAR_OCCASIONS),
-            HubMenuCard("الخلفيات الإسلامية والحسينية", "معرض خلفيات هادئة عالية الدقة للتنزيل والمشاركة", Icons.Outlined.Wallpaper, AppDestination.WALLPAPERS),
-            HubMenuCard("البحث الشامل والباحث الذكي", "بحث في النصوص المحلية والمخزنة + باحث علمي يتطلب اتصالاً", Icons.Outlined.AutoAwesome, AppDestination.SEARCH),
-            HubMenuCard("المفضلة وسجل القراءة", "محفوظاتك المحلية على جهازك دون الحاجة لحساب", Icons.Outlined.Bookmarks, AppDestination.FAVORITES),
-            HubMenuCard("الإعدادات والمصادر", "المحافظة، الخطوط، الوضع الليلي، والتنبيهات", Icons.Outlined.Tune, AppDestination.SETTINGS)
-        )
-    }
+    // لوحة الأقسام: مجموعات بألوان باستيل هادئة مع فاصل متقطّع بين المجموعات
+    // (كما في التصميم المرجعي).
+    val worship = listOf(
+        HubTile("القرآن الكريم", Icons.AutoMirrored.Outlined.MenuBook, PastelPalette.mint, AppDestination.QURAN),
+        HubTile("الأدعية", Icons.Outlined.VolunteerActivism, PastelPalette.blush, AppDestination.DUAS_ZIYARAT),
+        HubTile("الزيارات", Icons.Outlined.Mosque, PastelPalette.cream, AppDestination.DUAS_ZIYARAT),
+        HubTile("الأذكار", Icons.Outlined.AutoAwesome, PastelPalette.lavender, AppDestination.DUAS_ZIYARAT),
+        HubTile("المسبحة", Icons.Outlined.Spa, PastelPalette.periwinkle, AppDestination.TASBIH),
+        HubTile("مواقيت الصلاة", Icons.Outlined.Schedule, PastelPalette.peach, AppDestination.PRAYER_TIMES),
+        HubTile("اتجاه القبلة", Icons.Outlined.Explore, PastelPalette.sage, AppDestination.QIBLA)
+    )
+    val services = listOf(
+        HubTile("الصوتيات", Icons.Outlined.Headphones, PastelPalette.mint, AppDestination.AUDIO_LIBRARY),
+        HubTile("الأخلاقيات", Icons.Outlined.Handshake, PastelPalette.lavender, AppDestination.AKHLAQ),
+        HubTile("المكتبة والسيرة", Icons.Outlined.LocalLibrary, PastelPalette.cream, AppDestination.LIBRARY),
+        HubTile("الحديث والروايات", Icons.Outlined.FormatQuote, PastelPalette.blush, AppDestination.HADITH),
+        HubTile("المناهج والدروس", Icons.Outlined.School, PastelPalette.sage, AppDestination.CURRICULA),
+        HubTile("التقويم الهجري", Icons.Outlined.CalendarMonth, PastelPalette.sand, AppDestination.CALENDAR_OCCASIONS),
+        HubTile("البحث الشامل", Icons.Outlined.AutoAwesome, PastelPalette.periwinkle, AppDestination.SEARCH),
+        HubTile("المفضلة", Icons.Outlined.Bookmarks, PastelPalette.cream, AppDestination.FAVORITES),
+        HubTile("الإعدادات", Icons.Outlined.Tune, PastelPalette.peach, AppDestination.SETTINGS)
+    )
+    val occasions = listOf(
+        HubTile("إمساكية شهر رمضان", Icons.Outlined.CalendarMonth, PastelPalette.lavender, AppDestination.CALENDAR_OCCASIONS),
+        HubTile("بوابة الحج", Icons.Outlined.Mosque, PastelPalette.mint, AppDestination.CALENDAR_OCCASIONS),
+        HubTile("دليل زائر الأربعين", Icons.Outlined.Place, PastelPalette.periwinkle, AppDestination.LIBRARY),
+        HubTile("الخلفيات الإسلامية", Icons.Outlined.Wallpaper, PastelPalette.sand, AppDestination.WALLPAPERS)
+    )
 
     Column(modifier = Modifier.fillMaxSize()) {
         SubScreenTopBar(
             title = "جميع أقسام الحديثي",
-            subtitle = "الموسوعة الإسلامية الشيعية؛ تتوفر الأقسام المحلية دون اتصال، وبعض الخدمات تحتاج الإنترنت"
+            subtitle = "الموسوعة الإسلامية الشاملة؛ معظم الأقسام متاحة دون اتصال"
         )
 
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .testTag("more_hub_list"),
-            contentPadding = PaddingValues(16.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            items(items) { card ->
-                GlassCard(
-                    cornerRadius = 20.dp,
-                    onClick = { onNavigate(card.destination) }
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Surface(
-                            shape = CircleShape,
-                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.72f),
-                            modifier = Modifier.size(46.dp)
-                        ) {
-                            Icon(
-                                imageVector = card.icon,
-                                contentDescription = card.title,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.padding(11.dp)
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = card.title,
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                text = card.subtitle,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                }
+            item {
+                HubSectionTitle(title = "العبادات")
+                HubTileGrid(tiles = worship, onNavigate = onNavigate)
             }
+            item { DashedSectionDivider() }
+            item {
+                HubSectionTitle(title = "الخدمات")
+                HubTileGrid(tiles = services, onNavigate = onNavigate)
+            }
+            item { DashedSectionDivider() }
+            item {
+                HubSectionTitle(title = "المناسبات")
+                HubTileGrid(tiles = occasions, onNavigate = onNavigate)
+            }
+            item { Spacer(modifier = Modifier.height(12.dp)) }
+        }
+    }
+}
+
+/** عنصر قسم في لوحة الأقسام. */
+private data class HubTile(
+    val label: String,
+    val icon: androidx.compose.ui.graphics.vector.ImageVector,
+    val colors: PastelTileColors,
+    val destination: AppDestination
+)
+
+/** شبكة بطاقات الأقسام: أربعة أعمدة مع تدفّق تلقائي للأسطر التالية. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun HubTileGrid(
+    tiles: List<HubTile>,
+    onNavigate: (AppDestination) -> Unit
+) {
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        tiles.forEach { tile ->
+            PastelIconTile(
+                label = tile.label,
+                icon = tile.icon,
+                colors = tile.colors,
+                onClick = { onNavigate(tile.destination) }
+            )
         }
     }
 }

@@ -82,7 +82,6 @@ fun CurriculaScreen(
     courses: List<CurriculumCourseEntity>,
     lessonProgress: List<LessonProgressEntity>,
     quizAttempts: List<QuizAttemptEntity>,
-    initialCategory: String? = null,
     onBack: () -> Unit,
     onMarkLessonCompleted: (Long, Int) -> Unit,
     onSaveQuizAttempt: (Long, String, Int, Int) -> Unit,
@@ -304,29 +303,15 @@ fun CurriculaScreen(
 
     BackHandler { onBack() }
 
-    val displayedCourses = remember(courses, initialCategory) {
-        if (initialCategory == null) courses else courses.filter { it.category == initialCategory }
+    val totalLessonsCount = remember(courses) {
+        courses.sumOf { parseCourseLessons(it.lessonsJson).size }
     }
-    val displayedCourseIds = remember(displayedCourses) { displayedCourses.map { it.id }.toSet() }
-    val displayedProgress = remember(lessonProgress, displayedCourseIds) {
-        lessonProgress.filter { it.courseId in displayedCourseIds }
-    }
-    val displayedAttempts = remember(quizAttempts, displayedCourseIds) {
-        quizAttempts.filter { it.courseId in displayedCourseIds }
-    }
-    val totalLessonsCount = remember(displayedCourses) {
-        displayedCourses.sumOf { parseCourseLessons(it.lessonsJson).size }
-    }
-    val completedTotal = displayedProgress.size
+    val completedTotal = lessonProgress.size
 
     Column(modifier = Modifier.fillMaxSize()) {
         SubScreenTopBar(
-            title = initialCategory ?: "المناهج والعلوم الإسلامية",
-            subtitle = if (initialCategory == "الأخلاقيات") {
-                "دروس عملية في الحقوق والسلوك والنزاهة الرقمية مع اختبارات قصيرة وتقدم محفوظ"
-            } else {
-                "دروس منهجية واختبارات قصيرة ونسبة إنجاز محفوظة على جهازك"
-            },
+            title = "المناهج والعلوم الإسلامية",
+            subtitle = "دروس منهجية واختبارات قصيرة ونسبة إنجاز محفوظة على جهازك",
             onBack = onBack
         )
 
@@ -369,9 +354,9 @@ fun CurriculaScreen(
                 }
             }
 
-            items(displayedCourses, key = { it.id }) { course ->
+            items(courses, key = { it.id }) { course ->
                 val cLessons = parseCourseLessons(course.lessonsJson).size.coerceAtLeast(1)
-                val cDone = displayedProgress.count { it.courseId == course.id }
+                val cDone = lessonProgress.count { it.courseId == course.id }
                 val pct = ((cDone.toFloat() / cLessons.toFloat()) * 100f).toInt().coerceIn(0, 100)
 
                 GlassCard(
@@ -423,7 +408,7 @@ fun CurriculaScreen(
                         fontWeight = FontWeight.Bold
                     )
                 }
-                items(displayedAttempts.take(8), key = { it.id }) { attempt ->
+                items(quizAttempts.take(8), key = { it.id }) { attempt ->
                     GlassCard(cornerRadius = 16.dp, contentPadding = PaddingValues(12.dp)) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -436,17 +421,6 @@ fun CurriculaScreen(
                                 fontWeight = FontWeight.Bold
                             )
                         }
-                    }
-                }
-            }
-
-            if (displayedCourses.isEmpty()) {
-                item {
-                    GlassCard {
-                        Text(
-                            text = "لا توجد دروس منشورة في هذا القسم بعد.",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
                     }
                 }
             }

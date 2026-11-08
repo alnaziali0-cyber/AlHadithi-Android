@@ -18,8 +18,8 @@ android {
     applicationId = "com.aistudio.alhadithi.iqshia"
     minSdk = 24
     targetSdk = 36
-    versionCode = 12
-    versionName = "1.0.10"
+    versionCode = 13
+    versionName = "1.1.0"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
@@ -118,6 +118,8 @@ dependencies {
   implementation(libs.firebase.ai)
   implementation(libs.firebase.firestore)
   implementation(libs.firebase.auth)
+  implementation(libs.firebase.messaging)
+  implementation(libs.firebase.storage)
   implementation(libs.androidx.credentials)
   implementation(libs.androidx.credentials.play.services)
   implementation(libs.googleid)

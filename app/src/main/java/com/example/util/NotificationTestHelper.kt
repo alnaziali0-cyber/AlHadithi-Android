@@ -35,7 +35,7 @@ object NotificationTestHelper {
         ensureChannel(manager)
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notification_alhadithi)
+            .setSmallIcon(R.drawable.ic_notification_adhan)
             .setContentTitle("تجربة إشعار — الحديثي")
             .setContentText("هكذا سيصلك تنبيه الصلاة. يمكنك تعطيله من إعدادات النظام في أي وقت.")
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)

@@ -56,7 +56,7 @@ class ExampleRobolectricTest {
             // Simulate a prior interrupted setup: the hadith table already has data,
             // while all other content tables are still empty.
             dao.insertHadiths(SeedDataPart1.authenticHadiths())
-            AlHadithiDatabase.ensureSeeded(dao)
+            AlHadithiDatabase.ensureSeeded(context, dao)
 
             assertTrue(dao.countCachedAyahs() > 0)
             assertTrue(dao.countHadiths() >= 10)
@@ -92,7 +92,7 @@ class ExampleRobolectricTest {
                 dao.countBooks(), dao.countCourses(), dao.countAudioTracks(), dao.countOccasions(),
                 dao.countWallpapers(), dao.countContentSources()
             )
-            AlHadithiDatabase.ensureSeeded(dao)
+            AlHadithiDatabase.ensureSeeded(context, dao)
             val afterReseed = listOf(
                 dao.countCachedAyahs(), dao.countHadiths(), dao.countDuasZiyarat(), dao.countAdhkar(),
                 dao.countBooks(), dao.countCourses(), dao.countAudioTracks(), dao.countOccasions(),

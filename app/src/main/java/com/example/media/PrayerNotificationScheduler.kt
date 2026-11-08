@@ -26,6 +26,8 @@ import java.util.TimeZone
  */
 object PrayerNotificationScheduler {
     const val ACTION_PRAYER = "com.example.alhadithi.action.PRAYER_ALARM"
+    /** إشعار حديث/دعاء اليوم بعد كل صلاة. */
+    const val ACTION_CONTENT = "com.example.alhadithi.action.DAILY_CONTENT"
     const val ACTION_REFRESH = "com.example.alhadithi.action.REFRESH_PRAYER_ALARMS"
     private const val PREFS = "alhadithi_prayer_alarm_config"
     private const val KEY_ENABLED = "enabled"
@@ -322,6 +324,9 @@ object PrayerNotificationScheduler {
                 )
                 scheduleAlarm(context, at, pendingIntent)
                 scheduledUris += uri
+
+                // إشعار حديث/دعاء اليوم بعد كل صلاة (بدل بطاقة في الصفحة الرئيسية).
+                scheduleContentAlarmIfEnabled(context, dateKey, prayer.key.key, prayerMoment.timeInMillis)
             }
         }
 
@@ -330,6 +335,44 @@ object PrayerNotificationScheduler {
             .apply()
         scheduleNextRefresh(context)
     }
+
+
+    /**
+     * يجدول إشعار المحتوى (حديث أو دعاء اليوم) بعد دخول وقت الصلاة بدقيقتين،
+     * إذا كان المستخدم قد فعّل هذا النوع من الإشعارات و اختار هذه الصلاة.
+     */
+    private fun scheduleContentAlarmIfEnabled(
+        context: Context,
+        dateKey: String,
+        prayerKey: String,
+        prayerTimeMillis: Long
+    ) {
+        if (!DailyContentStore.isEnabled(context)) return
+        if (prayerKey !in DailyContentStore.enabledPrayers(context)) return
+        val item = DailyContentStore.planItem(context, dateKey, prayerKey) ?: return
+        if (item.body.isBlank()) return
+
+        val at = prayerTimeMillis + CONTENT_DELAY_MINUTES * 60_000L
+        if (at <= System.currentTimeMillis() + 5_000L) return
+
+        val uri = "alhadithi://content/$dateKey/$prayerKey"
+        val intent = Intent(context, PrayerAlarmReceiver::class.java).apply {
+            action = PrayerNotificationScheduler.ACTION_CONTENT
+            data = Uri.parse(uri)
+            putExtra(PrayerAlarmReceiver.EXTRA_CONTENT_TITLE, item.title)
+            putExtra(PrayerAlarmReceiver.EXTRA_CONTENT_BODY, item.body)
+            putExtra(PrayerAlarmReceiver.EXTRA_CONTENT_TAKHRIJ, item.takhrij)
+        }
+        val pendingIntent = PendingIntent.getBroadcast(
+            context,
+            uri.hashCode(),
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        scheduleAlarm(context, at, pendingIntent)
+    }
+
+    private const val CONTENT_DELAY_MINUTES = 2
 
     private data class PrayerTimesForDate(
         val fajr: Int,

@@ -218,22 +218,81 @@ data class ContentSourceEntity(
     val editionNote: String
 )
 
-
 /**
- * Daily prayer completion for the active local profile. The profile key leaves room for a future
- * authenticated multi-device account without tying private progress to a developer account.
+ * حالة إنجاز صلاة واحدة في يوم واحد ("صلواتي اليوم").
+ *
+ * ownerKey يفصل بين مستخدمي الجهاز: "guest" للزائر و uid لمستخدم Firebase.
+ * التخزين محلي بالكامل (Room) حتى لا تضيع السجلات عند إغلاق التطبيق.
  */
 @Entity(
-    tableName = "prayer_daily_completions",
-    primaryKeys = ["profileKey", "dayKey", "prayerKey"],
-    indices = [Index("dayKey")]
+    tableName = "prayer_daily_state",
+    primaryKeys = ["ownerKey", "prayerDate", "prayer"]
 )
-data class PrayerCompletionEntity(
-    val profileKey: String = LOCAL_PRAYER_PROFILE_KEY,
-    val dayKey: String,
-    val prayerKey: String,
-    val isCompleted: Boolean,
-    val updatedAtMillis: Long
+data class PrayerDailyStateEntity(
+    val ownerKey: String,
+    val prayerDate: String,
+    val prayer: String,
+    val status: String = PRAYER_STATUS_PENDING,
+    val note: String? = null,
+    val updatedAt: Long = System.currentTimeMillis()
 )
 
-const val LOCAL_PRAYER_PROFILE_KEY = "local-device-profile"
+const val PRAYER_STATUS_PENDING = "pending"
+const val PRAYER_STATUS_DONE = "done"
+const val PRAYER_STATUS_ON_TIME = "on_time"
+const val PRAYER_STATUS_LATE = "late"
+const val PRAYER_STATUS_MISSED = "missed"
+
+/** ملخص إنجاز يوم كامل — يُستخدم في شاشة الإنجازات وحلقة المتابعة. */
+data class PrayerDaySummary(
+    val date: String,
+    val total: Int,
+    val done: Int
+)
+
+/** تصنيف من تصنيفات الأخلاقيات الخمسة عشر. */
+@Entity(tableName = "akhlaq_categories")
+data class AkhlaqCategoryEntity(
+    @PrimaryKey val id: String,
+    val title: String,
+    val icon: String = "book-open",
+    val sortOrder: Int = 0
+)
+
+/** درس أخلاقي مع أدلته وأمثلته ومواقفه. */
+@Entity(tableName = "akhlaq_lessons")
+data class AkhlaqLessonEntity(
+    @PrimaryKey val id: String,
+    val categoryId: String,
+    val title: String,
+    val intro: String = "",
+    val body: String = "",
+    val evidenceAyat: String = "[]",
+    val evidenceHadith: String? = null,
+    val examples: String = "[]",
+    val scenarios: String = "[]",
+    val applySteps: String = "[]",
+    val mistakes: String = "[]",
+    val summary: String = "",
+    val sortOrder: Int = 0
+)
+
+/** سؤال اختبار قصير مرتبط بدرس. */
+@Entity(tableName = "akhlaq_quizzes")
+data class AkhlaqQuizEntity(
+    @PrimaryKey val id: String,
+    val lessonId: String,
+    val question: String,
+    val options: String = "[]",
+    val answerIndex: Int = 0,
+    val explanation: String = "",
+    val sortOrder: Int = 0
+)
+
+/** تقدّم المستخدم في درس الأخلاقيات. */
+@Entity(tableName = "akhlaq_progress")
+data class AkhlaqProgressEntity(
+    @PrimaryKey val lessonId: String,
+    val completedAt: Long = System.currentTimeMillis(),
+    val score: Int = 0
+)

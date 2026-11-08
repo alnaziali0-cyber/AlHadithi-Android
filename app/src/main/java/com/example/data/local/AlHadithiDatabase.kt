@@ -4,8 +4,6 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import androidx.room.migration.Migration
-import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
     entities = [
@@ -25,9 +23,13 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         TasbihSessionEntity::class,
         ContentSourceEntity::class,
         AdminAnnouncementEntity::class,
-        PrayerCompletionEntity::class
+        PrayerDailyStateEntity::class,
+        AkhlaqCategoryEntity::class,
+        AkhlaqLessonEntity::class,
+        AkhlaqQuizEntity::class,
+        AkhlaqProgressEntity::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 abstract class AlHadithiDatabase : RoomDatabase() {
@@ -35,26 +37,6 @@ abstract class AlHadithiDatabase : RoomDatabase() {
     abstract fun dao(): AlHadithiDao
 
     companion object {
-        /** Adds only the prayer-completion table; all existing v2 tables and rows remain intact. */
-        val MIGRATION_2_3: Migration = object : Migration(2, 3) {
-            override fun migrate(database: SupportSQLiteDatabase) {
-                database.execSQL(
-                    """CREATE TABLE IF NOT EXISTS prayer_daily_completions (
-                        profileKey TEXT NOT NULL,
-                        dayKey TEXT NOT NULL,
-                        prayerKey TEXT NOT NULL,
-                        isCompleted INTEGER NOT NULL,
-                        updatedAtMillis INTEGER NOT NULL,
-                        PRIMARY KEY(profileKey, dayKey, prayerKey)
-                    )""".trimIndent()
-                )
-                database.execSQL(
-                    "CREATE INDEX IF NOT EXISTS index_prayer_daily_completions_dayKey " +
-                        "ON prayer_daily_completions(dayKey)"
-                )
-            }
-        }
-
         @Volatile
         private var INSTANCE: AlHadithiDatabase? = null
 
@@ -66,8 +48,8 @@ abstract class AlHadithiDatabase : RoomDatabase() {
                     "alhadithi_encyclopedia.db"
                 )
                     // Never erase user data automatically when a schema migration is missing.
-                    // Add an explicit Room Migration before increasing the database version.
-                    .addMigrations(MIGRATION_2_3)
+                    // Every schema change ships an explicit migration so progress survives.
+                    .addMigrations(AlHadithiMigrations.MIGRATION_2_3, AlHadithiMigrations.MIGRATION_3_4)
                     .build()
                 INSTANCE = instance
                 instance
@@ -79,7 +61,7 @@ abstract class AlHadithiDatabase : RoomDatabase() {
          * category must not prevent the remaining categories from being populated on the
          * next launch. Existing user data is never replaced by this seed operation.
          */
-        suspend fun ensureSeeded(dao: AlHadithiDao) {
+        suspend fun ensureSeeded(context: Context, dao: AlHadithiDao) {
             if (dao.countCachedAyahs() == 0) {
                 dao.insertCachedAyahs(SeedDataPart1.essentialQuranAyahs())
             }
@@ -98,14 +80,6 @@ abstract class AlHadithiDatabase : RoomDatabase() {
             if (dao.countCourses() == 0) {
                 dao.insertCourses(SeedDataPart2.structuredCurricula())
             }
-            // Add the ethics curriculum to existing installations without replacing user data
-            // or re-seeding the existing courses.
-            val missingEthicsCourses = SeedDataPart2.ethicsCurricula().filter {
-                dao.countCourseByTitle(it.title) == 0
-            }
-            if (missingEthicsCourses.isNotEmpty()) {
-                dao.insertCourses(missingEthicsCourses)
-            }
             if (dao.countAudioTracks() == 0) {
                 dao.insertAudioTracks(SeedDataPart2.authenticAudioLibrary())
             }
@@ -118,6 +92,8 @@ abstract class AlHadithiDatabase : RoomDatabase() {
             if (dao.countContentSources() == 0) {
                 dao.insertContentSources(SeedDataPart2.verifiedSources())
             }
+            // The Akhlaq section is seeded from the bundled verified content asset.
+            AkhlaqSeedData.ensureSeeded(context, dao)
         }
     }
 }

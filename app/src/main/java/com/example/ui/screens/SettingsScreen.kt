@@ -68,6 +68,7 @@ import com.example.ui.theme.AppFontChoice
 import com.example.ui.theme.CardDensity
 import com.example.ui.theme.LineSpacingOption
 import com.example.ui.theme.QuranBackgroundStyle
+import com.example.ui.theme.QuranReadingLayout
 import com.example.ui.theme.ReadingFontChoice
 import com.example.ui.theme.ThemeMode
 import com.example.util.NotificationTestHelper
@@ -101,12 +102,16 @@ fun SettingsScreen(
     onChangePrayerAlert: (PrayerKey, PrayerAlertSettings) -> Unit,
     onChangeQuietHours: (QuietHours) -> Unit,
     onChangeQuranBackground: (QuranBackgroundStyle) -> Unit,
+    onChangeReadingLayout: (QuranReadingLayout) -> Unit,
     onChangeAutoScroll: (Boolean, Float) -> Unit,
     onChangeReciter: (String) -> Unit,
     onChangePlaybackSpeed: (Float) -> Unit,
     onToggleHaptic: (Boolean) -> Unit,
     onChangeDailyTasbihGoal: (Int) -> Unit,
     onUpdateNotifications: (Boolean?, Int?, Boolean?, Boolean?) -> Unit,
+    onChangeDailyContentNotifications: (Boolean) -> Unit,
+    onChangeDailyContentType: (String) -> Unit,
+    onChangeDailyContentPrayers: (Set<String>) -> Unit,
     onClearQuranCache: () -> Unit,
     onResetDefaults: () -> Unit,
     onDeleteUserData: () -> Unit
@@ -248,12 +253,108 @@ fun SettingsScreen(
             }
         }
 
-        // ---------------- ترتيب الصفحة الرئيسية ----------------
+        // ---------------- تخصيص الصفحة الرئيسية ----------------
         item {
             SettingsSection(title = "الصفحة الرئيسية") {
                 Text(
-                    text = "ترتيب الصفحة الرئيسية ثابت: المناسبة الإسلامية عند توفرها، ثم مؤقت الصلاة، ثم سجل صلواتي اليوم، ثم الوصول السريع. حديث اليوم والدعاء اليومي ليسا بطاقتين في الرئيسية؛ تفعيل إشعاراتهما يحتاج إلى إعداد خدمة إرسال موثوقة.",
+                    text = "رتّب بطاقات الصفحة الرئيسية أو أخفِ ما لا تحتاجه.",
                     style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                settings.homeCards.filter { it.shownOnHome }.forEachIndexed { index, card ->
+                    val hidden = card in settings.hiddenHomeCards
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = card.arabicTitle,
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                text = if (hidden) "مخفية" else "ظاهرة",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            IconButton(
+                                onClick = {
+                                    val list = settings.homeCards.toMutableList()
+                                    val target = index - 1
+                                    if (target >= 0) {
+                                        list.add(target, list.removeAt(index))
+                                        onChangeHomeLayout(list, settings.hiddenHomeCards)
+                                    }
+                                },
+                                enabled = index > 0,
+                                modifier = Modifier.testTag("home_card_up_${card.key}")
+                            ) {
+                                Icon(
+                                    Icons.Outlined.KeyboardArrowUp,
+                                    contentDescription = "تحريك ${card.arabicTitle} للأعلى"
+                                )
+                            }
+                            IconButton(
+                                onClick = {
+                                    val list = settings.homeCards.toMutableList()
+                                    val target = index + 1
+                                    if (target < list.size) {
+                                        list.add(target, list.removeAt(index))
+                                        onChangeHomeLayout(list, settings.hiddenHomeCards)
+                                    }
+                                },
+                                enabled = index < settings.homeCards.lastIndex,
+                                modifier = Modifier.testTag("home_card_down_${card.key}")
+                            ) {
+                                Icon(
+                                    Icons.Outlined.KeyboardArrowDown,
+                                    contentDescription = "تحريك ${card.arabicTitle} للأسفل"
+                                )
+                            }
+                            Switch(
+                                checked = !hidden,
+                                onCheckedChange = { visible ->
+                                    val hiddenSet = settings.hiddenHomeCards.toMutableSet()
+                                    if (visible) hiddenSet.remove(card) else hiddenSet.add(card)
+                                    onChangeHomeLayout(settings.homeCards, hiddenSet)
+                                },
+                                modifier = Modifier.testTag("home_card_visible_${card.key}")
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = "أهداف «متابعة اليوم» التي تريد عرضها:",
+                    style = MaterialTheme.typography.labelLarge
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    DailyGoal.entries.forEach { goal ->
+                        GlassFilterChip(
+                            label = goal.arabicTitle,
+                            selected = goal in settings.dailyGoals,
+                            onClick = {
+                                val next = settings.dailyGoals.toMutableSet()
+                                if (!next.add(goal)) next.remove(goal)
+                                onChangeDailyGoals(next)
+                            },
+                            modifier = Modifier.testTag("daily_goal_${goal.key}")
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "لا تُعرض بطاقة «متابعة اليوم» إن لم تختر أي هدف.",
+                    style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -323,6 +424,20 @@ fun SettingsScreen(
         // ---------------- القرآن ----------------
         item {
             SettingsSection(title = "القرآن الكريم والقراءة") {
+                Text("طريقة عرض الآيات", style = MaterialTheme.typography.labelLarge)
+                Spacer(modifier = Modifier.height(6.dp))
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    QuranReadingLayout.entries.forEach { layout ->
+                        GlassFilterChip(
+                            label = layout.arabicLabel,
+                            selected = settings.quranReadingLayout == layout,
+                            onClick = { onChangeReadingLayout(layout) },
+                            modifier = Modifier.testTag("settings_reading_layout_${layout.key}")
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
                 Text("خلفية صفحة القراءة", style = MaterialTheme.typography.labelLarge)
                 Spacer(modifier = Modifier.height(6.dp))
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -476,6 +591,70 @@ fun SettingsScreen(
                     )
                 }
 
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("حديث اليوم ودعاء اليوم", fontWeight = FontWeight.SemiBold)
+                        Text(
+                            text = "يُرسل حديثاً أو دعاءً موثّقاً بعد كل صلاة. " +
+                                "أُزيلت بطاقتا حديث اليوم ودعاء اليوم من الصفحة الرئيسية لهذا الغرض.",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Switch(
+                        checked = settings.dailyContentNotifications,
+                        onCheckedChange = onChangeDailyContentNotifications,
+                        modifier = Modifier.testTag("settings_daily_content_switch")
+                    )
+                }
+
+                if (settings.dailyContentNotifications) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("نوع المحتوى:", style = MaterialTheme.typography.labelLarge)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        listOf(
+                            "hadith" to "حديث",
+                            "dua" to "دعاء",
+                            "mixed" to "تناوب"
+                        ).forEach { (key, label) ->
+                            GlassFilterChip(
+                                label = label,
+                                selected = settings.dailyContentType == key,
+                                onClick = { onChangeDailyContentType(key) },
+                                modifier = Modifier.testTag("settings_content_type_$key")
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("الصلوات التي يُرسل بعدها المحتوى:", style = MaterialTheme.typography.labelLarge)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        listOf(
+                            "fajr" to "الفجر",
+                            "dhuhr" to "الظهر",
+                            "asr" to "العصر",
+                            "maghrib" to "المغرب",
+                            "isha" to "العشاء"
+                        ).forEach { (key, label) ->
+                            GlassFilterChip(
+                                label = label,
+                                selected = key in settings.dailyContentPrayers,
+                                onClick = {
+                                    val current = settings.dailyContentPrayers
+                                    val next = if (key in current) current - key else current + key
+                                    if (next.isNotEmpty()) onChangeDailyContentPrayers(next)
+                                },
+                                modifier = Modifier.testTag("settings_content_prayer_$key")
+                            )
+                        }
+                    }
+                }
+
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "فترة منع الإزعاج: ${
@@ -577,7 +756,7 @@ fun SettingsScreen(
                 }
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "يحذف المفضلة وسجل القراءة وجلسات التسبيح وتقدم الدروس وسجل صلواتي اليوم والإعدادات والتنزيلات المحفوظة. تبقى المواد الموسوعية المرفقة مع التطبيق.",
+                    text = "يحذف المفضلة وسجل القراءة وجلسات التسبيح وتقدم الدروس والإعدادات والتنزيلات المحفوظة. تبقى المواد الموسوعية المرفقة مع التطبيق.",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
