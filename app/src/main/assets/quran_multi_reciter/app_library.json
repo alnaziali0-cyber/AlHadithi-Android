@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0.0",
+  "title": "مكتبة القرآن - الحديثي",
+  "audio_is_bundled": false,
+  "surahs_file": "catalog/surahs_ar.json",
+  "reciters_file": "catalog/reciters.json",
+  "reciters": [
+    {
+      "id": "shahriar-parhizgar",
+      "name": "شهريار پرهيزگار",
+      "unit": "surah",
+      "count": 114,
+      "source_page": "https://ar.assabile.com/shahriar-parhizgar/quran",
+      "playback": "external_source_page"
+    },
+    {
+      "id": "hamed-shakernejad",
+      "name": "حامد شاكرنژاد",
+      "unit": "juz",
+      "count": 30,
+      "source_page": "https://www.mohtavanashr.ir/4031214008/",
+      "playback": "direct_source_links",
+      "tracks_file": "catalog/hamed_shakernejad_juz.json"
+    },
+    {
+      "id": "karim-mansouri",
+      "name": "كريم منصوري",
+      "unit": "surah",
+      "count": 114,
+      "source_page": "https://ar.assabile.com/karim-mansouri/quran",
+      "playback": "external_source_page",
+      "classification_note": "التصنيف المذهبي غير مثبت في المصدر"
+    }
+  ]
+}

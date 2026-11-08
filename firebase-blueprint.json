@@ -1,0 +1,66 @@
+{
+  "entities": {
+    "AdminAnnouncement": {
+      "title": "AdminAnnouncement",
+      "description": "Developer and owner announcement or banner managed exclusively by the authorized owner account (alnaziali0@gmail.com). Clients must submit FieldValue.serverTimestamp() for createdAt and updatedAt.",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "Headline of the announcement or banner (1..160 chars)."
+        },
+        "body": {
+          "type": "string",
+          "description": "Detailed announcement body text (1..1200 chars)."
+        },
+        "badgeLabel": {
+          "type": "string",
+          "description": "Category badge label displayed on the glassmorphic banner (1..60 chars)."
+        },
+        "actionUrl": {
+          "type": "string",
+          "description": "Optional external HTTPS link or action reference (0..500 chars)."
+        },
+        "isActive": {
+          "type": "boolean",
+          "description": "Whether the announcement is currently visible."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Authenticated Firebase UID of the owner creator."
+        },
+        "authorEmail": {
+          "type": "string",
+          "format": "email",
+          "description": "Verified Google account email of the authorized developer (alnaziali0@gmail.com)."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation server timestamp (submitted via FieldValue.serverTimestamp())."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last update server timestamp (submitted via FieldValue.serverTimestamp())."
+        }
+      },
+      "required": [
+        "title",
+        "body",
+        "badgeLabel",
+        "isActive",
+        "userId",
+        "authorEmail",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/admin_announcements/{announcementId}": {
+      "schema": "AdminAnnouncement",
+      "description": "Owner-managed developer announcements restricted strictly to verified Google account alnaziali0@gmail.com."
+    }
+  }
+}
