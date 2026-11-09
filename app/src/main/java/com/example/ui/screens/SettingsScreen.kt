@@ -6,7 +6,6 @@ import android.net.Uri
 import android.os.Build
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -23,8 +22,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.KeyboardArrowDown
-import androidx.compose.material.icons.outlined.KeyboardArrowUp
+import androidx.compose.material.icons.outlined.AccessTime
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.MenuBook
+import androidx.compose.material.icons.outlined.Palette
+import androidx.compose.material.icons.outlined.SelfImprovement
+import androidx.compose.material.icons.outlined.TextFields
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material3.AlertDialog
@@ -46,15 +49,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.BuildConfig
-import com.example.R
 import com.example.data.local.ContentSourceEntity
 import com.example.data.local.DailyGoal
 import com.example.data.local.HomeCard
@@ -190,7 +190,7 @@ fun SettingsScreen(
 
         // ---------------- الخط ----------------
         item {
-            SettingsSection(title = "الخط والنص") {
+            SettingsSection(title = "الخطوط وحجم النص") {
                 Text("خط الواجهة", style = MaterialTheme.typography.labelLarge)
                 Spacer(modifier = Modifier.height(6.dp))
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -215,8 +215,11 @@ fun SettingsScreen(
                     modifier = Modifier.testTag("settings_ui_font_scale")
                 )
 
-                Spacer(modifier = Modifier.height(6.dp))
-                Text("خط النصوص الطويلة (القرآن والأذكار)", style = MaterialTheme.typography.labelLarge)
+                androidx.compose.material3.HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 10.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.55f)
+                )
+                Text("خط القرآن والأذكار والأدعية", style = MaterialTheme.typography.labelLarge)
                 Spacer(modifier = Modifier.height(6.dp))
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     ReadingFontChoice.entries.forEach { choice ->
@@ -594,19 +597,18 @@ fun SettingsScreen(
         // ---------------- عن التطبيق ----------------
         item {
             SettingsSection(title = "حول التطبيق") {
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(22.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.img_alhadithi_logo_white),
-                        contentDescription = "شعار الحديثي",
-                        contentScale = ContentScale.Fit,
-                        modifier = Modifier.fillMaxWidth().height(190.dp).padding(8.dp)
-                    )
-                }
-                Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    text = "الحديثي | AL-HADITHI",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    text = "مكتبة إسلامية للقراءة والعبادة والمعرفة",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(8.dp))
                 InfoRow(label = "الإصدار", value = "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})")
                 InfoRow(label = "المنطقة الزمنية", value = "Asia/Baghdad (UTC+3)")
                 InfoRow(label = "اللغة", value = "العربية (اتجاه من اليمين إلى اليسار)")
@@ -745,20 +747,51 @@ fun SettingsScreen(
     }
 }
 
-/** A titled settings card. */
+/** A compact, consistently grouped settings card with a calm section marker. */
 @Composable
 private fun SettingsSection(
     title: String,
     content: @Composable () -> Unit
 ) {
-    GlassCard(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
-        )
-        Spacer(modifier = Modifier.height(10.dp))
+    GlassCard(
+        modifier = Modifier.fillMaxWidth(),
+        cornerRadius = 22.dp,
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 15.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Surface(
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+            ) {
+                Icon(
+                    imageVector = when (title) {
+                        "المظهر" -> Icons.Outlined.Palette
+                        "الخطوط وحجم النص" -> Icons.Outlined.TextFields
+                        "الصفحة الرئيسية" -> Icons.Outlined.Home
+                        "مواقيت الصلاة" -> Icons.Outlined.AccessTime
+                        "القرآن الكريم والقراءة" -> Icons.Outlined.MenuBook
+                        "الأذكار والتسبيح" -> Icons.Outlined.SelfImprovement
+                        "الإشعارات" -> Icons.Outlined.Notifications
+                        "الخصوصية والبيانات" -> Icons.Outlined.Security
+                        else -> Icons.Outlined.Info
+                    },
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(9.dp).width(20.dp).height(20.dp)
+                )
+            }
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
+        Spacer(modifier = Modifier.height(12.dp))
         content()
     }
 }

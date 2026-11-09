@@ -25,13 +25,15 @@ val SubtleGlassBorderLight = Color(0x330F766E)
 // Harmonious Spiritual Dark Mode
 val TurquoisePrimaryDark = Color(0xFF2DD4BF)
 val TurquoiseSecondaryDark = Color(0xFF5EEAD4)
-val NightSanctuaryBg = Color(0xFF091413)
-val NightGlassSurface = Color(0xFF112321)
-val NightSurfaceVariant = Color(0xFF19322F)
+val NightSanctuaryBg = Color(0xFF0F1511)
+val NightGlassSurface = Color(0xFF1A211D)
+val NightSurfaceVariant = Color(0xFF252D28)
 val NightGoldAccent = Color(0xFFE2BA64)
-val NightLightText = Color(0xFFEAF5F3)
-val NightMutedText = Color(0xFF9BB8B4)
-val SubtleGlassBorderDark = Color(0x335EEAD4)
+val NightLightText = Color(0xFFE8EEE9)
+val NightMutedText = Color(0xFF9BA89F)
+val NightEmeraldAccent = Color(0xFF59B86A)
+val NightEmeraldSoft = Color(0xFF203B27)
+val SubtleGlassBorderDark = Color(0x3359B86A)
 
 // Occasion Adaptive Accents (Subtle, respectful, never jarring)
 val MourningBannerBgLight = Color(0xFFF6ECEF)
@@ -73,12 +75,12 @@ val EmeraldAccentPalette = AccentPalette(
     lightOnPrimaryContainer = OnTurquoiseContainer,
     lightSecondary = TurquoiseSecondaryLight,
     lightOnSecondary = Color.White,
-    darkPrimary = TurquoisePrimaryDark,
-    darkOnPrimary = Color(0xFF042F2B),
-    darkPrimaryContainer = Color(0xFF0E3E39),
-    darkOnPrimaryContainer = Color(0xFFC7F9F1),
-    darkSecondary = TurquoiseSecondaryDark,
-    darkOnSecondary = Color(0xFF042F2B)
+    darkPrimary = NightEmeraldAccent,
+    darkOnPrimary = Color(0xFF08210D),
+    darkPrimaryContainer = NightEmeraldSoft,
+    darkOnPrimaryContainer = Color(0xFFD6F5DA),
+    darkSecondary = Color(0xFF8BD49A),
+    darkOnSecondary = Color(0xFF102D18)
 )
 
 val TurquoiseAccentPalette = AccentPalette(

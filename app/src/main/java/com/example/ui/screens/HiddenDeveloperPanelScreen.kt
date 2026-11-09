@@ -45,7 +45,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -68,6 +67,7 @@ import com.example.data.local.DuaZiyaratEntity
 import com.example.data.local.HadithEntity
 import com.example.data.local.IslamicOccasionEntity
 import com.example.data.local.WallpaperEntity
+import com.example.data.remote.AUTHORIZED_DEVELOPER_EMAIL
 import com.example.data.remote.DeveloperGoogleAuthHelper
 import com.example.ui.components.EmeraldHeroCard
 import com.example.ui.components.GlassCard
@@ -125,27 +125,11 @@ fun HiddenDeveloperPanelScreen(
     var isSigningIn by remember { mutableStateOf(false) }
     var authErrorBanner by remember { mutableStateOf<String?>(null) }
     var rejectedAccessBanner by remember { mutableStateOf<String?>(null) }
-    var developerEmailInput by remember { mutableStateOf("") }
+    var developerEmailInput by remember { mutableStateOf(AUTHORIZED_DEVELOPER_EMAIL) }
     var developerPasswordInput by remember { mutableStateOf("") }
 
-    // Attempt silent auto-sign-in if the authorized developer account already consented on device
-    LaunchedEffect(Unit) {
-        if (authorizedUser == null) {
-            DeveloperGoogleAuthHelper.attemptAutoSignIn(
-                context = context,
-                credentialManager = credentialManager,
-                scope = scope,
-                onAuthorizedSuccess = {
-                    authErrorBanner = null
-                    rejectedAccessBanner = null
-                },
-                onUnauthorizedAccount = {
-                    rejectedAccessBanner = "تم رفض تسجيل الدخول؛ هذا الحساب غير مخوّل باستخدام لوحة المطوّر."
-                },
-                onUnauthenticated = { }
-            )
-        }
-    }
+    // Email/password is the primary path. No automatic account chooser is opened on entry;
+    // the optional Google flow remains available as an explicit secondary action.
 
     // --- GATE: Require a verified Firebase session for the configured owner only (Google or Email/Password).
     if (authorizedUser == null) {

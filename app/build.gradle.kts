@@ -18,8 +18,8 @@ android {
     applicationId = "com.aistudio.alhadithi.iqshia"
     minSdk = 24
     targetSdk = 36
-    versionCode = 18
-    versionName = "1.0.16"
+    versionCode = 19
+    versionName = "1.0.17"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
@@ -48,10 +48,11 @@ android {
   buildTypes {
     release {
       isCrunchPngs = false
+      isDebuggable = false
       isMinifyEnabled = false
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-      // A local Release build remains possible without a private upload key; it will be
-      // unsigned. Provide the KEYSTORE_* environment variables to sign it for distribution.
+      // Release signing is mandatory: verifyReleaseSigningInputs fails packaging if the
+      // owner's existing keystore and credentials are not supplied by the build environment.
       if (signingConfigs.findByName("release") != null) {
         signingConfig = signingConfigs.getByName("release")
       }
@@ -145,6 +146,40 @@ dependencies {
   debugImplementation(libs.androidx.compose.ui.tooling)
   "ksp"(libs.androidx.room.compiler)
   // "ksp"(libs.moshi.kotlin.codegen)
+}
+
+// Never allow a distribution Release task to silently emit an unsigned APK.
+// The existing upload key must be supplied by the owner/build environment; this project does
+// not generate, rotate, or embed signing credentials.
+val verifyReleaseSigningInputs = tasks.register("verifyReleaseSigningInputs") {
+  group = "verification"
+  description = "Fails Release packaging unless the existing private signing key is configured."
+  doLast {
+    val required = mapOf(
+      "KEYSTORE_PATH" to System.getenv("KEYSTORE_PATH"),
+      "STORE_PASSWORD" to System.getenv("STORE_PASSWORD"),
+      "KEY_PASSWORD" to System.getenv("KEY_PASSWORD")
+    )
+    val missing = required.filter { (_, value) -> value.isNullOrBlank() }.keys
+    val keystorePath = required["KEYSTORE_PATH"]
+    val keystore = if (keystorePath.isNullOrBlank()) null else project.file(keystorePath)
+    val keystoreReadable = keystore?.let { it.isFile && it.canRead() } == true
+    if (missing.isNotEmpty() || !keystoreReadable) {
+      val details = buildList {
+        if (missing.isNotEmpty()) add("المتغيرات غير المضبوطة: ${missing.joinToString()}")
+        if (!keystoreReadable) add("ملف KEYSTORE_PATH غير موجود أو غير قابل للقراءة")
+      }.joinToString("؛ ")
+      throw GradleException(
+        "تم إيقاف Release قبل إنتاج APK غير موقّع. وفّر مفتاح التوقيع الأصلي عبر متغيرات البيئة فقط. $details"
+      )
+    }
+  }
+}
+
+tasks.configureEach {
+  if (name == "packageRelease" || name == "assembleRelease" || name == "bundleRelease") {
+    dependsOn(verifyReleaseSigningInputs)
+  }
 }
 
 tasks.withType<Test> {
