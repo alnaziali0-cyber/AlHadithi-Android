@@ -193,6 +193,15 @@ interface AlHadithiDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertWallpapers(wallpapers: List<WallpaperEntity>)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertSingleWallpaper(wallpaper: WallpaperEntity): Long
+
+    @Query("SELECT * FROM wallpapers WHERE id = :id LIMIT 1")
+    suspend fun getWallpaperById(id: Long): WallpaperEntity?
+
+    @Query("DELETE FROM wallpapers WHERE id = :id")
+    suspend fun deleteWallpaperById(id: Long)
+
     // --- Favorites & Bookmarks ---
     @Query("SELECT * FROM favorites_bookmarks ORDER BY savedAtMillis DESC")
     fun observeAllFavorites(): Flow<List<FavoriteBookmarkEntity>>
@@ -212,6 +221,19 @@ interface AlHadithiDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertReadingHistory(entry: ReadingHistoryEntity)
+
+    // --- Centralized daily prayer schedule cache ---
+    @Query("SELECT * FROM prayer_schedule_cache WHERE governorateId = :governorateId AND dateKey BETWEEN :startDateKey AND :endDateKey ORDER BY dateKey ASC")
+    suspend fun getPrayerSchedules(governorateId: String, startDateKey: String, endDateKey: String): List<PrayerScheduleEntity>
+
+    @Query("SELECT * FROM prayer_schedule_cache WHERE governorateId = :governorateId AND dateKey = :dateKey LIMIT 1")
+    suspend fun getPrayerSchedule(governorateId: String, dateKey: String): PrayerScheduleEntity?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertPrayerSchedules(records: List<PrayerScheduleEntity>)
+
+    @Query("DELETE FROM prayer_schedule_cache WHERE dateKey < :beforeDateKey")
+    suspend fun deleteOldPrayerSchedules(beforeDateKey: String)
 
     // --- Daily Prayer Completion ---
     @Query("SELECT * FROM prayer_daily_completions WHERE profileKey = :profileKey AND dayKey = :dayKey ORDER BY prayerKey ASC")

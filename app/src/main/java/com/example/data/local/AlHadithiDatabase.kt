@@ -25,9 +25,10 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         TasbihSessionEntity::class,
         ContentSourceEntity::class,
         AdminAnnouncementEntity::class,
-        PrayerCompletionEntity::class
+        PrayerCompletionEntity::class,
+        PrayerScheduleEntity::class
     ],
-    version = 4,
+    version = 6,
     exportSchema = false
 )
 abstract class AlHadithiDatabase : RoomDatabase() {
@@ -145,6 +146,36 @@ abstract class AlHadithiDatabase : RoomDatabase() {
             }
         }
 
+        /** Adds the normalized offline cache for one timetable per governorate/date. */
+        val MIGRATION_4_5: Migration = object : Migration(4, 5) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL(
+                    """CREATE TABLE IF NOT EXISTS prayer_schedule_cache (
+                        governorateId TEXT NOT NULL, dateKey TEXT NOT NULL,
+                        fajrMinutes INTEGER NOT NULL, sunriseMinutes INTEGER NOT NULL,
+                        dhuhrMinutes INTEGER NOT NULL, asrMinutes INTEGER NOT NULL,
+                        maghribMinutes INTEGER NOT NULL, ishaMinutes INTEGER NOT NULL,
+                        midnightMinutes INTEGER NOT NULL, hijriYear INTEGER NOT NULL,
+                        hijriMonth INTEGER NOT NULL, hijriDay INTEGER NOT NULL,
+                        gregorianDateLabel TEXT NOT NULL, sourceType TEXT NOT NULL,
+                        sourceLabel TEXT NOT NULL, sourceUrl TEXT NOT NULL,
+                        sourceRecordId TEXT NOT NULL, sourceUpdatedAtMillis INTEGER NOT NULL,
+                        cachedAtMillis INTEGER NOT NULL, timeZoneId TEXT NOT NULL,
+                        PRIMARY KEY(governorateId, dateKey)
+                    )""".trimIndent()
+                )
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_prayer_schedule_cache_dateKey ON prayer_schedule_cache(dateKey)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_prayer_schedule_cache_sourceType ON prayer_schedule_cache(sourceType)")
+            }
+        }
+
+        /** Adds private file references for developer-managed wallpaper uploads. */
+        val MIGRATION_5_6: Migration = object : Migration(5, 6) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE wallpapers ADD COLUMN localImagePath TEXT NOT NULL DEFAULT ''")
+            }
+        }
+
         @Volatile
         private var INSTANCE: AlHadithiDatabase? = null
 
@@ -157,7 +188,7 @@ abstract class AlHadithiDatabase : RoomDatabase() {
                 )
                     // Never erase user data automatically when a schema migration is missing.
                     // Add an explicit Room Migration before increasing the database version.
-                    .addMigrations(MIGRATION_2_3, MIGRATION_3_4)
+                    .addMigrations(MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
                     .build()
                 INSTANCE = instance
                 instance

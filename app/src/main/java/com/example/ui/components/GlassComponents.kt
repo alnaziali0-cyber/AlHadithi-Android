@@ -399,7 +399,7 @@ fun AlHadithiBrandTopBar(
                             modifier = Modifier.size(13.dp)
                         )
                         Text(
-                            text = "يعمل بدون إنترنت · الموسوعة المتكاملة",
+                            text = "الموسوعة المتكاملة",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1,

@@ -170,7 +170,8 @@ data class WallpaperEntity(
     val category: String,
     val drawableResName: String,
     val resolutionLabel: String,
-    val description: String
+    val description: String,
+    val localImagePath: String = ""
 )
 
 @Entity(
@@ -238,3 +239,33 @@ data class PrayerCompletionEntity(
 )
 
 const val LOCAL_PRAYER_PROFILE_KEY = "local-device-profile"
+
+
+/** One normalized daily timetable record per Iraqi governorate and civil date. */
+@Entity(
+    tableName = "prayer_schedule_cache",
+    primaryKeys = ["governorateId", "dateKey"],
+    indices = [Index("dateKey"), Index("sourceType")]
+)
+data class PrayerScheduleEntity(
+    val governorateId: String,
+    val dateKey: String,
+    val fajrMinutes: Int,
+    val sunriseMinutes: Int,
+    val dhuhrMinutes: Int,
+    val asrMinutes: Int,
+    val maghribMinutes: Int,
+    val ishaMinutes: Int,
+    val midnightMinutes: Int,
+    val hijriYear: Int,
+    val hijriMonth: Int,
+    val hijriDay: Int,
+    val gregorianDateLabel: String,
+    val sourceType: String,
+    val sourceLabel: String,
+    val sourceUrl: String = "",
+    val sourceRecordId: String = "",
+    val sourceUpdatedAtMillis: Long = 0L,
+    val cachedAtMillis: Long,
+    val timeZoneId: String = "Asia/Baghdad"
+)

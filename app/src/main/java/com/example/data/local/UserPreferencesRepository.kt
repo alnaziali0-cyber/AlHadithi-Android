@@ -54,7 +54,7 @@ enum class HomeCard(val key: String, val arabicTitle: String) {
 
         val defaultOrder: List<HomeCard> = listOf(
             OCCASIONS,
-            PRAYER_HERO,
+            DAILY_TIMES,
             PRAYER_TRACKING,
             QUICK_ACCESS
         )

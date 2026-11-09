@@ -32,7 +32,7 @@ class PrayerAlarmReceiver : BroadcastReceiver() {
         val vibrateEnabled = intent.getBooleanExtra(EXTRA_VIBRATE_ENABLED, true)
         val quietHours = QuietHours.decode(intent.getStringExtra(EXTRA_QUIET_HOURS))
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager ?: return
-        val hasCustomAdhan = AdhanAudioStorage.hasAudio(context)
+        val hasCustomAdhan = AdhanPlaybackService.hasPlayableAudio(context)
         // Starting a media foreground service from an alarm is permitted for exact alarms.
         // If the user has not granted exact-alarm access, keep the audible system notification
         // rather than posting a silent notification and attempting a restricted background start.
@@ -66,8 +66,8 @@ class PrayerAlarmReceiver : BroadcastReceiver() {
         val notificationId = intent.dataString?.hashCode() ?: prayerName.hashCode()
         manager.notify(notificationId, notification)
 
-        // The long-form audio is user-selected and stored privately; no copyrighted recording
-        // is bundled in the APK. Exact-alarm delivery is an eligible foreground-service start.
+        // The app-bundled default recording is used unless a private custom override exists.
+        // Exact-alarm delivery is an eligible foreground-service start.
         if (canStartAdhanService && audible) {
             try {
                 AdhanPlaybackService.play(context)

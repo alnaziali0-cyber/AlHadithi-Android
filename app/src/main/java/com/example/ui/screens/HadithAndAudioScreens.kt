@@ -1,7 +1,9 @@
 package com.example.ui.screens
 
-import android.content.Intent
-import android.net.Uri
+import android.webkit.WebChromeClient
+import android.webkit.WebResourceRequest
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
@@ -39,10 +41,14 @@ import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,6 +57,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -76,7 +83,6 @@ fun HadithEncyclopediaScreen(
     onSaveFavorite: (String, String, String, String, String) -> Unit
 ) {
     BackHandler { onBack() }
-    val context = LocalContext.current
     val readingScale = LocalReadingFontScale.current
     var selectedInfallible by remember { mutableStateOf("الكل") }
     var selectedTopic by remember { mutableStateOf("الكل") }
@@ -232,6 +238,7 @@ fun HadithEncyclopediaScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AudioLibraryScreen(
     tracks: List<AudioTrackEntity>,
@@ -239,11 +246,12 @@ fun AudioLibraryScreen(
     onPlayTrack: (AudioTrackEntity, List<AudioTrackEntity>) -> Unit,
     onSaveFavorite: (String, String, String, String, String) -> Unit
 ) {
-    BackHandler { onBack() }
     val context = LocalContext.current
+    var showRadioSheet by remember { mutableStateOf(false) }
     val playerState by AudioPlayerController.state.collectAsStateWithLifecycle()
     var selectedCategory by remember { mutableStateOf("الكل") }
     var searchQuery by remember { mutableStateOf("") }
+    BackHandler { if (showRadioSheet) showRadioSheet = false else onBack() }
 
     val categories = remember(tracks) {
         val base = listOf(
@@ -297,12 +305,7 @@ fun AudioLibraryScreen(
                     modifier = Modifier.fillMaxWidth(),
                     cornerRadius = 22.dp,
                     contentPadding = PaddingValues(horizontal = 14.dp, vertical = 13.dp),
-                    onClick = {
-                        val liveIntent = Intent(Intent.ACTION_VIEW, Uri.parse(ImamHussainRadioCatalog.officialHomeUrl))
-                        runCatching { context.startActivity(liveIntent) }.onFailure {
-                            Toast.makeText(context, "تعذر فتح صفحة البث الرسمي", Toast.LENGTH_SHORT).show()
-                        }
-                    }
+                    onClick = { showRadioSheet = true }
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Surface(
@@ -329,7 +332,7 @@ fun AudioLibraryScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
-                        Icon(Icons.Outlined.PlayArrow, contentDescription = "فتح البث المباشر", tint = MaterialTheme.colorScheme.primary)
+                        Icon(Icons.Outlined.PlayArrow, contentDescription = "تشغيل البث داخل التطبيق", tint = MaterialTheme.colorScheme.primary)
                     }
                 }
             }
@@ -508,4 +511,64 @@ fun AudioLibraryScreen(
             }
         }
     }
+    if (showRadioSheet) {
+        val radioWebViewRef = remember { mutableStateOf<WebView?>(null) }
+        DisposableEffect(Unit) {
+            onDispose {
+                radioWebViewRef.value?.let { webView ->
+                    runCatching {
+                        webView.stopLoading()
+                        webView.loadUrl("about:blank")
+                        webView.webChromeClient = null
+                        webView.webViewClient = WebViewClient()
+                        webView.removeAllViews()
+                        webView.destroy()
+                    }
+                }
+                radioWebViewRef.value = null
+            }
+        }
+        ModalBottomSheet(
+            onDismissRequest = { showRadioSheet = false },
+            containerColor = MaterialTheme.colorScheme.surface
+        ) {
+            Column(Modifier.fillMaxWidth().padding(horizontal = 12.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text("إذاعة الروضة الحسينية", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                        Text("مشغل الموقع الرسمي داخل التطبيق", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    TextButton(onClick = { showRadioSheet = false }) { Text("إغلاق") }
+                }
+                AndroidView(
+                    modifier = Modifier.fillMaxWidth().height(560.dp),
+                    factory = { webContext ->
+                        WebView(webContext).apply {
+                            radioWebViewRef.value = this
+                            settings.javaScriptEnabled = true
+                            settings.domStorageEnabled = true
+                            settings.mediaPlaybackRequiresUserGesture = false
+                            settings.allowFileAccess = false
+                            settings.allowContentAccess = false
+                            settings.mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_NEVER_ALLOW
+                            webChromeClient = WebChromeClient()
+                            webViewClient = object : WebViewClient() {
+                                override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
+                                    val host = request.url.host?.lowercase(java.util.Locale.ROOT).orEmpty()
+                                    return host != "imamhussain-fm.com" && host != "www.imamhussain-fm.com"
+                                }
+                            }
+                            loadUrl(ImamHussainRadioCatalog.officialHomeUrl)
+                        }
+                    }
+                )
+                Spacer(Modifier.height(16.dp))
+            }
+        }
+    }
+
 }

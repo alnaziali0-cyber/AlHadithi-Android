@@ -1,7 +1,5 @@
 package com.example.ui.screens
 
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -61,10 +59,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.R
 import com.example.data.local.AdminAnnouncementEntity
 import com.example.data.local.CachedAyahEntity
 import com.example.data.local.DailyGoal
@@ -314,82 +315,87 @@ fun HomeScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
-                        cornerRadius = 20.dp
+                        cornerRadius = 24.dp,
+                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.74f),
+                        onClick = { onNavigate(AppDestination.PRAYER_TIMES) }
                     ) {
-                        SectionHeaderRow(
-                            title = "مواقيت الصلاة",
-                            actionLabel = "ضبط المواقيت",
-                            onActionClick = { onNavigate(AppDestination.PRAYER_TIMES) }
-                        )
-                        Spacer(modifier = Modifier.height(10.dp))
-                        val prayerItems = listOf(
-                            PrayerChipItem("الفجر", formatTime(schedule.fajrMinutes), Icons.Outlined.WbTwilight),
-                            PrayerChipItem("الشروق", formatTime(schedule.sunriseMinutes), Icons.Outlined.WbSunny),
-                            PrayerChipItem("الظهر", formatTime(schedule.dhuhrMinutes), Icons.Outlined.WbSunny),
-                            PrayerChipItem("العصر", formatTime(schedule.asrMinutes), Icons.Outlined.WbTwilight),
-                            PrayerChipItem("المغرب", formatTime(schedule.maghribMinutes), Icons.Outlined.NightsStay),
-                            PrayerChipItem("العشاء", formatTime(schedule.ishaMinutes), Icons.Outlined.NightsStay)
-                        )
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            prayerItems.forEach { item ->
-                                val isNext = item.name == countdown.prayerArabicName
-                                Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    modifier = Modifier
-                                        .background(
-                                            if (isNext) {
-                                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.55f)
-                                            } else {
-                                                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.40f)
-                                            },
-                                            RoundedCornerShape(12.dp)
-                                        )
-                                        .padding(horizontal = 4.dp, vertical = 8.dp)
+                            Column {
+                                Text("مواقيت الصلاة", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                                Text(governorate.arabicName + " · " + schedule.gregorianDateLabel, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.76f))
+                            }
+                            Icon(Icons.Outlined.Schedule, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(26.dp))
+                        }
+                        Spacer(modifier = Modifier.height(14.dp))
+                        val prayerItems = listOf(
+                            "الفجر" to schedule.fajrMinutes,
+                            "الظهر" to schedule.dhuhrMinutes,
+                            "العصر" to schedule.asrMinutes,
+                            "المغرب" to schedule.maghribMinutes,
+                            "العشاء" to schedule.ishaMinutes
+                        )
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                            prayerItems.forEach { (name, minutes) ->
+                                val isNext = name == countdown.prayerArabicName
+                                Surface(
+                                    modifier = Modifier.weight(1f),
+                                    shape = RoundedCornerShape(13.dp),
+                                    color = if (isNext) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface.copy(alpha = 0.75f)
                                 ) {
-                                    Icon(
-                                        imageVector = item.icon,
-                                        contentDescription = null,
-                                        tint = if (isNext) {
-                                            MaterialTheme.colorScheme.primary
-                                        } else {
-                                            MaterialTheme.colorScheme.onSurfaceVariant
-                                        },
-                                        modifier = Modifier.size(15.dp)
-                                    )
-                                    Spacer(modifier = Modifier.height(2.dp))
-                                    Text(
-                                        text = item.name,
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = if (isNext) {
-                                            MaterialTheme.colorScheme.primary
-                                        } else {
-                                            MaterialTheme.colorScheme.onSurfaceVariant
-                                        },
-                                        fontWeight = if (isNext) FontWeight.Bold else FontWeight.Normal
-                                    )
-                                    Spacer(modifier = Modifier.height(2.dp))
-                                    Text(
-                                        text = if (timeFormat == TimeFormat.TWELVE_HOUR) {
-                                            item.time.replace(" ص", "").replace(" م", "")
-                                        } else {
-                                            item.time
-                                        },
-                                        style = MaterialTheme.typography.labelMedium,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
+                                    Column(
+                                        modifier = Modifier.padding(vertical = 9.dp, horizontal = 2.dp),
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        Text(name, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold, color = if (isNext) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant)
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Text(
+                                            text = formatTime(minutes).replace(" ص", "").replace(" م", ""),
+                                            style = MaterialTheme.typography.labelMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color = if (isNext) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
+                                        )
+                                    }
                                 }
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(13.dp))
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(15.dp),
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column {
+                                    Text("المتبقي على ${countdown.prayerArabicName}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Text(countdown.prayerFormattedTime, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                                }
+                                Text(
+                                    countdown.countdownHhMmSs,
+                                    style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily(Font(R.font.tajawal))),
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
                             }
                         }
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "المصدر: ${schedule.sourceLabel} · آخر تحديث ${schedule.gregorianDateLabel}",
+                            text = if (schedule.sourceType == "OFFICIAL" && schedule.sourceUpdatedAtMillis > 0L) {
+                                "${schedule.sourceLabel} · تحديث المصدر ${java.text.SimpleDateFormat("HH:mm", java.util.Locale("ar", "IQ")).format(java.util.Date(schedule.sourceUpdatedAtMillis))}"
+                            } else {
+                                "${schedule.sourceLabel} · لا يتوفر تحديث رسمي لهذا اليوم"
+                            },
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.82f)
                         )
+                        Text("اضغط لعرض الجدول والتفاصيل", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                     }
                 })
 
@@ -416,7 +422,7 @@ fun HomeScreen(
                         ) {
                             Column {
                                 Text(
-                                    text = "مواقيت الصلاة",
+                                    text = "متابعة الصلوات",
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold
                                 )

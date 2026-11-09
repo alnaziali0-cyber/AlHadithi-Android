@@ -805,7 +805,7 @@ object SeedDataPart2 {
             editionNote = "خلاصات تفسيرية منسوبة بوضوح لمصادرها المعتمدة."
         ),
         ContentSourceEntity(
-            sourceTitle = "واجهة مواقيت الصلاة AlAdhan API",
+            sourceTitle = "الحساب الفلكي المحلي — طريقة جعفرية قابلة للضبط",
             authorAndDeathYear = "طريقة Leva Institute بقم (الجعفرية Method 0) + محرك فلكي محلي",
             domainCategory = "مواقيت الصلاة والتقويم",
             editionNote = "مزود بضبط يدوي للدقائق وتصحيح للهلال المحلي."

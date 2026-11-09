@@ -51,7 +51,7 @@ class AdhanPlaybackService : Service() {
     }
 
     private fun startPlayback() {
-        val audioFile = AdhanAudioStorage.currentAudioFile(this)
+        val audioFile = AdhanAudioStorage.resolvePlaybackFile(this)
         if (audioFile == null) {
             stopSelf()
             return
@@ -192,6 +192,8 @@ class AdhanPlaybackService : Service() {
             val intent = Intent(context, AdhanPlaybackService::class.java).setAction(ACTION_PLAY)
             ContextCompat.startForegroundService(context, intent)
         }
+
+        fun hasPlayableAudio(context: Context): Boolean = AdhanAudioStorage.hasPlayableAudio(context)
 
         fun stop(context: Context) {
             val intent = Intent(context, AdhanPlaybackService::class.java).setAction(ACTION_STOP)

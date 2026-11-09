@@ -58,24 +58,24 @@ object QiblaGeoMath {
 
 object IraqGovernorates {
     val all: List<GovernorateInfo> = listOf(
-        GovernorateInfo("baghdad", "بغداد", "Baghdad", 33.3152, 44.3661),
-        GovernorateInfo("basra", "البصرة", "Basra", 30.5085, 47.7804),
-        GovernorateInfo("najaf", "النجف", "Najaf", 31.9959, 44.3146),
-        GovernorateInfo("karbala", "كربلاء", "Karbala", 32.6160, 44.0249),
-        GovernorateInfo("babil", "بابل", "Babil", 32.4637, 44.4196),
-        GovernorateInfo("wasit", "واسط", "Wasit", 32.5128, 45.8182),
-        GovernorateInfo("qadisiyah", "القادسية", "Al-Qadisiyyah", 31.9889, 44.9255),
-        GovernorateInfo("muthanna", "المثنى", "Al-Muthanna", 31.3320, 45.2944),
-        GovernorateInfo("dhi_qar", "ذي قار", "Dhi Qar", 31.0439, 46.2573),
-        GovernorateInfo("maysan", "ميسان", "Maysan", 31.8359, 47.1448),
-        GovernorateInfo("diyala", "ديالى", "Diyala", 33.7485, 44.6433),
-        GovernorateInfo("anbar", "الأنبار", "Al-Anbar", 33.4258, 43.2994),
-        GovernorateInfo("saladin", "صلاح الدين", "Saladin", 34.6111, 43.6782),
-        GovernorateInfo("nineveh", "نينوى", "Nineveh", 36.3489, 43.1577),
-        GovernorateInfo("kirkuk", "كركوك", "Kirkuk", 35.4681, 44.3922),
-        GovernorateInfo("erbil", "أربيل", "Erbil", 36.1901, 44.0091),
-        GovernorateInfo("sulaymaniyah", "السليمانية", "Sulaymaniyah", 35.5613, 45.4304),
-        GovernorateInfo("duhok", "دهوك", "Duhok", 36.8671, 42.9884)
+        GovernorateInfo("baghdad", "بغداد", "Baghdad", 33.341, 44.401),
+        GovernorateInfo("basra", "البصرة", "Basra", 30.509, 47.780),
+        GovernorateInfo("najaf", "النجف", "Najaf", 32.026, 44.346),
+        GovernorateInfo("karbala", "كربلاء", "Karbala", 32.616, 44.025),
+        GovernorateInfo("babil", "بابل", "Babil", 32.464, 44.420),
+        GovernorateInfo("wasit", "واسط", "Wasit", 32.513, 45.818),
+        GovernorateInfo("qadisiyah", "القادسية", "Al-Qadisiyyah", 31.993, 44.926),
+        GovernorateInfo("muthanna", "المثنى", "Al-Muthanna", 31.311, 45.281),
+        GovernorateInfo("dhi_qar", "ذي قار", "Dhi Qar", 31.058, 46.257),
+        GovernorateInfo("maysan", "ميسان", "Maysan", 31.836, 47.145),
+        GovernorateInfo("diyala", "ديالى", "Diyala", 33.744, 44.643),
+        GovernorateInfo("anbar", "الأنبار", "Al-Anbar", 33.425, 43.300),
+        GovernorateInfo("saladin", "صلاح الدين", "Saladin", 34.607, 43.678),
+        GovernorateInfo("nineveh", "نينوى", "Nineveh", 36.335, 43.119),
+        GovernorateInfo("kirkuk", "كركوك", "Kirkuk", 35.468, 44.392),
+        GovernorateInfo("erbil", "أربيل", "Erbil", 36.191, 44.009),
+        GovernorateInfo("sulaymaniyah", "السليمانية", "Sulaymaniyah", 35.565, 45.433),
+        GovernorateInfo("duhok", "دهوك", "Duhok", 36.866, 42.988)
     )
 
     fun byId(id: String): GovernorateInfo =

@@ -1,7 +1,11 @@
 package com.example.ui.screens
 
 import android.widget.Toast
+import android.graphics.BitmapFactory
+import android.net.Uri
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -36,6 +40,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -62,6 +67,7 @@ import com.example.data.local.DhikrEntity
 import com.example.data.local.DuaZiyaratEntity
 import com.example.data.local.HadithEntity
 import com.example.data.local.IslamicOccasionEntity
+import com.example.data.local.WallpaperEntity
 import com.example.data.remote.DeveloperGoogleAuthHelper
 import com.example.ui.components.EmeraldHeroCard
 import com.example.ui.components.GlassCard
@@ -69,11 +75,17 @@ import com.example.ui.components.GlassFilterChip
 import com.example.ui.components.SubScreenTopBar
 import com.example.ui.theme.HeritageGold
 import com.google.firebase.auth.FirebaseUser
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
+import java.util.UUID
 
 /**
  * Hidden Developer & Owner Control Panel revealed ONLY by shaking the phone (or 7-tap logo gesture).
- * Strictly locked via Google Sign-In (`CredentialManager`) to the configured verified owner account.
- * Rejects and auto-signs-out every other Google account immediately.
+ * Strictly locked to the configured verified owner identity through Firebase Authentication.
+ * Google and email/password providers are accepted only when the verified owner check succeeds.
+ * Uploaded wallpapers are stored in this installation's private app storage in this release.
  */
 @Composable
 fun HiddenDeveloperPanelScreen(
@@ -85,6 +97,7 @@ fun HiddenDeveloperPanelScreen(
     books: List<BookEntity>,
     audioTracks: List<AudioTrackEntity>,
     occasions: List<IslamicOccasionEntity>,
+    wallpapers: List<WallpaperEntity>,
     onBack: () -> Unit,
     onAddAnnouncement: (String, String, String, String, (Boolean, String) -> Unit) -> Unit,
     onToggleAnnouncementActive: (AdminAnnouncementEntity, Boolean) -> Unit,
@@ -100,7 +113,9 @@ fun HiddenDeveloperPanelScreen(
     onAddAudio: (AudioTrackEntity) -> Unit,
     onDeleteAudio: (Long) -> Unit,
     onAddOccasion: (IslamicOccasionEntity) -> Unit,
-    onDeleteOccasion: (Long) -> Unit
+    onDeleteOccasion: (Long) -> Unit,
+    onAddWallpaper: (WallpaperEntity) -> Unit,
+    onDeleteWallpaper: (Long) -> Unit
 ) {
     BackHandler { onBack() }
     val context = LocalContext.current
@@ -110,6 +125,8 @@ fun HiddenDeveloperPanelScreen(
     var isSigningIn by remember { mutableStateOf(false) }
     var authErrorBanner by remember { mutableStateOf<String?>(null) }
     var rejectedAccessBanner by remember { mutableStateOf<String?>(null) }
+    var developerEmailInput by remember { mutableStateOf("") }
+    var developerPasswordInput by remember { mutableStateOf("") }
 
     // Attempt silent auto-sign-in if the authorized developer account already consented on device
     LaunchedEffect(Unit) {
@@ -130,12 +147,12 @@ fun HiddenDeveloperPanelScreen(
         }
     }
 
-    // --- GATE: Require verified Google Sign-In for the configured owner only ---
+    // --- GATE: Require a verified Firebase session for the configured owner only (Google or Email/Password).
     if (authorizedUser == null) {
         Column(modifier = Modifier.fillMaxSize()) {
             SubScreenTopBar(
                 title = "لوحة المطور المخفية · DEVELOPER",
-                subtitle = "تظهر عند رجّ الهاتف — محمية بتسجيل دخول Google للمالك فقط",
+                subtitle = "بوابة إدارة خاصة — تحقق آمن من حساب المطوّر",
                 onBack = onBack
             )
 
@@ -195,14 +212,14 @@ fun HiddenDeveloperPanelScreen(
                                 modifier = Modifier.size(28.dp)
                             )
                             Text(
-                                text = "تسجيل الدخول عبر Google حصرياً",
+                                text = "تسجيل دخول المطوّر",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
                             )
                         }
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "لا يُسمح بالدخول أو إدارة المحتوى إلا للحساب المعتمد مسبقاً في إعدادات التطبيق:",
+                            text = "يُسمح بالدخول للحساب المصرّح به فقط، مع التحقق من البريد عبر Firebase:",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -225,7 +242,7 @@ fun HiddenDeveloperPanelScreen(
                                     modifier = Modifier.size(20.dp)
                                 )
                                 Text(
-                                    text = "هوية المطوّر مخفية · تحقق آمن عبر Google",
+                                    text = "التحقق يتم عبر Firebase · لا تُحفظ كلمة المرور داخل التطبيق",
                                     style = MaterialTheme.typography.titleSmall,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onPrimaryContainer
@@ -259,6 +276,68 @@ fun HiddenDeveloperPanelScreen(
                             )
                         }
 
+                        Spacer(modifier = Modifier.height(14.dp))
+                        OutlinedTextField(
+                            value = developerEmailInput,
+                            onValueChange = { developerEmailInput = it.take(160) },
+                            label = { Text("البريد الإلكتروني") },
+                            singleLine = true,
+                            shape = RoundedCornerShape(14.dp),
+                            modifier = Modifier.fillMaxWidth().testTag("developer_email_input")
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedTextField(
+                            value = developerPasswordInput,
+                            onValueChange = { developerPasswordInput = it.take(256) },
+                            label = { Text("كلمة المرور") },
+                            singleLine = true,
+                            visualTransformation = PasswordVisualTransformation(),
+                            shape = RoundedCornerShape(14.dp),
+                            modifier = Modifier.fillMaxWidth().testTag("developer_password_input")
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Button(
+                            enabled = !isSigningIn && developerEmailInput.isNotBlank() && developerPasswordInput.isNotEmpty(),
+                            onClick = {
+                                if (isSigningIn) return@Button
+                                isSigningIn = true
+                                authErrorBanner = null
+                                rejectedAccessBanner = null
+                                val enteredEmail = developerEmailInput
+                                val enteredPassword = developerPasswordInput
+                                DeveloperGoogleAuthHelper.signInWithEmailPassword(
+                                    email = enteredEmail,
+                                    password = enteredPassword,
+                                    scope = scope,
+                                    onAuthorizedSuccess = {
+                                        isSigningIn = false
+                                        developerPasswordInput = ""
+                                        Toast.makeText(context, "تم التحقق من حساب المطوّر", Toast.LENGTH_SHORT).show()
+                                    },
+                                    onUnauthorizedAccount = {
+                                        isSigningIn = false
+                                        developerPasswordInput = ""
+                                        rejectedAccessBanner = "الحساب غير مخوّل أو لم يتم توثيق البريد الإلكتروني."
+                                    },
+                                    onAuthError = { message ->
+                                        isSigningIn = false
+                                        developerPasswordInput = ""
+                                        authErrorBanner = message
+                                    }
+                                )
+                            },
+                            shape = RoundedCornerShape(16.dp),
+                            modifier = Modifier.fillMaxWidth().height(52.dp).testTag("developer_email_password_sign_in")
+                        ) {
+                            if (isSigningIn) CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                            else Text("دخول آمن للوحة المطوّر", fontWeight = FontWeight.Bold)
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            "يتطلب تفعيل مزوّد Email/Password في Firebase وإنشاء حساب المطوّر وتوثيق بريده. لا تضع كلمة المرور داخل الكود أو ملفات الإعدادات.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                         Spacer(modifier = Modifier.height(16.dp))
                         Button(
                             onClick = {
@@ -333,6 +412,7 @@ fun HiddenDeveloperPanelScreen(
     var fSubtitleOrSource by remember { mutableStateOf("") }
     var fCategory by remember { mutableStateOf("") }
     var fBodyOrUrl by remember { mutableStateOf("") }
+    var wallpaperImportBusy by remember { mutableStateOf(false) }
 
     fun clearCmsForm() {
         fTitle = ""
@@ -341,10 +421,37 @@ fun HiddenDeveloperPanelScreen(
         fBodyOrUrl = ""
     }
 
+    val wallpaperPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
+        if (uri != null && !wallpaperImportBusy) {
+            wallpaperImportBusy = true
+            scope.launch {
+                val imported = importWallpaperImage(context, uri)
+                wallpaperImportBusy = false
+                if (imported == null) {
+                    Toast.makeText(context, "تعذر استيراد الصورة. استخدم JPG أو PNG بحجم أقل من 15 MB.", Toast.LENGTH_LONG).show()
+                } else {
+                    onAddWallpaper(
+                        WallpaperEntity(
+                            title = fTitle.trim().ifBlank { "خلفية إسلامية جديدة" }.take(100),
+                            category = fCategory.trim().ifBlank { "خلفيات إسلامية" }.take(60),
+                            drawableResName = "",
+                            resolutionLabel = "${File(imported).length() / 1024} KB",
+                            description = fSubtitleOrSource.trim().ifBlank { "أضيفت من لوحة المطور" }.take(300),
+                            localImagePath = imported
+                        )
+                    )
+                    clearCmsForm()
+                    Toast.makeText(context, "تمت إضافة الخلفية إلى التطبيق", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+
     Column(modifier = Modifier.fillMaxSize()) {
         SubScreenTopBar(
             title = "لوحة المطور · AL-HADITHI",
-            subtitle = "جلسة المطوّر محمية · اتصال موثّق عبر Google",
+            subtitle = "جلسة المطوّر محمية · تحقق موثّق عبر Firebase",
             onBack = onBack,
             trailing = {
                 OutlinedButton(
@@ -420,7 +527,8 @@ fun HiddenDeveloperPanelScreen(
                     "الأدعية والزيارات",
                     "الأذكار",
                     "الكتب والسيرة",
-                    "المناسبات"
+                    "المناسبات",
+                    "الخلفيات"
                 )
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     items(tabs.size) { idx ->
@@ -587,6 +695,31 @@ fun HiddenDeveloperPanelScreen(
                             )
                         }
                     }
+                }
+            } else if (sectionTab == 7) {
+                item {
+                    GlassCard(cornerRadius = 22.dp) {
+                        Text("إدارة خلفيات التطبيق", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        Text("يتم نسخ الصور إلى مساحة التطبيق الخاصة والتحقق من نوعها وحجمها، ولا تُرفع إلى الإنترنت تلقائياً.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Spacer(Modifier.height(10.dp))
+                        OutlinedTextField(value = fTitle, onValueChange = { fTitle = it.take(100) }, label = { Text("عنوان الخلفية") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                        Spacer(Modifier.height(7.dp))
+                        OutlinedTextField(value = fCategory, onValueChange = { fCategory = it.take(60) }, label = { Text("التصنيف") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                        Spacer(Modifier.height(7.dp))
+                        OutlinedTextField(value = fSubtitleOrSource, onValueChange = { fSubtitleOrSource = it.take(300) }, label = { Text("وصف مختصر") }, modifier = Modifier.fillMaxWidth())
+                        Spacer(Modifier.height(12.dp))
+                        Button(
+                            enabled = !wallpaperImportBusy,
+                            onClick = { wallpaperPicker.launch(arrayOf("image/jpeg", "image/png", "image/webp")) },
+                            modifier = Modifier.fillMaxWidth().height(50.dp)
+                        ) {
+                            if (wallpaperImportBusy) CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                            else Text("اختيار صورة وإضافتها إلى الخلفيات")
+                        }
+                    }
+                }
+                items(wallpapers, key = { "wallpaper_${it.id}" }) { wallpaper ->
+                    DeveloperCmsRow(wallpaper.title, "${wallpaper.category} · ${wallpaper.resolutionLabel}") { onDeleteWallpaper(wallpaper.id) }
                 }
             } else {
                 // --- TABS 1..6: ENCYCLOPEDIA & HUSSEINI AUDIO MANAGEMENT ---
@@ -776,6 +909,32 @@ fun HiddenDeveloperPanelScreen(
         }
     }
 }
+
+private suspend fun importWallpaperImage(context: android.content.Context, uri: Uri): String? =
+    withContext(Dispatchers.IO) {
+        val directory = File(context.filesDir, "wallpapers")
+        val target = File(directory, "wallpaper_${UUID.randomUUID()}.img")
+        var keepFile = false
+        try {
+            if (!directory.exists() && !directory.mkdirs()) return@withContext null
+            val mimeType = context.contentResolver.getType(uri).orEmpty()
+            if (mimeType !in setOf("image/jpeg", "image/png", "image/webp")) return@withContext null
+            context.contentResolver.openInputStream(uri)?.use { input ->
+                target.outputStream().use { output -> input.copyTo(output, 8192) }
+            } ?: return@withContext null
+            if (target.length() !in 1_024L..(15L * 1_024L * 1_024L)) return@withContext null
+            val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            BitmapFactory.decodeFile(target.absolutePath, bounds)
+            if (bounds.outWidth !in 1..8_000 || bounds.outHeight !in 1..8_000 ||
+                bounds.outMimeType !in setOf("image/jpeg", "image/png", "image/webp")) return@withContext null
+            keepFile = true
+            target.absolutePath
+        } catch (_: Exception) {
+            null
+        } finally {
+            if (!keepFile) target.delete()
+        }
+    }
 
 @Composable
 private fun DeveloperCmsRow(title: String, subtitle: String, onDelete: () -> Unit) {

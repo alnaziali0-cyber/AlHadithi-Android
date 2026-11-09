@@ -78,11 +78,6 @@ data class PrayerMinuteOffsets(
     val maghrib: Int = 0,
     val isha: Int = 0
 ) {
-    /**
-     * AlAdhan tune string order: Imsak,Fajr,Sunrise,Dhuhr,Asr,Maghrib,Sunset,Isha,Midnight
-     */
-    fun toAlAdhanTuneParam(): String =
-        "0,$fajr,$sunrise,$dhuhr,$asr,$maghrib,0,$isha,0"
 }
 
 data class DailyPrayerSchedule(
@@ -95,10 +90,17 @@ data class DailyPrayerSchedule(
     val maghribMinutes: Int,
     val ishaMinutes: Int,
     val midnightMinutes: Int,
-    val sourceLabel: String
+    val sourceLabel: String,
+    val dateKey: String = "",
+    val governorateId: String = "",
+    val sourceType: String = "CALCULATED_FALLBACK",
+    val sourceUrl: String = "",
+    val sourceUpdatedAtMillis: Long = 0L,
+    val sourceRecordId: String = ""
 ) {
     fun formatted12h(minutesOfDay: Int): String {
-        val normalized = ((minutesOfDay % 1440) + 1440) % 1440
+        if (minutesOfDay !in 0..1439) return "--:--"
+        val normalized = minutesOfDay
         val hour24 = normalized / 60
         val min = normalized % 60
         val period = if (hour24 < 12) "ص" else "م"
@@ -111,7 +113,8 @@ data class DailyPrayerSchedule(
     }
 
     fun formatted24h(minutesOfDay: Int): String {
-        val normalized = ((minutesOfDay % 1440) + 1440) % 1440
+        if (minutesOfDay !in 0..1439) return "--:--"
+        val normalized = minutesOfDay
         val hour24 = normalized / 60
         val min = normalized % 60
         return String.format(Locale.US, "%02d:%02d", hour24, min)
@@ -429,7 +432,6 @@ object PrayerAndHijriCalculator {
 
         val orderedPrayers = listOf(
             "الفجر" to schedule.fajrMinutes,
-            "الشروق" to schedule.sunriseMinutes,
             "الظهر" to schedule.dhuhrMinutes,
             "العصر" to schedule.asrMinutes,
             "المغرب" to schedule.maghribMinutes,

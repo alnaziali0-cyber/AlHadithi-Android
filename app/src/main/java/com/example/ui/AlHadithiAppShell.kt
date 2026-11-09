@@ -526,6 +526,7 @@ fun AlHadithiAppRoot(
                                         books = books,
                                         audioTracks = audioTracks,
                                         occasions = occasions,
+                                        wallpapers = wallpapers,
                                         onBack = { currentDestination = AppDestination.HOME },
                                         onAddAnnouncement = vm::developerAddAnnouncement,
                                         onToggleAnnouncementActive = vm::developerToggleAnnouncementActive,
@@ -541,7 +542,9 @@ fun AlHadithiAppRoot(
                                         onAddAudio = vm::adminAddAudioTrack,
                                         onDeleteAudio = vm::adminDeleteAudioTrack,
                                         onAddOccasion = vm::adminAddOccasion,
-                                        onDeleteOccasion = vm::adminDeleteOccasion
+                                        onDeleteOccasion = vm::adminDeleteOccasion,
+                                        onAddWallpaper = vm::adminAddWallpaper,
+                                        onDeleteWallpaper = vm::adminDeleteWallpaper
                                     )
                                 }
                             }

@@ -34,7 +34,7 @@ import com.example.data.remote.AdminAnnouncementFirestoreRepository
 import com.example.data.remote.CloudAdminAnnouncement
 import com.example.data.remote.DeveloperGoogleAuthHelper
 import com.example.data.remote.DeveloperGoogleAuthHelper.authStateFlow
-import com.example.data.remote.PrayerNetworkClient
+import com.example.data.remote.PrayerTimesService
 import com.example.data.remote.QuranNetworkRepository
 import com.example.domain.DailyPrayerSchedule
 import com.example.domain.IraqGovernorates
@@ -121,10 +121,7 @@ class AlHadithiViewModel(application: Application) : AndroidViewModel(applicatio
 
     private val initialBaghdad = IraqGovernorates.byId("baghdad")
     private val _todaySchedule = MutableStateFlow(
-        PrayerAndHijriCalculator.calculateLocalPrayerSchedule(
-            latitude = initialBaghdad.latitude,
-            longitude = initialBaghdad.longitude
-        )
+        PrayerTimesService.previewLocalSchedule(initialBaghdad)
     )
     val todaySchedule: StateFlow<DailyPrayerSchedule> = _todaySchedule.asStateFlow()
 
@@ -343,74 +340,36 @@ class AlHadithiViewModel(application: Application) : AndroidViewModel(applicatio
         val gov = IraqGovernorates.byId(govId)
         val latitude = latitudeOverride ?: gov.latitude
         val longitude = longitudeOverride ?: gov.longitude
-        val instantLocal = PrayerAndHijriCalculator.calculateLocalPrayerSchedule(
-            latitude = latitude,
-            longitude = longitude,
-            method = method,
-            offsets = offsets,
-            hijriOffsetDays = hijriOffsetDays
-        )
-        _todaySchedule.value = instantLocal
-        _nextPrayerCountdown.value = PrayerAndHijriCalculator.computeNextPrayerCountdown(instantLocal)
-
-        // Remove stale alarms immediately when the user switches reminders off; otherwise
-        // prepare a local 35-day fallback before the network request finishes.
-        if (settings.value.notifyPrayers) {
-            PrayerNotificationScheduler.schedulePrayerAlarms(
-                context = appCtx,
-                latitude = latitude,
-                longitude = longitude,
-                method = method,
-                offsets = offsets,
-                areaName = gov.arabicName,
-                enabled = true,
-                apiYear = -1,
-                apiMonth = -1,
-                apiMonthSchedules = emptyList(),
-                alertProfile = settings.value.prayerAlertProfile
-            )
-        } else {
-            PrayerNotificationScheduler.disable(appCtx)
-        }
-
         prayerRefreshJob?.cancel()
         prayerRefreshJob = viewModelScope.launch {
-            val live = PrayerNetworkClient.fetchDailyScheduleWithOfflineFallback(
-                latitude = latitude,
-                longitude = longitude,
-                method = method,
-                offsets = offsets,
-                hijriOffsetDays = hijriOffsetDays
-            )
-            _todaySchedule.value = live
-            _nextPrayerCountdown.value = PrayerAndHijriCalculator.computeNextPrayerCountdown(live)
-
-            val now = Calendar.getInstance(PrayerAndHijriCalculator.baghdadTimeZone())
-            val year = now.get(Calendar.YEAR)
-            val month = now.get(Calendar.MONTH) + 1
-            val monthSchedules = PrayerNetworkClient.fetchMonthlySchedules(
-                year = year,
-                month1Based = month,
-                latitude = latitude,
-                longitude = longitude,
-                method = method,
-                offsets = offsets,
-                hijriOffsetDays = hijriOffsetDays
-            )
-            _monthlySchedules.value = monthSchedules
-            PrayerNotificationScheduler.schedulePrayerAlarms(
-                context = appCtx,
-                latitude = latitude,
-                longitude = longitude,
-                method = method,
-                offsets = offsets,
-                areaName = gov.arabicName,
-                enabled = settings.value.notifyPrayers,
-                apiYear = year,
-                apiMonth = month,
-                apiMonthSchedules = monthSchedules,
-                alertProfile = settings.value.prayerAlertProfile
-            )
+            try {
+                val schedules = PrayerTimesService(appCtx, dao).loadWindow(
+                    governorateId = gov.id, latitude = latitude, longitude = longitude,
+                    method = method, offsets = offsets, hijriOffsetDays = hijriOffsetDays, days = 35
+                )
+                val todayKey = PrayerDailyProgress.dayKey().replace("-", "")
+                val today = schedules.firstOrNull { it.dateKey == todayKey }
+                    ?: schedules.firstOrNull()
+                    ?: return@launch
+                _todaySchedule.value = today
+                _nextPrayerCountdown.value = PrayerAndHijriCalculator.computeNextPrayerCountdown(today)
+                _monthlySchedules.value = schedules
+                if (settings.value.notifyPrayers) {
+                    PrayerNotificationScheduler.schedulePrayerAlarms(
+                        context = appCtx, latitude = latitude, longitude = longitude, method = method,
+                        offsets = offsets, areaName = gov.arabicName, enabled = true,
+                        schedules = schedules, alertProfile = settings.value.prayerAlertProfile,
+                        governorateId = gov.id
+                    )
+                } else {
+                    PrayerNotificationScheduler.disable(appCtx)
+                }
+            } catch (cancel: kotlinx.coroutines.CancellationException) {
+                throw cancel
+            } catch (error: Exception) {
+                android.util.Log.w("AlHadithiViewModel", "Central prayer schedule refresh failed")
+                if (settings.value.notifyPrayers) PrayerNotificationScheduler.restoreAndReschedule(appCtx)
+            }
         }
     }
 
@@ -1014,5 +973,21 @@ class AlHadithiViewModel(application: Application) : AndroidViewModel(applicatio
     fun adminDeleteOccasion(id: Long) {
         if (developerAuthUser.value == null) return
         viewModelScope.launch { dao.deleteOccasionById(id) }
+    }
+
+    fun adminAddWallpaper(item: WallpaperEntity) {
+        if (developerAuthUser.value == null) return
+        viewModelScope.launch { dao.insertSingleWallpaper(item) }
+    }
+
+    fun adminDeleteWallpaper(id: Long) {
+        if (developerAuthUser.value == null) return
+        viewModelScope.launch {
+            val existing = dao.getWallpaperById(id)
+            dao.deleteWallpaperById(id)
+            existing?.localImagePath?.takeIf { it.isNotBlank() }?.let { path ->
+                runCatching { java.io.File(path).delete() }
+            }
+        }
     }
 }

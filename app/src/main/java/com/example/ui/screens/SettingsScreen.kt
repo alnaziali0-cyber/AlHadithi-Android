@@ -6,6 +6,7 @@ import android.net.Uri
 import android.os.Build
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -36,6 +37,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -44,12 +46,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.BuildConfig
+import com.example.R
 import com.example.data.local.ContentSourceEntity
 import com.example.data.local.DailyGoal
 import com.example.data.local.HomeCard
@@ -589,6 +594,19 @@ fun SettingsScreen(
         // ---------------- عن التطبيق ----------------
         item {
             SettingsSection(title = "حول التطبيق") {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(22.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.img_alhadithi_logo_white),
+                        contentDescription = "شعار الحديثي",
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier.fillMaxWidth().height(190.dp).padding(8.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.height(10.dp))
                 InfoRow(label = "الإصدار", value = "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})")
                 InfoRow(label = "المنطقة الزمنية", value = "Asia/Baghdad (UTC+3)")
                 InfoRow(label = "اللغة", value = "العربية (اتجاه من اليمين إلى اليسار)")

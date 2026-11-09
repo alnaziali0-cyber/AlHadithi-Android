@@ -86,6 +86,35 @@ object AdhanAudioStorage {
 
     fun hasAudio(context: Context): Boolean = currentAudioFile(context) != null
 
+    /** Returns the user override, or atomically extracts the bundled default into private storage. */
+    fun resolvePlaybackFile(context: Context): File? {
+        currentAudioFile(context)?.let { return it }
+        val appContext = context.applicationContext
+        val directory = File(appContext.filesDir, "prayer_audio")
+        if (!directory.exists() && !directory.mkdirs()) return null
+        val target = File(directory, "adhan_builtin.mp3")
+        if (target.isFile && target.length() >= MIN_AUDIO_BYTES) return target
+        val temporary = File(directory, "adhan_builtin.importing")
+        return runCatching {
+            appContext.assets.open("adhan_default.mp3").use { input ->
+                FileOutputStream(temporary).use { output ->
+                    input.copyTo(output)
+                    output.fd.sync()
+                }
+            }
+            require(temporary.length() >= MIN_AUDIO_BYTES)
+            if (target.exists()) target.delete()
+            check(temporary.renameTo(target)) { "تعذر تجهيز ملف الأذان المرفق" }
+            target
+        }.getOrElse {
+            temporary.delete()
+            null
+        }
+    }
+
+    fun hasPlayableAudio(context: Context): Boolean =
+        currentAudioFile(context) != null || runCatching { context.applicationContext.assets.open("adhan_default.mp3").use { it.read() >= 0 } }.getOrDefault(false)
+
     fun clear(context: Context) {
         val appContext = context.applicationContext
         currentAudioFile(appContext)?.delete()

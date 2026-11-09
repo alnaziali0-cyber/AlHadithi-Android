@@ -1,5 +1,50 @@
 # سجل التغييرات
 
+## 1.0.16 (Build 18) — إصلاح طلب إذن الموقع ودقة GPS
+- توحيد كل طلبات الموقع في `rememberPreciseDeviceLocationAction`، وإزالة المسارات المتفرقة التي كانت تطلب الإذن وتقرأ `lastLocation` مباشرة.
+- طلب `ACCESS_FINE_LOCATION` و`ACCESS_COARSE_LOCATION` معاً في نافذة Runtime واحدة لدعم اختيار «دقيق / تقريبي» على Android 12+.
+- حفظ علامة ظهور نافذة الإذن مرة واحدة قبل فتح واجهة النظام، واستثناؤها من النسخ الاحتياطي/نقل الجهاز؛ الرفض أو الاختيار التقريبي لا يؤدي إلى نافذة متكررة، بل يفتح إعدادات التطبيق عند الطلب اللاحق.
+- الحصول على تثبيت جديد عبر `getCurrentLocation(PRIORITY_HIGH_ACCURACY)` بدلاً من `lastLocation` القديمة في اختيار المحافظة والقبلة.
+- رفض الإحداثيات الأقدم من دقيقتين أو التي تتجاوز دقتها المعلنة 100 متر، ورفض الإحداثيات غير الصالحة.
+- التعامل مع تعطيل خدمات الموقع وفتح إعدادات الموقع، وتوضيح أن التطبيق لا يطلب تتبعاً في الخلفية.
+- عدم إضافة `ACCESS_BACKGROUND_LOCATION`، والإبقاء على اختيار المحافظة يدوياً عند رفض إذن GPS.
+- إضافة اختبارات لسياسة طلب الإذن مرة واحدة وحدود عمر ودقة قراءة الموقع.
+- رفع الإصدار إلى 1.0.16 (`versionCode 18`).
+
+**حدود التحقق:** اختبارات سياسة Kotlin مستقلة وفحوص ساكنة للمصدر والـ Manifest. لم يُبنَ APK ولم يُختبر طلب الإذن على جهاز Android حقيقي في هذه البيئة؛ يلزم التحقق النهائي على Android 12+ وAndroid 10/11.
+
+
+## 1.0.15 — Prayer service, adhan and admin refinements
+
+- Centralized prayer timetable reads behind `PrayerTimesService` for the home screen, prayer details and alarm scheduling.
+- Added validated official Firestore record contract, named-database rules/index configuration, local Room cache and explicit locally-calculated fallback labeling.
+- Enforced Asia/Baghdad timezone and one persisted schedule snapshot for countdown/alarm consistency.
+- Added source timestamp chronology checks and duplicate source-record detection.
+- Updated all 18 governorate centre coordinates to the supplied list.
+- Bundled the user-supplied adhan audio as the default alarm recording.
+- Embedded the official Hussaini Radio page in an in-app WebView with host restrictions and cleanup on close.
+- Added the developer email/password Firebase sign-in form (verified owner only) and a local developer wallpaper import/delete tab.
+- Added a prayer Firestore schema/deployment guide.
+- Added explicit diagnostics for missing/duplicate official dates, and routed even the first-frame local preview behind PrayerTimesService.
+- Updated the home countdown clock to the bundled Tajawal UI font and removed the unused AlAdhan tune helper.
+- Full Android build and Firebase emulator execution remain blocked by missing Gradle distribution/network and emulator dependencies in this environment.
+
+# سجل التغييرات
+
+## 1.0.15 (Build 17)
+- توحيد مواقيت الصلاة خلف PrayerTimesService واحد لواجهة التطبيق والعد التنازلي والتنبيهات، بما في ذلك معاينة أول إطار قبل التحميل.
+- إضافة كاش Room يومي لكل محافظة مع Asia/Baghdad، والتحقق من سجلات Firestore الرسمية المنشورة ومصدرها وتاريخها وتكرارها.
+- ضبط إحداثيات المحافظات الـ18 لتطابق القيم التي قدمها المستخدم في كود Jafari المحلي، مع إظهارها كحساب محلي لا كجدول رسمي.
+- جعل بطاقة مواقيت الصلاة مستطيلاً ملوناً يضم المواقيت الخمسة والعد التنازلي، وإزالة البطاقة المنفصلة للصلاة القادمة.
+- دمج صفحة بث إذاعة الروضة داخل التطبيق عبر WebView مقيّد بنطاق الموقع الرسمي.
+- تضمين ملف الأذان الذي زوّد به المستخدم كصوت افتراضي، مع بقاء الملف المخصص إن وجد له أولوية.
+- إضافة تسجيل دخول Firebase بالبريد وكلمة المرور لحساب المطوّر الموثّق دون تخزين كلمة المرور أو تضمينها في APK.
+- إضافة إدارة خلفيات من لوحة المطور، وحفظ الصور داخل مساحة التطبيق الخاصة والتحقق من الحجم والنوع والأبعاد.
+- إضافة صورة شعار المستخدم في صفحة حول التطبيق، والإبقاء على الشعار الشفاف للواجهات ذات الخلفيات الملونة.
+- ترحيل Room من الإصدار 5 إلى 6 لإضافة مسار الصور المحلي مع الحفاظ على البيانات السابقة.
+- إضافة قواعد وفهرس Firestore لاستخدام مجموعة prayer_times_daily، مع تسجيل تواريخ السجلات الرسمية المفقودة/المكررة ورفض التكرار.
+- تغيير خط أرقام العد التنازلي إلى Tajawal وإزالة دالة tune القديمة غير المستخدمة.
+
 ## 1.0.14 — إضافة المصحف المحلي Tanzil Simple (9 نوفمبر 2026)
 
 - استيراد ملف المستخدم `quran-simple.txt` مع `quran-data.xml` وإنتاج `app/src/main/assets/quran_simple_full.json`؛ النص المضمّن هو Tanzil Simple v1.1 وليس Uthmani XML.
