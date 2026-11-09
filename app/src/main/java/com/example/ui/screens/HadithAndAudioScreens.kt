@@ -76,6 +76,7 @@ fun HadithEncyclopediaScreen(
     onSaveFavorite: (String, String, String, String, String) -> Unit
 ) {
     BackHandler { onBack() }
+    val context = LocalContext.current
     val readingScale = LocalReadingFontScale.current
     var selectedInfallible by remember { mutableStateOf("الكل") }
     var selectedTopic by remember { mutableStateOf("الكل") }
