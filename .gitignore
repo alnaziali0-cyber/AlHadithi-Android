@@ -19,5 +19,7 @@ debug.keystore
 *-debug.log
 
 
-server/node_modules/
 .kotlin/
+__pycache__/
+*.pyc
+server/node_modules/

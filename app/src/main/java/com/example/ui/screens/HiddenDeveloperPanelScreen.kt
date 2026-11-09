@@ -85,13 +85,6 @@ fun HiddenDeveloperPanelScreen(
     books: List<BookEntity>,
     audioTracks: List<AudioTrackEntity>,
     occasions: List<IslamicOccasionEntity>,
-    ads: List<com.example.data.remote.AdEntity> = emptyList(),
-    registeredDevices: List<com.example.data.remote.RegisteredDevice> = emptyList(),
-    notificationLog: List<com.example.data.remote.NotificationLogEntry> = emptyList(),
-    adminAuditLog: List<com.example.data.remote.AuditEntry> = emptyList(),
-    akhlaqCategories: List<com.example.data.local.AkhlaqCategoryEntity> = emptyList(),
-    akhlaqLessons: List<com.example.data.local.AkhlaqLessonEntity> = emptyList(),
-    contentCounts: List<Pair<String, Int>> = emptyList(),
     onBack: () -> Unit,
     onAddAnnouncement: (String, String, String, String, (Boolean, String) -> Unit) -> Unit,
     onToggleAnnouncementActive: (AdminAnnouncementEntity, Boolean) -> Unit,
@@ -327,16 +320,6 @@ fun HiddenDeveloperPanelScreen(
 
     // --- UNLOCKED DEVELOPER & ANNOUNCEMENTS PANEL (verified owner session) ---
     var sectionTab by remember { mutableIntStateOf(0) }
-    // أقسام لوحة الإدارة العشرة.
-    var adminSection by remember { mutableStateOf(AdminSection.DASHBOARD) }
-    // التبويبات الداخلية.Management لكل قسم.
-    val innerTabsBySection: Map<AdminSection, List<Int>> = remember {
-        mapOf(
-            AdminSection.CONTENT to listOf(0, 2, 3, 4, 5),
-            AdminSection.QURAN to listOf(1),
-            AdminSection.OCCASIONS to listOf(6)
-        )
-    }
     // 0 = الإعلانات والتنبيهات, 1 = الصوتيات الحسينية, 2 = الأحاديث, 3 = الأدعية والزيارات, 4 = الأذكار, 5 = الكتب, 6 = المناسبات
 
     // Announcement Form States
@@ -429,113 +412,32 @@ fun HiddenDeveloperPanelScreen(
             }
 
             // Section Tabs
-            // أقسام لوحة الإدارة العشرة.
             item {
-                AdminSectionTabs(
-                    selected = adminSection,
-                    onSelect = { section ->
-                        adminSection = section
-                        innerTabsBySection[section]?.firstOrNull()?.let { sectionTab = it }
-                        clearCmsForm()
-                    }
+                val tabs = listOf(
+                    "الإعلانات والتنبيهات",
+                    "الصوتيات الحسينية",
+                    "الأحاديث",
+                    "الأدعية والزيارات",
+                    "الأذكار",
+                    "الكتب والسيرة",
+                    "المناسبات"
                 )
-            }
-
-            // التبويبات الداخلية الخاصة بقسم المحتوى والقرآن والمناسبات.
-            val innerTabs = innerTabsBySection[adminSection]
-            if (!innerTabs.isNullOrEmpty()) {
-                item {
-                    val tabs = listOf(
-                        "الإعلانات والتنبيهات",
-                        "الصوتيات الحسينية",
-                        "الأحاديث",
-                        "الأدعية والزيارات",
-                        "الأذكار",
-                        "الكتب والسيرة",
-                        "المناسبات"
-                    )
-                    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        items(innerTabs.size) { position ->
-                            val idx = innerTabs[position]
-                            GlassFilterChip(
-                                label = tabs[idx],
-                                selected = sectionTab == idx,
-                                onClick = {
-                                    sectionTab = idx
-                                    clearCmsForm()
-                                }
-                            )
-                        }
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items(tabs.size) { idx ->
+                        GlassFilterChip(
+                            label = tabs[idx],
+                            selected = sectionTab == idx,
+                            onClick = {
+                                sectionTab = idx
+                                clearCmsForm()
+                            }
+                        )
                     }
                 }
             }
 
-            // ── لوحة القيادة ──
-            if (adminSection == AdminSection.DASHBOARD) {
-                item {
-                    AdminDashboardSection(stats = contentCounts)
-                }
-            }
-
-            // ── المستخدمون والأجهزة ──
-            if (adminSection == AdminSection.USERS) {
-                item {
-                    AdminUsersSection(devices = registeredDevices)
-                }
-            }
-
-            // ── إدارة الإشعارات ──
-            if (adminSection == AdminSection.NOTIFICATIONS) {
-                item {
-                    AdminNotificationsSection(
-                        log = notificationLog,
-                        channels = listOf(
-                            "تنبيه الصلاة",
-                            "حديث اليوم ودعاء اليوم",
-                            "المناسبات الإسلامية",
-                            "إعلانات التطبيق",
-                            "تشغيل الأذان"
-                        )
-                    )
-                }
-            }
-
-            // ── القرآن والقراء ──
-            if (adminSection == AdminSection.QURAN) {
-                item {
-                    AdminQuranSection()
-                }
-            }
-
-            // ── الدروس الأخلاقية ──
-            if (adminSection == AdminSection.AKHLAQ) {
-                item {
-                    AdminAkhlaqSection(
-                        categories = akhlaqCategories,
-                        lessons = akhlaqLessons
-                    )
-                }
-            }
-
-            // ── سجل العمليات ──
-            if (adminSection == AdminSection.AUDIT) {
-                item {
-                    AdminAuditSection(entries = adminAuditLog)
-                }
-            }
-
-            if (adminSection == AdminSection.ADS) {
-                // --- قسم إعلانات التطبيق (صورة، نشر، جدولة، إشعار) ---
-                item {
-                    DeveloperAdsTab(
-                        ads = ads,
-                        onRefresh = { }
-                    )
-                }
-            }
-
-            if (adminSection == AdminSection.CONTENT && sectionTab == 0) {
-                // --- قسم المحتوى: الإعلانات والتنبيهات ---
+            if (sectionTab == 0) {
+                // --- TAB 0: ADD & DELETE ANNOUNCEMENTS / ADS ---
                 item {
                     GlassCard(cornerRadius = 22.dp) {
                         Row(
@@ -686,11 +588,8 @@ fun HiddenDeveloperPanelScreen(
                         }
                     }
                 }
-            } else if (adminSection == AdminSection.CONTENT ||
-                adminSection == AdminSection.QURAN ||
-                adminSection == AdminSection.OCCASIONS
-            ) {
-                // --- تبويبات المحتوى: الصوتيات والأحاديث والأدعية والأذكار والكتب والمناسبات ---
+            } else {
+                // --- TABS 1..6: ENCYCLOPEDIA & HUSSEINI AUDIO MANAGEMENT ---
                 item {
                     GlassCard {
                         Text(

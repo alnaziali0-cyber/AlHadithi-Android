@@ -35,8 +35,6 @@ import androidx.compose.material.icons.outlined.MenuBook
 import androidx.compose.material.icons.outlined.PlayCircle
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Share
-import androidx.compose.material.icons.outlined.ViewAgenda
-import androidx.compose.material.icons.outlined.Notes
 import androidx.compose.material.icons.outlined.ZoomIn
 import androidx.compose.material.icons.outlined.ZoomOut
 import androidx.compose.material3.AlertDialog
@@ -70,7 +68,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
@@ -82,11 +79,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.data.local.CachedAyahEntity
 import com.example.domain.SurahCatalog
+import com.example.domain.shouldDisplaySeparateBasmala
 import com.example.domain.SurahMeta
 import com.example.domain.filterSurahs
 import com.example.media.AudioPlayerController
 import com.example.ui.components.GlassCard
-import com.example.ui.components.QuranAyahCard
 import com.example.ui.components.GlassFilterChip
 import com.example.ui.components.SourceCitationBadge
 import com.example.ui.components.SubScreenTopBar
@@ -94,7 +91,6 @@ import com.example.ui.theme.LocalIsDarkThemeActive
 import com.example.ui.theme.LocalLineSpacing
 import com.example.ui.theme.LocalReadingFontScale
 import com.example.ui.theme.QuranBackgroundStyle
-import com.example.ui.theme.QuranReadingLayout
 import com.example.ui.theme.ReadingFontChoice
 import com.example.ui.theme.quranAndHeritageStyle
 import com.example.ui.theme.readerBackdropFor
@@ -116,7 +112,6 @@ fun QuranIndexAndReaderScreen(
     darkMode: Boolean,
     readingFontChoice: ReadingFontChoice,
     quranBackground: QuranBackgroundStyle,
-    readingLayout: QuranReadingLayout,
     autoScrollEnabled: Boolean,
     autoScrollSpeed: Float,
     onSelectSurahToRead: (Int) -> Unit,
@@ -127,7 +122,6 @@ fun QuranIndexAndReaderScreen(
     onToggleDarkMode: (Boolean) -> Unit,
     onChangeReadingFont: (ReadingFontChoice) -> Unit,
     onChangeBackground: (QuranBackgroundStyle) -> Unit,
-    onChangeReadingLayout: (QuranReadingLayout) -> Unit,
     onChangeAutoScroll: (Boolean, Float) -> Unit,
     onSaveLastReadAyah: (Int, Int) -> Unit,
     onSaveFavorite: (String, String, String, String, String) -> Unit
@@ -142,7 +136,6 @@ fun QuranIndexAndReaderScreen(
             darkMode = darkMode,
             readingFontChoice = readingFontChoice,
             quranBackground = quranBackground,
-            readingLayout = readingLayout,
             autoScrollEnabled = autoScrollEnabled,
             autoScrollSpeed = autoScrollSpeed,
             onBack = onCloseReaderToIndex,
@@ -152,7 +145,6 @@ fun QuranIndexAndReaderScreen(
             onToggleDarkMode = onToggleDarkMode,
             onChangeReadingFont = onChangeReadingFont,
             onChangeBackground = onChangeBackground,
-            onChangeReadingLayout = onChangeReadingLayout,
             onChangeAutoScroll = onChangeAutoScroll,
             onSaveLastReadAyah = onSaveLastReadAyah,
             onSaveFavorite = onSaveFavorite
@@ -178,7 +170,7 @@ fun QuranIndexAndReaderScreen(
     Column(modifier = Modifier.fillMaxSize()) {
         SubScreenTopBar(
             title = "القرآن الكريم والتفسير",
-            subtitle = "١١٤ سورة · الرسم العثماني · التلاوة والتفسير"
+            subtitle = "١١٤ سورة · إصدار تنزيل المبسّط · التلاوة والتفسير"
         )
 
         Surface(
@@ -188,13 +180,13 @@ fun QuranIndexAndReaderScreen(
         ) {
             Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
                 Text(
-                    text = "طريق الرواية المذكور في كتب القراءات: حفص عن عاصم، عن أبي عبد الرحمن السلمي، عن أمير المؤمنين علي بن أبي طالب (ع).",
+                    text = "النص المضمّن في هذا الإصدار: Tanzil Quran Text (Simple، الإصدار 1.1) بترخيص CC BY 3.0. يذكر هذا المصدر نوع النص الذي نعرضه، ولا يُعدّ وحده توثيقاً مستقلاً لطريق الرواية أو سلسلة الإسناد.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSecondaryContainer
                 )
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    text = "نص السورة يُجلب بالرسم العثماني من خدمة Al Quran Cloud عند فتحها لأول مرة، ثم يُحفظ على جهازك وتبقى متاحة دون إنترنت. السور التي لم تُفتح بعد تحتاج إلى اتصال. النص معروض كما ورد دون تعديل أو إعادة صياغة.",
+                    text = "يحتوي التطبيق الآن على نص Tanzil Simple الكامل محلياً للسور الـ114. تُحفظ النصوص كما وردت في المصدر دون تعديل. عند تعذّر التحقق من الأصل المضمّن فقط، يمكن استخدام نسخة Al Quran Cloud العثمانية عبر الإنترنت ثم حفظ السورة محلياً.",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.85f)
                 )
@@ -455,7 +447,6 @@ private fun SurahReaderView(
     darkMode: Boolean,
     readingFontChoice: ReadingFontChoice,
     quranBackground: QuranBackgroundStyle,
-    readingLayout: QuranReadingLayout,
     autoScrollEnabled: Boolean,
     autoScrollSpeed: Float,
     onBack: () -> Unit,
@@ -465,7 +456,6 @@ private fun SurahReaderView(
     onToggleDarkMode: (Boolean) -> Unit,
     onChangeReadingFont: (ReadingFontChoice) -> Unit,
     onChangeBackground: (QuranBackgroundStyle) -> Unit,
-    onChangeReadingLayout: (QuranReadingLayout) -> Unit,
     onChangeAutoScroll: (Boolean, Float) -> Unit,
     onSaveLastReadAyah: (Int, Int) -> Unit,
     onSaveFavorite: (String, String, String, String, String) -> Unit
@@ -540,32 +530,6 @@ private fun SurahReaderView(
             onBack = onBack,
             trailing = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    // التبديل بين عرض البطاقات (كما في الصورة المرجعية) والنص المتصل.
-                    IconButton(
-                        onClick = {
-                            onChangeReadingLayout(
-                                if (readingLayout == QuranReadingLayout.CARDS) {
-                                    QuranReadingLayout.CONTINUOUS
-                                } else {
-                                    QuranReadingLayout.CARDS
-                                }
-                            )
-                        },
-                        modifier = Modifier.testTag("quran_layout_toggle")
-                    ) {
-                        Icon(
-                            imageVector = if (readingLayout == QuranReadingLayout.CARDS) {
-                                Icons.Outlined.ViewAgenda
-                            } else {
-                                Icons.Outlined.Notes
-                            },
-                            contentDescription = if (readingLayout == QuranReadingLayout.CARDS) {
-                                "عرض النص متصلاً"
-                            } else {
-                                "عرض الآيات في بطاقات"
-                            }
-                        )
-                    }
                     IconButton(onClick = { onChangeFontScale(fontScale - 0.10f) }) {
                         Icon(Icons.Outlined.ZoomOut, contentDescription = "تصغير الخط")
                     }
@@ -692,7 +656,7 @@ private fun SurahReaderView(
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         CircularProgressIndicator()
                         Spacer(modifier = Modifier.height(10.dp))
-                        Text("جارٍ تحميل النص القرآني بالرسم العثماني…")
+                        Text("جارٍ تحميل النص القرآني…")
                     }
                 }
             }
@@ -720,8 +684,13 @@ private fun SurahReaderView(
                             .fillMaxWidth()
                             .padding(horizontal = 20.dp, vertical = 14.dp)
                     ) {
-                        // Basmala is kept as a heading, never inside a decorative card.
-                        if (surahNumber != 1 && surahNumber != 9) {
+                        // Some source editions include the basmala in ayah 1 (as Tanzil Simple does).
+                        // Show a separate heading only when the first source ayah does not already contain it.
+                        if (shouldDisplaySeparateBasmala(
+                                surahNumber,
+                                sortedAyahs.firstOrNull()?.uthmaniText
+                            )
+                        ) {
                             Text(
                                 text = "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ",
                                 style = quranAndHeritageStyle(
@@ -744,42 +713,6 @@ private fun SurahReaderView(
                             )
                             Spacer(modifier = Modifier.height(12.dp))
                             Button(onClick = onRetry) { Text("إعادة تحميل السورة") }
-                        } else if (readingLayout == QuranReadingLayout.CARDS) {
-                            // عرض البطاقات: يطابق الصورة المرجعية — بطاقة لكل آية.
-                            val cardContainer = if (isDarkReader) {
-                                Color(0xFF16211F).copy(alpha = 0.72f)
-                            } else {
-                                Color.White.copy(alpha = 0.94f)
-                            }
-                            val cardBorder = if (isDarkReader) {
-                                Color.White.copy(alpha = 0.12f)
-                            } else {
-                                MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)
-                            }
-                            Column(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalArrangement = Arrangement.spacedBy(10.dp)
-                            ) {
-                                sortedAyahs.forEach { ayah ->
-                                    QuranAyahCard(
-                                        ayahNumber = ayah.ayahNumberInSurah,
-                                        ayahText = ayah.uthmaniText,
-                                        textStyle = quranAndHeritageStyle(
-                                            fontScale,
-                                            fontChoice = readingFontChoice,
-                                            lineSpacing = lineSpacing
-                                        ).copy(color = backdrop.onBackground),
-                                        containerColor = cardContainer,
-                                        borderColor = cardBorder,
-                                        numberColor = backdrop.markerColor,
-                                        textColor = backdrop.onBackground,
-                                        onClick = {
-                                            selectedAyahForTafsir = ayah
-                                            onSaveLastReadAyah(surahNumber, ayah.ayahNumberInSurah)
-                                        }
-                                    )
-                                }
-                            }
                         } else {
                             ClickableText(
                                 text = quranContent.annotatedText,
@@ -914,7 +847,7 @@ private fun SurahReaderView(
 
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
-                    text = "مصدر النص: خدمة Al Quran Cloud بالرسم العثماني، ويُحفظ محلياً بعد فتح السورة. النص لا يُعاد صياغته داخل التطبيق.",
+                    text = "مصدر النسخة المحلية: Tanzil Quran Text (Simple، الإصدار 1.1)، مع إظهار إشعار المصدر والترخيص داخل التطبيق. لا يُعاد تحرير نص الآية. قد يُستخدم Al Quran Cloud بالرسم العثماني كمسار احتياطي عند عدم صلاحية الأصل المحلي.",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

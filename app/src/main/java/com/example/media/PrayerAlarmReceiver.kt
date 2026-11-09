@@ -19,10 +19,6 @@ import java.util.TimeZone
 
 class PrayerAlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action == PrayerNotificationScheduler.ACTION_CONTENT) {
-            postDailyContentNotification(context, intent)
-            return
-        }
         if (intent.action != PrayerNotificationScheduler.ACTION_PRAYER) return
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
@@ -80,53 +76,6 @@ class PrayerAlarmReceiver : BroadcastReceiver() {
                 // prayer notification visible instead of crashing the alarm receiver.
             }
         }
-    }
-
-
-    /**
-     * ينشر إشعار حديث اليوم أو دعاء اليوم بعد كل صلاة.
-     * المحتوى يأتي من خطة موثّقة (تخريج الحديث أو مرجع الآية) ويصلح في
-     * NotificationChannel المستقل "حديث اليوم ودعاء اليوم".
-     */
-    private fun postDailyContentNotification(context: Context, intent: Intent) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
-            PackageManager.PERMISSION_GRANTED
-        ) return
-        val title = intent.getStringExtra(EXTRA_CONTENT_TITLE)?.trim().orEmpty()
-        val body = intent.getStringExtra(EXTRA_CONTENT_BODY)?.trim().orEmpty()
-        val takhrij = intent.getStringExtra(EXTRA_CONTENT_TAKHRIJ)?.trim().orEmpty()
-        if (title.isBlank() || body.isBlank()) return
-
-        val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager ?: return
-        NotificationChannels.ensureAll(context)
-
-        val fullText = if (takhrij.isBlank()) body else "$body\n\n$takhrij"
-        val contentIntent = Intent(context, com.example.MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            putExtra("alhadithi_destination", if (title.contains("دعاء")) "duas" else "hadith")
-        }
-        val pendingIntent = android.app.PendingIntent.getActivity(
-            context,
-            (intent.dataString ?: title).hashCode(),
-            contentIntent,
-            android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE
-        )
-
-        val notification = NotificationCompat.Builder(context, NotificationChannels.CHANNEL_CONTENT)
-            .setSmallIcon(R.drawable.ic_notification_alhadithi)
-            .setContentTitle(title)
-            .setContentText(body)
-            .setStyle(NotificationCompat.BigTextStyle().bigText(fullText))
-            .setCategory(NotificationCompat.CATEGORY_RECOMMENDATION)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-            .setAutoCancel(true)
-            .setWhen(System.currentTimeMillis())
-            .setShowWhen(true)
-            .setContentIntent(pendingIntent)
-            .build()
-
-        manager.notify((intent.dataString ?: title).hashCode(), notification)
     }
 
     /** Minutes of the day in the app's reference time zone, used for the quiet-hours window. */
@@ -187,10 +136,6 @@ class PrayerAlarmReceiver : BroadcastReceiver() {
     }
 
     companion object {
-        const val EXTRA_CONTENT_TITLE = "alhadithi_content_title"
-        const val EXTRA_CONTENT_BODY = "alhadithi_content_body"
-        const val EXTRA_CONTENT_TAKHRIJ = "alhadithi_content_takhrij"
-
         const val EXTRA_PRAYER_NAME = "prayer_name"
         const val EXTRA_TIME_TEXT = "prayer_time_text"
         const val EXTRA_AREA_NAME = "prayer_area_name"

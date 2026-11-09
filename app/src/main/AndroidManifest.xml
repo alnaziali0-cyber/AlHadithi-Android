@@ -51,17 +51,6 @@
             </intent-filter>
         </service>
 
-        <!-- Firebase Cloud Messaging: receives real push notifications (daily hadith/dua,
-             Islamic occasions and application advertisements) even when the app is closed. -->
-        <service
-            android:name=".media.AlHadithiMessagingService"
-            android:enabled="true"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.google.firebase.MESSAGING_EVENT" />
-            </intent-filter>
-        </service>
-
         <receiver
             android:name=".media.PrayerAlarmReceiver"
             android:enabled="true"

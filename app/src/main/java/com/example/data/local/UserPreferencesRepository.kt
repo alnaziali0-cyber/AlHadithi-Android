@@ -23,7 +23,6 @@ import com.example.ui.theme.AppFontChoice
 import com.example.ui.theme.CardDensity
 import com.example.ui.theme.LineSpacingOption
 import com.example.ui.theme.QuranBackgroundStyle
-import com.example.ui.theme.QuranReadingLayout
 import com.example.ui.theme.ReadingFontChoice
 import com.example.ui.theme.ThemeMode
 import kotlinx.coroutines.flow.Flow
@@ -35,35 +34,30 @@ private val Context.alHadithiDataStore: DataStore<Preferences> by preferencesDat
 )
 
 /**
- * Identifiers of the optional cards on the home dashboard. The persisted layout keeps both the
- * display order and the hidden state of every card.
+ * Stable identifiers for dashboard content. The four primary sections now use a fixed product
+ * order; legacy identifiers stay readable so older preference files do not break on upgrade.
  */
-enum class HomeCard(val key: String, val arabicTitle: String, val shownOnHome: Boolean = true) {
-    OCCASIONS("occasions", "المناسبات القادمة"),
-    PRAYER_HERO("prayer_hero", "الصلاة القادمة"),
-    PRAYER_TRACKER("prayer_tracker", "صلواتي اليوم"),
-    DAILY_TIMES("daily_times", "مواقيت اليوم"),
-    DAILY_TRACKING("daily_tracking", "متابعة اليوم"),
-    DAILY_VERSE("daily_verse", "آية اليوم"),
+enum class HomeCard(val key: String, val arabicTitle: String) {
+    OCCASIONS("occasions", "المناسبة الإسلامية"),
+    PRAYER_HERO("prayer_hero", "مؤقت الصلاة"),
+    PRAYER_TRACKING("prayer_tracking", "مواقيت الصلاة"),
     QUICK_ACCESS("quick_access", "الوصول السريع"),
-
-    /**
-     * حديث اليوم ودعاء اليوم لم يعودا بطاقتين في الصفحة الرئيسية:
-     * يصدران الآن إشعاراً بعد كل صلاة وفق تفضيلات المستخدم، وهذا ما نصّ عليه
-     * مخطط إعادة الهندسة. تبقى القيم هنا لقراءة التخطيطات القديمة فقط.
-     */
-    DAILY_HADITH("daily_hadith", "حديث اليوم", shownOnHome = false),
-    DAILY_DUA("daily_dua", "دعاء اليوم", shownOnHome = false);
+    // Legacy keys remain readable for saved v1.0.9 preferences, but are no longer shown on Home.
+    DAILY_TRACKING("daily_tracking", "متابعة اليوم"),
+    DAILY_TIMES("daily_times", "مواقيت اليوم"),
+    DAILY_VERSE("daily_verse", "آية اليوم"),
+    DAILY_HADITH("daily_hadith", "حديث اليوم"),
+    DAILY_DUA("daily_dua", "دعاء اليوم");
 
     companion object {
         fun fromKey(key: String): HomeCard? = entries.firstOrNull { it.key == key }
 
-        /**
-         * الترتيب الافتراضي للصفحة الرئيسية:
-         * ١) شريط المناسبة، ٢) مؤقت الصلاة القادمة، ٣) صلواتي اليوم،
-         * ٤) بقية الأقسام الاختيارية، ٥) الوصول السريع.
-         */
-        val defaultOrder: List<HomeCard> = entries.filter { it.shownOnHome }
+        val defaultOrder: List<HomeCard> = listOf(
+            OCCASIONS,
+            PRAYER_HERO,
+            PRAYER_TRACKING,
+            QUICK_ACCESS
+        )
     }
 }
 
@@ -91,35 +85,17 @@ enum class DailyGoal(val key: String, val arabicTitle: String) {
 }
 
 /**
- * Compact persistence format for the home dashboard layout: a comma separated list of tokens
- * where a leading `-` marks a hidden card. Example: `prayer_hero,daily_tracking,-occasions`.
+ * Backward-compatible adapter for v1.0.9 home-layout preferences. The requested home hierarchy
+ * is now fixed, so legacy order/visibility values are read without affecting the new dashboard.
+ * The old preference key is intentionally left in DataStore until a future migration cleanup.
  */
 object HomeLayoutCodec {
     fun encode(cards: List<HomeCard>, hidden: Set<HomeCard>): String =
-        cards.joinToString(",") { card ->
-            if (card in hidden) "-${card.key}" else card.key
-        }
+        cards.joinToString(",") { card -> if (card in hidden) "-${card.key}" else card.key }
 
-    fun decode(raw: String?): Pair<List<HomeCard>, Set<HomeCard>> {
-        if (raw.isNullOrBlank()) return HomeCard.defaultOrder to emptySet()
-        val ordered = linkedMapOf<HomeCard, Boolean>()
-        raw.split(',').forEach { token ->
-            val trimmed = token.trim()
-            if (trimmed.isEmpty()) return@forEach
-            val isHidden = trimmed.startsWith("-")
-            val key = if (isHidden) trimmed.removePrefix("-") else trimmed
-            HomeCard.fromKey(key)
-                // بطاقات الإشعار (حديث اليوم / دعاء اليوم) لا تعود إلى الصفحة الرئيسية أبداً،
-                // حتى لو كانت ممرّرة في تخطيط قديم محفوظ على الجهاز.
-                ?.takeIf { it.shownOnHome }
-                ?.let { card -> ordered[card] = isHidden }
-        }
-        // Cards that were added after the layout was saved must still appear.
-        HomeCard.entries.filter { it.shownOnHome }
-            .forEach { card -> if (!ordered.containsKey(card)) ordered[card] = false }
-        val orderedCards = ordered.keys.toList()
-        return orderedCards to orderedCards.filter { ordered[it] == true }.toSet()
-    }
+    @Suppress("UNUSED_PARAMETER")
+    fun decode(raw: String?): Pair<List<HomeCard>, Set<HomeCard>> =
+        HomeCard.defaultOrder to emptySet()
 }
 
 /**
@@ -143,16 +119,7 @@ data class UserSettingsState(
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val accentChoice: AccentChoice = AccentChoice.EMERALD,
     val fontChoice: AppFontChoice = AppFontChoice.NASKH,
-    val readingFontChoice: ReadingFontChoice = ReadingFontChoice.UTHMANI,
-    /** إرسال حديث/دعاء اليوم في إشعار بعد كل صلاة (بدل بطاقة في الرئيسية). */
-    val quranReadingLayout: QuranReadingLayout = QuranReadingLayout.CARDS,
-    /** المنطقة/المدينة المختارة داخل المحافظة (تُحسّن دقة المواقيت). */
-    val selectedDistrictId: String? = null,
-    val dailyContentNotifications: Boolean = true,
-    /** نوع المحتوى: hadith | dua | mixed */
-    val dailyContentType: String = "hadith",
-    /** الصلوات التي يُرسل بعدها المحتوى. */
-    val dailyContentPrayers: Set<String> = setOf("fajr", "dhuhr", "asr", "maghrib", "isha"),
+    val readingFontChoice: ReadingFontChoice = ReadingFontChoice.MUHAMMADI,
     val readingFontScale: Float = 1.15f,
     val uiFontScale: Float = 1.0f,
     val lineSpacing: LineSpacingOption = LineSpacingOption.NORMAL,
@@ -246,11 +213,6 @@ class UserPreferencesRepository(private val context: Context) {
         val TASBIH_STAGE_INDEX = intPreferencesKey("tasbih_stage_index")
         val TASBIH_STAGE_COUNT = intPreferencesKey("tasbih_stage_count")
         val TASBIH_TOTAL_COUNT = intPreferencesKey("tasbih_total_count")
-        val QURAN_READING_LAYOUT = stringPreferencesKey("quran_reading_layout")
-        val SELECTED_DISTRICT_ID = stringPreferencesKey("selected_district_id")
-        val DAILY_CONTENT_ENABLED = booleanPreferencesKey("daily_content_enabled")
-        val DAILY_CONTENT_TYPE = stringPreferencesKey("daily_content_type")
-        val DAILY_CONTENT_PRAYERS = stringPreferencesKey("daily_content_prayers")
         val TASBIH_CUSTOM_TARGET = intPreferencesKey("tasbih_custom_target")
         const val DHIKR_COUNT_PREFIX = "dhikr_count_"
         fun dhikrCountKey(id: Long) = intPreferencesKey(DHIKR_COUNT_PREFIX + id)
@@ -330,12 +292,6 @@ class UserPreferencesRepository(private val context: Context) {
             accentChoice = AccentChoice.fromKey(prefs[Keys.ACCENT_CHOICE]),
             fontChoice = AppFontChoice.fromKey(prefs[Keys.FONT_CHOICE] ?: AppFontChoice.NASKH.key),
             readingFontChoice = ReadingFontChoice.fromKey(prefs[Keys.READING_FONT_CHOICE]),
-            quranReadingLayout = QuranReadingLayout.fromKey(prefs[Keys.QURAN_READING_LAYOUT]),
-            selectedDistrictId = prefs[Keys.SELECTED_DISTRICT_ID],
-            dailyContentNotifications = prefs[Keys.DAILY_CONTENT_ENABLED] ?: true,
-            dailyContentType = prefs[Keys.DAILY_CONTENT_TYPE] ?: "hadith",
-            dailyContentPrayers = (prefs[Keys.DAILY_CONTENT_PRAYERS] ?: "fajr,dhuhr,asr,maghrib,isha")
-                .split(',').map { it.trim() }.filter { it.isNotEmpty() }.toSet(),
             readingFontScale = prefs[Keys.READING_FONT_SCALE] ?: 1.15f,
             uiFontScale = prefs[Keys.UI_FONT_SCALE] ?: 1.0f,
             lineSpacing = LineSpacingOption.fromKey(prefs[Keys.LINE_SPACING]),
@@ -411,31 +367,6 @@ class UserPreferencesRepository(private val context: Context) {
         context.alHadithiDataStore.edit { prefs ->
             prefs.remove(Keys.CUSTOM_LATITUDE)
             prefs.remove(Keys.CUSTOM_LONGITUDE)
-        }
-    }
-
-    suspend fun setSelectedDistrictId(districtId: String?) {
-        context.alHadithiDataStore.edit { prefs ->
-            if (districtId.isNullOrBlank()) prefs.remove(Keys.SELECTED_DISTRICT_ID)
-            else prefs[Keys.SELECTED_DISTRICT_ID] = districtId
-        }
-    }
-
-    suspend fun setQuranReadingLayout(layout: QuranReadingLayout) {
-        context.alHadithiDataStore.edit { it[Keys.QURAN_READING_LAYOUT] = layout.key }
-    }
-
-    suspend fun setDailyContentNotifications(enabled: Boolean) {
-        context.alHadithiDataStore.edit { it[Keys.DAILY_CONTENT_ENABLED] = enabled }
-    }
-
-    suspend fun setDailyContentType(type: String) {
-        context.alHadithiDataStore.edit { it[Keys.DAILY_CONTENT_TYPE] = type }
-    }
-
-    suspend fun setDailyContentPrayers(prayers: Set<String>) {
-        context.alHadithiDataStore.edit {
-            it[Keys.DAILY_CONTENT_PRAYERS] = prayers.sorted().joinToString(",")
         }
     }
 

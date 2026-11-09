@@ -312,6 +312,12 @@ fun PrayerTimesScreen(
                         style = MaterialTheme.typography.labelSmall,
                         color = Color.White.copy(alpha = 0.8f)
                     )
+                    Spacer(modifier = Modifier.height(3.dp))
+                    Text(
+                        text = "لم يُربط التطبيق بعد بواجهة مواقيت رسمية موثقة من العتبة الحسينية؛ لا تُضاف أو تُطرح دقائق تلقائياً لإظهار تطابق غير مثبت.",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.White.copy(alpha = 0.72f)
+                    )
                 }
             }
 

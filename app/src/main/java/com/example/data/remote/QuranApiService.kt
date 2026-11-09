@@ -5,8 +5,10 @@ import android.util.Log
 import com.example.data.local.AlHadithiDao
 import com.example.data.local.CachedAyahEntity
 import com.example.domain.SurahCatalog
+import com.example.domain.QuranCacheIntegrity
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -71,7 +73,7 @@ interface QuranApiService {
 
 object QuranNetworkRepository {
     private const val TAG = "AlHadithiQuran"
-    private const val BUNDLED_QURAN_ASSET = "quran_uthmani_full.json"
+    private const val BUNDLED_QURAN_ASSET = "quran_simple_full.json"
     private const val EXPECTED_SURAH_COUNT = 114
     private const val EXPECTED_AYAH_COUNT = 6_236
 
@@ -96,6 +98,8 @@ object QuranNetworkRepository {
     private val assetMutex = Mutex()
     @Volatile
     private var bundledSurahsMap: Map<Int, List<CachedAyahEntity>>? = null
+    @Volatile
+    private var bundledQuranChecked: Boolean = false
 
     private val arabicDiacriticsRegex = Regex("[\\u0610-\\u061A\\u064B-\\u065F\\u0670\\u06D6-\\u06ED\\uFEFF]")
 
@@ -112,13 +116,15 @@ object QuranNetworkRepository {
     }
 
     /**
-     * Loads the bundled Quran only after checking all 114 surahs and 6,236 ayahs.
+     * Loads the bundled Tanzil Simple Quran only after checking all 114 surahs and 6,236 ayahs.
      * Empty, truncated, duplicated, or structurally incorrect assets are rejected.
      */
     suspend fun ensureBundledQuranLoaded(context: Context): Map<Int, List<CachedAyahEntity>> {
         bundledSurahsMap?.let { return it }
+        if (bundledQuranChecked) return emptyMap()
         return assetMutex.withLock {
             bundledSurahsMap?.let { return@withLock it }
+            if (bundledQuranChecked) return@withLock emptyMap()
             val parsed = withContext(Dispatchers.IO) {
                 try {
                     val rawJson = context.applicationContext.assets
@@ -150,14 +156,14 @@ object QuranNetworkRepository {
                         val list = ArrayList<CachedAyahEntity>(meta.ayahCount)
                         for (j in 0 until ayahsArr.length()) {
                             val tuple = ayahsArr.getJSONArray(j)
-                            require(tuple.length() >= 6) { "Ayah tuple is incomplete in surah $surahNumber" }
+                            require(tuple.length() == 6) { "Ayah tuple schema is invalid in surah $surahNumber" }
 
                             val ayahInSurah = tuple.getInt(0)
                             val globalNum = tuple.getInt(1)
                             val juzNum = tuple.getInt(2)
                             val hizbQ = tuple.getInt(3)
                             val sajdaValue = tuple.getInt(4)
-                            val rawText = tuple.getString(5).removePrefix("\uFEFF").trim()
+                            val rawText = tuple.getString(5)
 
                             require(ayahInSurah == j + 1) { "Ayah order is invalid in surah $surahNumber" }
                             require(globalNum == expectedGlobalAyah) { "Global ayah numbering is invalid at $expectedGlobalAyah" }
@@ -169,22 +175,13 @@ object QuranNetworkRepository {
                                 "Non-Arabic text found at ayah $globalNum"
                             }
 
-                            val cleanedText = if (surahNumber != 1 && surahNumber != 9 && ayahInSurah == 1) {
-                                rawText.removePrefix("بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ ")
-                                    .removePrefix("بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ ")
-                                    .trim()
-                            } else {
-                                rawText
-                            }
-                            require(cleanedText.isNotBlank()) { "Ayah text became empty after normalization" }
-
                             list.add(
                                 CachedAyahEntity(
                                     surahNumber = surahNumber,
                                     surahNameArabic = meta.arabicName,
                                     ayahNumberInSurah = ayahInSurah,
                                     globalAyahNumber = globalNum,
-                                    uthmaniText = cleanedText,
+                                    uthmaniText = rawText,
                                     juz = juzNum,
                                     hizbQuarter = hizbQ,
                                     hasSajdah = sajdaValue == 1,
@@ -202,6 +199,8 @@ object QuranNetworkRepository {
                         "Bundled Quran must contain exactly $EXPECTED_AYAH_COUNT ayahs"
                     }
                     map
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
                 } catch (e: Exception) {
                     Log.w(TAG, "No complete verified 114-surah offline Quran corpus is packaged; the app will use its network source and local per-surah cache", e)
                     emptyMap()
@@ -210,13 +209,16 @@ object QuranNetworkRepository {
             if (parsed.size == EXPECTED_SURAH_COUNT) {
                 bundledSurahsMap = parsed
             }
+            // Packaged assets are immutable for the lifetime of this process. Remember
+            // a missing/invalid asset too, avoiding repeated disk reads and log spam.
+            bundledQuranChecked = true
             parsed
         }
     }
 
     /**
      * Loads a verified bundled Quran only when the full 114-surah corpus is present.
-     * Otherwise it downloads the requested Uthmani surah and stores it in Room for later offline reading.
+     * Otherwise it downloads the requested Al Quran Cloud Uthmani surah and stores it in Room for later offline reading.
      */
     suspend fun loadOrFetchSurah(
         surahNumber: Int,
@@ -226,25 +228,25 @@ object QuranNetworkRepository {
         if (surahNumber !in 1..EXPECTED_SURAH_COUNT) {
             return@withContext Result.failure(IllegalArgumentException("رقم السورة غير صالح"))
         }
+
         val meta = SurahCatalog.byNumber(surahNumber)
         val existing = dao.getCachedSurahAyahsOnce(surahNumber)
-        if (existing.size >= meta.ayahCount) {
-            return@withContext Result.success(existing)
-        }
-
         val existingMap = existing.associateBy { it.ayahNumberInSurah }
 
-        // 1. Use a bundled mushaf only when a complete, validated corpus exists.
+        // 1. A complete bundled corpus is the source of truth and must take precedence
+        // over an older online cache already stored on the user's device.
         if (context != null) {
             val bundledMap = ensureBundledQuranLoaded(context)
             val bundledSurah = bundledMap[surahNumber]
-            if (!bundledSurah.isNullOrEmpty()) {
+            if (!bundledSurah.isNullOrEmpty() &&
+                QuranCacheIntegrity.isCompleteSurah(surahNumber, bundledSurah)
+            ) {
                 val merged = bundledSurah.map { ayah ->
-                    val prev = existingMap[ayah.ayahNumberInSurah]
-                    if (prev != null && prev.tafsirSummary.isNotBlank()) {
+                    val previous = existingMap[ayah.ayahNumberInSurah]
+                    if (previous != null && previous.tafsirSummary.isNotBlank()) {
                         ayah.copy(
-                            tafsirSummary = prev.tafsirSummary,
-                            tafsirSource = prev.tafsirSource.ifBlank { ayah.tafsirSource }
+                            tafsirSummary = previous.tafsirSummary,
+                            tafsirSource = previous.tafsirSource.ifBlank { ayah.tafsirSource }
                         )
                     } else {
                         ayah
@@ -255,23 +257,39 @@ object QuranNetworkRepository {
             }
         }
 
-        // 2. Network fallback only if context was omitted or asset unavailable
+        // 2. Use an existing cache only when its numbering, content, and metadata are valid.
+        if (QuranCacheIntegrity.isCompleteSurah(surahNumber, existing)) {
+            return@withContext Result.success(existing.sortedBy { it.ayahNumberInSurah })
+        }
+
+        // 3. Download and validate a full surah. A partial response is never stored or
+        // returned as a successful read operation.
         try {
-            val res = api.getSurahUthmani(surahNumber)
-            val dtos = res.data?.ayahs.orEmpty()
-            if (dtos.size == meta.ayahCount && dtos.indices.all { index ->
-                    dtos[index].numberInSurah == index + 1 && dtos[index].text.isNotBlank() && dtos[index].number > 0
+            val response = api.getSurahUthmani(surahNumber)
+            val data = response.data
+            val expectedGlobalStart = SurahCatalog.allSurahs
+                .asSequence()
+                .takeWhile { it.number < surahNumber }
+                .sumOf { it.ayahCount } + 1
+            val dtos = data?.ayahs.orEmpty()
+            val responseIsValid = response.code == 200 &&
+                data?.number == surahNumber &&
+                dtos.size == meta.ayahCount &&
+                dtos.indices.all { index ->
+                    val ayah = dtos[index]
+                    ayah.numberInSurah == index + 1 &&
+                        ayah.number == expectedGlobalStart + index &&
+                        ayah.juz in 1..30 &&
+                        ayah.hizbQuarter in 1..240 &&
+                        ayah.text.isNotBlank() &&
+                        ayah.text.any { it in '\u0600'..'\u06FF' }
                 }
-            ) {
+
+            if (responseIsValid) {
                 val mapped = dtos.map { dto ->
-                    val prev = existingMap[dto.numberInSurah]
-                    val cleanedText = if (surahNumber != 1 && surahNumber != 9 && dto.numberInSurah == 1) {
-                        dto.text.removePrefix("بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ ").trim()
-                    } else {
-                        dto.text
-                    }
-                    val isSajda = when (val s = dto.sajda) {
-                        is Boolean -> s
+                    val previous = existingMap[dto.numberInSurah]
+                    val isSajda = when (val sajda = dto.sajda) {
+                        is Boolean -> sajda
                         is Map<*, *> -> true
                         else -> false
                     }
@@ -280,31 +298,41 @@ object QuranNetworkRepository {
                         surahNameArabic = meta.arabicName,
                         ayahNumberInSurah = dto.numberInSurah,
                         globalAyahNumber = dto.number,
-                        uthmaniText = cleanedText,
+                        uthmaniText = dto.text,
                         juz = dto.juz,
                         hizbQuarter = dto.hizbQuarter,
                         hasSajdah = isSajda,
-                        tafsirSummary = prev?.tafsirSummary ?: defaultShiaTafsirReferenceNote(meta.arabicName, dto.numberInSurah),
-                        tafsirSource = prev?.tafsirSource ?: "الميزان في تفسير القرآن للطباطبائي · مجمع البيان للطبرسي · الأمثل للشيرازي"
+                        tafsirSummary = previous?.tafsirSummary
+                            ?: defaultShiaTafsirReferenceNote(meta.arabicName, dto.numberInSurah),
+                        tafsirSource = previous?.tafsirSource
+                            ?: "الميزان في تفسير القرآن للطباطبائي · مجمع البيان للطبرسي · الأمثل للشيرازي"
                     )
                 }
-                dao.insertCachedAyahs(mapped)
-                return@withContext Result.success(mapped)
+                if (QuranCacheIntegrity.isCompleteSurah(surahNumber, mapped)) {
+                    dao.insertCachedAyahs(mapped)
+                    return@withContext Result.success(mapped)
+                }
             }
+        } catch (cancelled: CancellationException) {
+            throw cancelled
         } catch (e: Exception) {
-            if (existing.isNotEmpty()) {
-                return@withContext Result.success(existing)
+            // A complete validated cache is still useful offline. An incomplete one is not.
+            if (QuranCacheIntegrity.isCompleteSurah(surahNumber, existing)) {
+                return@withContext Result.success(existing.sortedBy { it.ayahNumberInSurah })
             }
             return@withContext Result.failure(e)
         }
 
-        if (existing.isNotEmpty()) Result.success(existing)
-        else Result.failure(IllegalStateException("تعذر تحميل السورة"))
+        if (QuranCacheIntegrity.isCompleteSurah(surahNumber, existing)) {
+            Result.success(existing.sortedBy { it.ayahNumberInSurah })
+        } else {
+            Result.failure(IllegalStateException("تعذر تحميل السورة كاملة؛ تحقق من الاتصال ثم أعد المحاولة"))
+        }
     }
 
     /**
-     * Searches cached/local Quran text first and the network's Uthmani script when needed.
-     * Full offline search is available only after a complete verified Quran corpus is bundled.
+     * Searches the bundled Tanzil Simple corpus first, then local cache and the network Uthmani edition when needed.
+     * When the verified 114-surah asset is present, search is fully offline and prioritizes its source text over older cached editions.
      */
     suspend fun searchQuran(
         keyword: String,
@@ -329,7 +357,7 @@ object QuranNetworkRepository {
                         }
                     }
                 }
-                return@withContext (localMatches + offlineHits)
+                return@withContext (offlineHits + localMatches)
                     .distinctBy { "${it.surahNumber}:${it.ayahNumberInSurah}" }
                     .take(50)
             }
@@ -351,6 +379,8 @@ object QuranNetworkRepository {
                 )
             }
             (localMatches + remoteMapped).distinctBy { "${it.surahNumber}:${it.ayahNumberInSurah}" }
+        } catch (cancelled: CancellationException) {
+            throw cancelled
         } catch (_: Exception) {
             localMatches
         }

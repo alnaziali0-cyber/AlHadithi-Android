@@ -62,3 +62,35 @@
 - شهريار وكريم: يفتح زر التشغيل صفحة المصدر، لعدم وجود روابط MP3 مباشرة موثقة في الفهرس.
 - لم يتم تضمين أي تسجيل صوتي؛ حقوق إعادة التوزيع لم تثبت.
 - تعذر تنفيذ Gradle build واختبارات Android في هذه البيئة لغياب Gradle وملف gradle-wrapper.jar وAndroid SDK. يلزم بناء المشروع واختباره على Android قبل اعتماد APK.
+
+
+## QA Addendum — 1.0.12
+
+- Python importer unit tests: 4 passed (`python3 -m unittest discover -s scripts/tests -v`). Test XML fixtures are synthetic structure fixtures only and are not Quran content.
+- Radio frequency catalog has 3 JUnit test cases added; not executed because the Android Gradle test environment could not be initialized.
+- Static review confirms `quran_uthmani_full.json` remains absent, so the app must not be described as having a full first-install offline Quran in this release.
+- Android Gradle build / APK / device smoke test: not run; Gradle distribution could not be downloaded in this environment and Android SDK is unavailable.
+
+
+## QA Addendum — 1.0.13
+
+- Python importer: 7 tests passed, including both Tanzil quarter metadata layouts, boundary range validation, verbatim ayah preservation, and sajda-marker/metadata agreement. Fixtures are synthetic and contain no real Quran corpus.
+- Kotlin cache integrity: new 7-test JUnit suite added. The pure validator was also compiled with `kotlinc` in an isolated harness; 3 assertions passed. Android JUnit was not run because the Gradle distribution and Android SDK are unavailable.
+- XML/JSON resource syntax: 12 XML and 9 JSON files parse successfully.
+- Quran cache precedence changed: a validated complete bundled corpus is checked before old Room cache rows; incomplete/invalid cached rows are not returned as successful full-sura results; failed asset probing is memoized, and coroutine cancellation is rethrown instead of being swallowed as a normal failure.
+- No full Quran asset is included; no APK or physical-device verification was performed.
+
+
+## QA Addendum — 1.0.14
+
+- Uploaded metadata XML parsed: 114 surahs, 30 juz, 240 hizb quarters, 7 manzils, 556 rukus, 604 pages, 15 sajdah positions.
+- Uploaded Tanzil Simple v1.1 text parsed: exactly 6,236 ayah records; 114 surahs; no duplicates, gaps, empty text, or malformed records. 30 blank/comment/footer lines are not ayah records.
+- Per-surah ayah counts and zero-based `start` offsets match metadata for all 114 surahs.
+- Sajdah marks in the text match all 15 metadata positions exactly.
+- Generated Android asset `quran_simple_full.json`: 1,444,945 bytes; full 114/6,236; source text comparison 6,236/6,236 exact. Quarter and sajda structural values sourced from metadata.
+- Original Simple copyright block preserved verbatim in `licenses/TANZIL_QURAN_SIMPLE_NOTICE.txt`; metadata attribution notice and SHA-256 manifest added.
+- Python unit tests: 15 passed, including 5 Simple parser tests, 7 XML-importer tests, and 3 integration tests that rebuild the actual uploaded corpus, compare the full JSON and verify the verbatim license block/checksums. Android JUnit/Robolectric/Gradle build not run because the environment has no working Gradle distribution/Android SDK.
+- Reader avoids a duplicate separate basmala when the first source ayah already starts with basmala. Offline search prioritizes bundled Simple data over previous cached network data.
+
+- Kotlin `shouldDisplaySeparateBasmala` helper compiled with `kotlinc` in an isolated harness and passed 5 assertions, including the distinct tashkeel used by Tanzil Simple in surahs 95 and 97.
+- A Gradle attempt `./gradlew :app:testDebugUnitTest --offline` was made and failed with `UnknownHostException: services.gradle.org` because Gradle 9.3.1 is not cached; Android SDK environment variables are also unset.

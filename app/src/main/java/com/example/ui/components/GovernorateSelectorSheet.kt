@@ -48,7 +48,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.R
-import com.example.domain.IraqDistricts
 import com.example.domain.IraqGovernorates
 import com.example.util.SystemActionsHelper
 import com.google.android.gms.location.LocationServices
@@ -57,11 +56,9 @@ import com.google.android.gms.location.LocationServices
 @Composable
 fun GovernorateSelectorSheet(
     currentGovernorateId: String,
-    currentDistrictId: String?,
     hapticEnabled: Boolean,
     notifyPrayersEnabled: Boolean,
     onSelectGovernorate: (String) -> Unit,
-    onSelectDistrict: (String?) -> Unit,
     onDetectedCoordinates: (Double, Double) -> Unit,
     onToggleHaptic: (Boolean) -> Unit,
     onToggleNotifyPrayers: (Boolean) -> Unit,
@@ -69,7 +66,6 @@ fun GovernorateSelectorSheet(
 ) {
     val context = LocalContext.current
     var pendingGovId by remember(currentGovernorateId) { mutableStateOf(currentGovernorateId) }
-    var pendingDistrictId by remember(currentDistrictId, currentGovernorateId) { mutableStateOf(currentDistrictId) }
     var statusNote by remember { mutableStateOf<String?>(null) }
 
     val notificationPermLauncher = rememberLauncherForActivityResult(
@@ -198,35 +194,6 @@ fun GovernorateSelectorSheet(
                         onClick = { pendingGovId = gov.id },
                         modifier = Modifier.testTag("gov_option_${gov.id}")
                     )
-                }
-            }
-
-            // اختيار المنطقة/المدينة داخل المحافظة — يحسّن دقة المواقيت.
-            val districts = IraqDistricts.of(pendingGovId)
-            if (districts.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(12.dp))
-                Text(
-                    text = "اختر منطقتك أو مدينتك (اختياري)",
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Spacer(modifier = Modifier.height(6.dp))
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    districts.forEach { district ->
-                        GlassFilterChip(
-                            label = district.arabicName,
-                            selected = pendingDistrictId == district.id,
-                            onClick = {
-                                pendingDistrictId = district.id
-                                onSelectDistrict(district.id)
-                            },
-                            modifier = Modifier.testTag("district_option_${district.id}")
-                        )
-                    }
                 }
             }
 

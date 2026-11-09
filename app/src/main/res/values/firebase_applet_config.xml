@@ -2,5 +2,4 @@
 <resources>
     <string name="firestore_database_id" translatable="false">ai-studio-android-0ccb0e51-02de-4d38-94ef-54f1255a8b5d</string>
     <string name="recaptcha_site_key" translatable="false">6Lct-A8uAAAAAJryEWnX9f9mQM-AcIryx-aUYVbn</string>
-    <string name="firebase_storage_bucket_id" translatable="false">gen-lang-client-0008531256.firebasestorage.app</string>
 </resources>

@@ -15,7 +15,7 @@ val HeritageGoldSoft = Color(0xFFFBF4E2)
 val OnHeritageGoldSoft = Color(0xFF543D0A)
 
 // Calm Light Backgrounds & Translucent Glass Surfaces
-val CalmAlabasterBg = Color(0xFFF3F8F7)
+val CalmAlabasterBg = Color(0xFFFFFFFF)
 val PureGlassWhite = Color(0xFFFFFFFF)
 val SoftSageSurfaceVariant = Color(0xFFE6F0EE)
 val InkDarkText = Color(0xFF102422)

@@ -8,17 +8,6 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.data.ai.ScholarlyThinkingAssistant
 import com.example.data.local.AdminAnnouncementEntity
-import com.example.data.local.AkhlaqCategoryEntity
-import com.example.data.local.AkhlaqLessonEntity
-import com.example.data.local.AkhlaqProgressEntity
-import com.example.data.local.AkhlaqQuizEntity
-import com.example.data.local.PRAYER_STATUS_DONE
-import com.example.data.local.PRAYER_STATUS_LATE
-import com.example.data.local.PRAYER_STATUS_MISSED
-import com.example.data.local.PRAYER_STATUS_ON_TIME
-import com.example.data.local.PRAYER_STATUS_PENDING
-import com.example.data.local.PrayerDailyStateEntity
-import com.example.data.local.PrayerDaySummary
 import com.example.data.local.AlHadithiDatabase
 import com.example.data.local.AudioTrackEntity
 import com.example.data.local.BookEntity
@@ -34,17 +23,13 @@ import com.example.data.local.HomeCard
 import com.example.data.local.IslamicOccasionEntity
 import com.example.data.local.LessonProgressEntity
 import com.example.data.local.QuizAttemptEntity
+import com.example.data.local.PrayerCompletionEntity
+import com.example.data.local.LOCAL_PRAYER_PROFILE_KEY
 import com.example.data.local.ReadingHistoryEntity
 import com.example.data.local.TasbihSessionEntity
 import com.example.data.local.UserPreferencesRepository
 import com.example.data.local.UserSettingsState
 import com.example.data.local.WallpaperEntity
-import com.example.data.remote.AdEntity
-import com.example.data.remote.AdFirestoreRepository
-import com.example.data.remote.AdminOpsRepository
-import com.example.data.remote.AuditEntry
-import com.example.data.remote.NotificationLogEntry
-import com.example.data.remote.RegisteredDevice
 import com.example.data.remote.AdminAnnouncementFirestoreRepository
 import com.example.data.remote.CloudAdminAnnouncement
 import com.example.data.remote.DeveloperGoogleAuthHelper
@@ -52,12 +37,12 @@ import com.example.data.remote.DeveloperGoogleAuthHelper.authStateFlow
 import com.example.data.remote.PrayerNetworkClient
 import com.example.data.remote.QuranNetworkRepository
 import com.example.domain.DailyPrayerSchedule
-import com.example.domain.IraqDistricts
 import com.example.domain.IraqGovernorates
 import com.example.domain.NextPrayerCountdown
 import com.example.domain.PrayerAlertProfile
 import com.example.domain.PrayerAlertSettings
 import com.example.domain.PrayerAndHijriCalculator
+import com.example.domain.PrayerDailyProgress
 import com.example.domain.PrayerCalcMethod
 import com.example.domain.PrayerKey
 import com.example.domain.PrayerMinuteOffsets
@@ -68,14 +53,12 @@ import com.example.domain.TimeFormat
 import com.example.media.AudioPlayerController
 import com.example.media.AudioQueueItem
 import com.example.media.AdhanAudioStorage
-import com.example.media.DailyContentStore
 import com.example.media.PrayerNotificationScheduler
 import com.example.ui.theme.AccentChoice
 import com.example.ui.theme.AppFontChoice
 import com.example.ui.theme.CardDensity
 import com.example.ui.theme.LineSpacingOption
 import com.example.ui.theme.QuranBackgroundStyle
-import com.example.ui.theme.QuranReadingLayout
 import com.example.ui.theme.ReadingFontChoice
 import com.example.ui.theme.ThemeMode
 import com.google.firebase.Firebase
@@ -89,7 +72,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -129,7 +111,6 @@ class AlHadithiViewModel(application: Application) : AndroidViewModel(applicatio
     private val dao = database.dao()
     private val prefsRepo = UserPreferencesRepository(appCtx)
     private val cloudAnnouncementRepo by lazy { AdminAnnouncementFirestoreRepository(appCtx) }
-    private val adRepo by lazy { AdFirestoreRepository }
     private var prayerRefreshJob: Job? = null
 
     val settings: StateFlow<UserSettingsState> = prefsRepo.settingsFlow.stateIn(
@@ -154,6 +135,13 @@ class AlHadithiViewModel(application: Application) : AndroidViewModel(applicatio
 
     private val _monthlySchedules = MutableStateFlow<List<DailyPrayerSchedule>>(emptyList())
     val monthlySchedules: StateFlow<List<DailyPrayerSchedule>> = _monthlySchedules.asStateFlow()
+
+    private val prayerTrackingDayKey = MutableStateFlow(PrayerDailyProgress.dayKey())
+    val todayPrayerCompletions: StateFlow<List<PrayerCompletionEntity>> = prayerTrackingDayKey
+        .flatMapLatest { dayKey ->
+            dao.observePrayerCompletionsForDay(LOCAL_PRAYER_PROFILE_KEY, dayKey)
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), emptyList())
 
     // Encyclopedia Streams (100% Local Offline Room)
     val hadiths: StateFlow<List<HadithEntity>> = dao.observeAllHadiths()
@@ -218,66 +206,6 @@ class AlHadithiViewModel(application: Application) : AndroidViewModel(applicatio
         MutableStateFlow(null)
     }
 
-    /** الأجهزة المسجّلة — لقسم المستخدمين في لوحة الإدارة. */
-    val registeredDevices: StateFlow<List<RegisteredDevice>> = AdminOpsRepository
-        .observeDevices(appCtx)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
-
-    /** سجل عمليات الإرسال — لقسم الإشعارات. */
-    val notificationLog: StateFlow<List<NotificationLogEntry>> = AdminOpsRepository
-        .observeNotificationLog(appCtx)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
-
-    /** سجل عمليات لوحة الإدارة. */
-    val adminAuditLog: StateFlow<List<AuditEntry>> = AdminOpsRepository
-        .observeAuditLog(appCtx)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
-
-    /** الإعلانات المنشورة — يراها كل المستخدمين داخل التطبيق. */
-    val publishedAds: StateFlow<List<AdEntity>> = adRepo.observePublishedAds(appCtx)
-        .map { list -> list.filter { it.isLive } }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
-
-    /** إعلانات التطبيق — تُعرض للمطوّر أثناء انعقاد جلسته فقط. */
-    val ads: StateFlow<List<AdEntity>> = developerAuthUser
-        .flatMapLatest { user ->
-            if (user == null) flowOf(emptyList<AdEntity>()) else adRepo.observeAllAds(appCtx)
-        }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
-
-    // ── متابعة الصلوات اليومية ("صلواتي اليوم") ───────────────────────
-    // Owner key separates device users: guests share "guest", signed-in users use their uid.
-    private val prayerOwnerKey: StateFlow<String> = developerAuthUser
-        .map { user -> user?.uid?.let { "uid_$it" } ?: GUEST_OWNER_KEY }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, GUEST_OWNER_KEY)
-
-    private val todayKey: StateFlow<String> = flowOf(currentLocalDateKey())
-        .stateIn(viewModelScope, SharingStarted.Eagerly, currentLocalDateKey())
-
-    val prayerStatesToday: StateFlow<List<PrayerDailyStateEntity>> = combine(
-        prayerOwnerKey, todayKey
-    ) { owner, date -> owner to date }
-        .flatMapLatest { (owner, date) -> dao.observePrayerStatesForDate(owner, date) }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
-
-    val prayerHistory: StateFlow<List<PrayerDaySummary>> = prayerOwnerKey
-        .flatMapLatest { owner -> dao.observePrayerHistory(owner, currentLocalDateKey(minusDays = 30)) }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
-
-    // ── قسم الأخلاقيات ────────────────────────────────────────────────
-    val akhlaqCategories: StateFlow<List<AkhlaqCategoryEntity>> = dao.observeAkhlaqCategories()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
-
-    val akhlaqLessons: StateFlow<List<AkhlaqLessonEntity>> = dao.observeAkhlaqLessons()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
-
-    val akhlaqProgress: StateFlow<List<AkhlaqProgressEntity>> = dao.observeAkhlaqProgress()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
-
-    val akhlaqQuizzesByLesson: StateFlow<Map<String, List<AkhlaqQuizEntity>>> = dao.observeAllAkhlaqQuizzes()
-        .map { list -> list.groupBy { it.lessonId } }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyMap())
-
     // Active Surah Reader State
     private val _activeSurahNumber = MutableStateFlow(1)
     val activeSurahNumber: StateFlow<Int> = _activeSurahNumber.asStateFlow()
@@ -302,7 +230,7 @@ class AlHadithiViewModel(application: Application) : AndroidViewModel(applicatio
         AudioPlayerController.init(appCtx)
 
         viewModelScope.launch {
-            AlHadithiDatabase.ensureSeeded(appCtx, dao)
+            AlHadithiDatabase.ensureSeeded(dao)
             // Attempt to load a verified bundled Quran if the release includes one; otherwise surahs use the network/cache path.
             QuranNetworkRepository.ensureBundledQuranLoaded(appCtx)
             loadSurah(1)
@@ -346,27 +274,16 @@ class AlHadithiViewModel(application: Application) : AndroidViewModel(applicatio
             }
         }
 
-        // خطة محتوى اليوم: حديث أو دعاء موثّق يُرسل بعد كل صلاة.
-        viewModelScope.launch {
-            combine(hadiths, duasAndZiyarat, settings) { h, d, st -> Triple(h, d, st) }
-                .distinctUntilChanged()
-                .collectLatest { (hadithList, duaList, st) ->
-                    DailyContentStore.putPlan(
-                        context = appCtx,
-                        items = buildDailyContentPlan(hadithList, duaList, st.dailyContentType),
-                        contentType = st.dailyContentType,
-                        enabledPrayers = st.dailyContentPrayers,
-                        enabled = st.dailyContentNotifications
-                    )
-                }
-        }
-
         // Live 1-second countdown ticker for Next Prayer
         viewModelScope.launch {
             while (true) {
                 _nextPrayerCountdown.value = PrayerAndHijriCalculator.computeNextPrayerCountdown(
                     _todaySchedule.value
                 )
+                val currentDayKey = PrayerDailyProgress.dayKey()
+                if (prayerTrackingDayKey.value != currentDayKey) {
+                    prayerTrackingDayKey.value = currentDayKey
+                }
                 delay(1000L)
             }
         }
@@ -497,25 +414,29 @@ class AlHadithiViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
+    /** Persists today's prayer checkmarks in Room using Iraq's civil date. */
+    fun setPrayerCompleted(prayer: PrayerKey, completed: Boolean) {
+        val dayKey = PrayerDailyProgress.dayKey()
+        viewModelScope.launch {
+            if (completed) {
+                dao.upsertPrayerCompletion(
+                    PrayerCompletionEntity(
+                        profileKey = LOCAL_PRAYER_PROFILE_KEY,
+                        dayKey = dayKey,
+                        prayerKey = prayer.key,
+                        isCompleted = true,
+                        updatedAtMillis = System.currentTimeMillis()
+                    )
+                )
+            } else {
+                dao.deletePrayerCompletion(LOCAL_PRAYER_PROFILE_KEY, dayKey, prayer.key)
+            }
+        }
+    }
+
     // --- Settings Actions ---
     fun selectGovernorate(govId: String) {
         viewModelScope.launch { prefsRepo.selectGovernorate(govId) }
-    }
-
-    /**
-     * اختيار منطقة/مدينة داخل المحافظة: تُستخدم إحداثياتها في حساب المواقيت
-     *because أدق من مركز المحافظة.
-     */
-    fun selectDistrict(districtId: String?) {
-        viewModelScope.launch {
-            prefsRepo.setSelectedDistrictId(districtId)
-            val district = districtId?.let { IraqDistricts.byId(it) }
-            if (district != null) {
-                prefsRepo.setPrayerCoordinates(district.latitude, district.longitude)
-            } else {
-                prefsRepo.clearPrayerCoordinates()
-            }
-        }
     }
 
     fun selectNearestGovernorateFromCoordinates(lat: Double, lon: Double) {
@@ -702,6 +623,7 @@ class AlHadithiViewModel(application: Application) : AndroidViewModel(applicatio
             dao.deleteAllTasbihSessions()
             dao.deleteAllLessonProgress()
             dao.deleteAllQuizAttempts()
+            dao.deleteAllPrayerCompletions()
             dao.deleteAllCachedAyahs()
             prefsRepo.resetSettingsToDefaults()
             PrayerNotificationScheduler.disable(appCtx)
@@ -754,10 +676,6 @@ class AlHadithiViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
-    fun setQuranReadingLayout(layout: QuranReadingLayout) {
-        viewModelScope.launch { prefsRepo.setQuranReadingLayout(layout) }
-    }
-
     fun setReciter(reciterId: String) {
         viewModelScope.launch { prefsRepo.setReciter(reciterId) }
     }
@@ -795,45 +713,19 @@ class AlHadithiViewModel(application: Application) : AndroidViewModel(applicatio
                 return
             }
         }
-        // القارئ الذي تتوفر لديه تلاوة سورة كاملة: تُبنى قائمة بكل السور.
-        if (reciter.hasSurahAudio) {
-            val queue = SurahCatalog.allSurahs.mapNotNull { s ->
-                val url = reciter.buildSurahStreamUrl(s.number) ?: return@mapNotNull null
-                AudioQueueItem(
-                    idKey = reciter.audioDownloadKey(s.number),
-                    title = s.arabicName,
-                    performer = reciter.arabicName,
-                    category = "تلاوة القرآن الكريم",
-                    primaryUrl = url,
-                    fallbackUrl = reciter.buildMp3QuranFallbackUrl(s.number),
-                    offlineRawResName = null
-                )
-            }
-            if (queue.isNotEmpty()) {
-                val startIdx = (surahNumber - 1).coerceIn(0, queue.lastIndex)
-                AudioPlayerController.playQueue(queue, startIdx, settings.value.playbackSpeed)
-                return
-            }
+        val queue = SurahCatalog.allSurahs.map { s ->
+            AudioQueueItem(
+                idKey = reciter.audioDownloadKey(s.number),
+                title = s.arabicName,
+                performer = reciter.arabicName,
+                category = "تلاوة القرآن الكريم",
+                primaryUrl = reciter.buildSurahStreamUrl(s.number),
+                fallbackUrl = reciter.buildMp3QuranFallbackUrl(s.number),
+                offlineRawResName = null
+            )
         }
-
-        // القارئ بلا تلاوة سورة كاملة: تُشغَّل السورة آية آية من رابط موثّق.
-        if (reciter.hasAyahAudio) {
-            val surah = SurahCatalog.byNumber(surahNumber)
-            val ayahQueue = (1..surah.ayahCount).mapNotNull { ayahNumber ->
-                val url = reciter.buildAyahUrl(surahNumber, ayahNumber) ?: return@mapNotNull null
-                AudioQueueItem(
-                    idKey = "ayah_${reciter.id}_${surahNumber}_$ayahNumber",
-                    title = "${surah.arabicName} · الآية $ayahNumber",
-                    performer = reciter.arabicName,
-                    category = "تلاوة القرآن الكريم (آية آية)",
-                    primaryUrl = url,
-                    offlineRawResName = null
-                )
-            }
-            if (ayahQueue.isNotEmpty()) {
-                AudioPlayerController.playQueue(ayahQueue, 0, settings.value.playbackSpeed)
-            }
-        }
+        val startIdx = (surahNumber - 1).coerceIn(0, queue.lastIndex)
+        AudioPlayerController.playQueue(queue, startIdx, settings.value.playbackSpeed)
     }
 
     fun playLibraryAudioTrack(track: AudioTrackEntity, fullList: List<AudioTrackEntity>) {
@@ -1122,152 +1014,5 @@ class AlHadithiViewModel(application: Application) : AndroidViewModel(applicatio
     fun adminDeleteOccasion(id: Long) {
         if (developerAuthUser.value == null) return
         viewModelScope.launch { dao.deleteOccasionById(id) }
-    }
-
-    // ── Implementations of the daily prayer tracker ────────────────────
-    /** Saves the status of one prayer for the current day and keeps it on the device. */
-    fun setPrayerStatus(prayer: String, status: String) {
-        val owner = prayerOwnerKey.value
-        val date = currentLocalDateKey()
-        viewModelScope.launch {
-            dao.upsertPrayerState(
-                PrayerDailyStateEntity(
-                    ownerKey = owner,
-                    prayerDate = date,
-                    prayer = prayer,
-                    status = status,
-                    updatedAt = System.currentTimeMillis()
-                )
-            )
-        }
-    }
-
-    /** Toggles a prayer between "done" and "pending" from the home screen. */
-    fun togglePrayerCompleted(prayer: String) {
-        val current = prayerStatesToday.value.firstOrNull { it.prayer == prayer }
-        val isDone = current?.status in setOf(PRAYER_STATUS_DONE, PRAYER_STATUS_ON_TIME, PRAYER_STATUS_LATE)
-        setPrayerStatus(prayer, if (isDone) PRAYER_STATUS_PENDING else PRAYER_STATUS_DONE)
-    }
-
-    /** Clears every prayer record of the current user (privacy action). */
-    fun clearPrayerTracker() {
-        val owner = prayerOwnerKey.value
-        viewModelScope.launch { dao.deleteAllPrayerStates(owner) }
-    }
-
-    // ── Akhlaq progress ───────────────────────────────────────────────
-    fun markAkhlaqLessonCompleted(lessonId: String, score: Int) {
-        viewModelScope.launch {
-            dao.upsertAkhlaqProgress(
-                AkhlaqProgressEntity(
-                    lessonId = lessonId,
-                    completedAt = System.currentTimeMillis(),
-                    score = score
-                )
-            )
-        }
-    }
-
-    fun observeAkhlaqQuizzes(lessonId: String) = dao.observeAkhlaqQuizzesForLesson(lessonId)
-
-    private fun currentLocalDateKey(): String = currentLocalDateKey(minusDays = 0)
-
-    private fun currentLocalDateKey(minusDays: Int): String {
-        val cal = Calendar.getInstance(PrayerAndHijriCalculator.baghdadTimeZone())
-        cal.add(Calendar.DAY_OF_YEAR, -minusDays)
-        return String.format(
-            java.util.Locale.US,
-            "%04d-%02d-%02d",
-            cal.get(Calendar.YEAR),
-            cal.get(Calendar.MONTH) + 1,
-            cal.get(Calendar.DAY_OF_MONTH)
-        )
-    }
-
-
-    /**
-     * يبني خطة المحتوى للأيام القادمة: لكل يوم وكل صلاة يُختار حديث أو دعاء
-     * من المحتوى الموثّق المحلّي مع تخريجه، بشكل دوري لا يتكرر بسرعة.
-     */
-    private fun buildDailyContentPlan(
-        hadithList: List<HadithEntity>,
-        duaList: List<DuaZiyaratEntity>,
-        type: String
-    ): Map<String, DailyContentStore.ContentItem> {
-        if (hadithList.isEmpty() && duaList.isEmpty()) return emptyMap()
-        val plan = LinkedHashMap<String, DailyContentStore.ContentItem>()
-        val cal = Calendar.getInstance(PrayerAndHijriCalculator.baghdadTimeZone())
-        val prayerKeys = listOf("fajr", "dhuhr", "asr", "maghrib", "isha")
-
-        for (dayOffset in 0 until CONTENT_PLAN_DAYS) {
-            val day = (cal.clone() as Calendar).apply { add(Calendar.DAY_OF_YEAR, dayOffset) }
-            val dateKey = String.format(
-                java.util.Locale.US,
-                "%04d%02d%02d",
-                day.get(Calendar.YEAR),
-                day.get(Calendar.MONTH) + 1,
-                day.get(Calendar.DAY_OF_MONTH)
-            )
-            prayerKeys.forEachIndexed { prayerIndex, prayerKey ->
-                val seed = dayOffset * prayerKeys.size + prayerIndex
-                val preferDua = type == "dua" || (type == "mixed" && seed % 2 == 1)
-                val item: DailyContentStore.ContentItem? = when {
-                    preferDua && duaList.isNotEmpty() -> {
-                        val dua = duaList[seed % duaList.size]
-                        DailyContentStore.ContentItem(
-                            title = if (dua.entryType == "ZIYARAT") "زيارة اليوم" else "دعاء اليوم",
-                            body = dua.vocalizedText.ifBlank { dua.title },
-                            takhrij = listOf(dua.attribution, dua.sourceBook)
-                                .filter { it.isNotBlank() }.joinToString(" · ")
-                        )
-                    }
-                    hadithList.isNotEmpty() -> {
-                        val hadith = hadithList[seed % hadithList.size]
-                        DailyContentStore.ContentItem(
-                            title = "حديث اليوم",
-                            body = hadith.arabicText,
-                            takhrij = listOf(hadith.sourceBook, hadith.infallibleName, hadith.gradingNote)
-                                .filter { it.isNotBlank() }.joinToString(" · ")
-                        )
-                    }
-                    duaList.isNotEmpty() -> {
-                        val dua = duaList[seed % duaList.size]
-                        DailyContentStore.ContentItem(
-                            title = "دعاء اليوم",
-                            body = dua.vocalizedText.ifBlank { dua.title },
-                            takhrij = listOf(dua.attribution, dua.sourceBook)
-                                .filter { it.isNotBlank() }.joinToString(" · ")
-                        )
-                    }
-                    else -> null
-                }
-                if (item != null) plan["$dateKey|$prayerKey"] = item
-            }
-        }
-        return plan
-    }
-
-    /** يعيد تحميل قائمة الإعلانات (تستدعيها لوحة المطور بعد كل عملية). */
-    fun refreshAds() {
-        // The Flow re-queries Firestore automatically; this hook exists so the panel can
-        // request an explicit refresh after a write.
-        viewModelScope.launch { ads.value }
-    }
-
-    fun setDailyContentNotifications(enabled: Boolean) {
-        viewModelScope.launch { prefsRepo.setDailyContentNotifications(enabled) }
-    }
-
-    fun setDailyContentType(type: String) {
-        viewModelScope.launch { prefsRepo.setDailyContentType(type) }
-    }
-
-    fun setDailyContentPrayers(prayers: Set<String>) {
-        viewModelScope.launch { prefsRepo.setDailyContentPrayers(prayers) }
-    }
-
-    companion object {
-        const val GUEST_OWNER_KEY = "guest"
-        private const val CONTENT_PLAN_DAYS = 3
     }
 }

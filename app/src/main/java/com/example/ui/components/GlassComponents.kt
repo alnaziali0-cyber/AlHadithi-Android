@@ -89,8 +89,8 @@ fun GlassAmbientBackground(
         Canvas(modifier = Modifier.fillMaxSize()) {
             val w = size.width
             val h = size.height
-            val glowAlpha = if (isDark) 0.22f else 0.16f
-            val goldAlpha = if (isDark) 0.12f else 0.11f
+            val glowAlpha = if (isDark) 0.22f else 0.045f
+            val goldAlpha = if (isDark) 0.12f else 0.035f
 
             // Top-right calm turquoise sanctuary glow
             drawCircle(

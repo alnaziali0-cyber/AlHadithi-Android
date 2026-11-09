@@ -88,7 +88,7 @@ val LocalReadingFontScale = staticCompositionLocalOf { 1.10f }
 val LocalIsDarkThemeActive = staticCompositionLocalOf { false }
 val LocalCardDensity = staticCompositionLocalOf { CardDensity.COMFORTABLE }
 val LocalLineSpacing = staticCompositionLocalOf { LineSpacingOption.NORMAL }
-val LocalReadingFontChoice = staticCompositionLocalOf { ReadingFontChoice.AMIRI }
+val LocalReadingFontChoice = staticCompositionLocalOf { ReadingFontChoice.MUHAMMADI }
 
 /**
  * Spacing tokens driven by the user's density preference so that a compact layout really is
@@ -126,7 +126,7 @@ fun AlHadithiTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     accentChoice: AccentChoice = AccentChoice.EMERALD,
     fontChoice: AppFontChoice = AppFontChoice.NASKH,
-    readingFontChoice: ReadingFontChoice = ReadingFontChoice.AMIRI,
+    readingFontChoice: ReadingFontChoice = ReadingFontChoice.MUHAMMADI,
     uiFontScale: Float = 1.0f,
     readingFontScale: Float = 1.10f,
     cardDensity: CardDensity = CardDensity.COMFORTABLE,
@@ -169,7 +169,7 @@ fun MyApplicationTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     accentChoice: AccentChoice = AccentChoice.EMERALD,
     fontChoice: AppFontChoice = AppFontChoice.NASKH,
-    readingFontChoice: ReadingFontChoice = ReadingFontChoice.AMIRI,
+    readingFontChoice: ReadingFontChoice = ReadingFontChoice.MUHAMMADI,
     uiFontScale: Float = 1.0f,
     readingFontScale: Float = 1.10f,
     cardDensity: CardDensity = CardDensity.COMFORTABLE,

@@ -36,6 +36,7 @@ class AppDestinationTest {
             "tasbih",
             "qibla",
             "audio_library",
+            "ethics",
             "search",
             "favorites",
             "settings"

@@ -1,0 +1,7 @@
+AL-HADITHI 1.0.14 — SHA-256
+
+b3638f5cf03e2b05e4000efc0e4b656aafb3cf6ed28f8770b6497c5b43c46089  quran-simple.txt (source) (1353702 bytes)
+8867c1d88191472adec9db694b3cd9f135b1a2ef580574d32cf888dcb22c5c7a  quran-data.xml (metadata) (77234 bytes)
+ff202eb9238338b6930a9847f218a41b1db564fec55e0641b109814c088c3740  quran_simple_full.json (Android asset) (1444945 bytes)
+0cc529a56f5d1a54e581300c2fa9b84f1cc3f23d480dc64865d103838827f70b  quran_simple_manifest.json (1103 bytes)
+d648584786af682560b3b13516a6caa4fa548371f61093d82cd1de1ea6597e93  TANZIL_QURAN_SIMPLE_NOTICE.txt (1105 bytes)

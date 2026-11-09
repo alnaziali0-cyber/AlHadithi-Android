@@ -126,7 +126,7 @@ class AdhanPlaybackService : Service() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notification_adhan)
+            .setSmallIcon(R.drawable.ic_notification_alhadithi)
             .setContentTitle("أذان الحديثي")
             .setContentText("يتم تشغيل تسجيل الأذان")
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
