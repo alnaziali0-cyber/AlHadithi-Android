@@ -23,6 +23,9 @@ interface AlHadithiDao {
     @Query("SELECT COUNT(*) FROM cached_ayahs")
     suspend fun countCachedAyahs(): Int
 
+    @Query("SELECT COUNT(*) FROM cached_ayahs")
+    fun observeCachedAyahCount(): Flow<Int>
+
     @Query("SELECT * FROM cached_ayahs WHERE uthmaniText LIKE '%' || :query || '%' OR surahNameArabic LIKE '%' || :query || '%' LIMIT 50")
     suspend fun searchCachedAyahs(query: String): List<CachedAyahEntity>
 

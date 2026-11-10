@@ -21,14 +21,16 @@ enum class ThemeMode(val key: String, val arabicLabel: String) {
  * identity of the app is preserved while the primary colour follows the user's choice.
  */
 enum class AccentChoice(val key: String, val arabicLabel: String) {
-    EMERALD("emerald", "زمردي (الافتراضي)"),
-    TURQUOISE("turquoise", "فيروزي"),
-    GOLD("gold", "ذهبي تراثي"),
-    NIGHT_BLUE("night_blue", "أزرق ليلي");
+    // Existing stable keys are retained for backward compatibility with DataStore values.
+    EMERALD("emerald", "زمردي"),
+    TURQUOISE("turquoise", "فيروزي الحديثي"),
+    CYAN("cyan", "سماوي مضيء"),
+    NIGHT_BLUE("night_blue", "أزرق ملكي"),
+    GOLD("gold", "ذهبي تراثي");
 
     companion object {
         fun fromKey(key: String?): AccentChoice =
-            entries.firstOrNull { it.key == key } ?: EMERALD
+            entries.firstOrNull { it.key == key } ?: TURQUOISE
     }
 }
 

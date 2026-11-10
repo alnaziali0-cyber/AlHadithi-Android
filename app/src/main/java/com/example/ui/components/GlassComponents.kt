@@ -171,8 +171,8 @@ fun GlassCard(
     } else if (isDark) {
         Brush.verticalGradient(
             listOf(
-                Color(0xFF142B28).copy(alpha = 0.64f),
-                Color(0xFF0E201E).copy(alpha = 0.54f)
+                Color(0xFF14263A).copy(alpha = 0.92f),
+                Color(0xFF101C2B).copy(alpha = 0.94f)
             )
         )
     } else {
@@ -190,8 +190,8 @@ fun GlassCard(
         Brush.linearGradient(
             listOf(
                 Color.White.copy(alpha = 0.22f),
-                TurquoiseSecondaryLight.copy(alpha = 0.18f),
-                HeritageGold.copy(alpha = 0.14f)
+                Color(0xFF4FD7E5).copy(alpha = 0.22f),
+                HeritageGold.copy(alpha = 0.10f)
             )
         )
     } else {

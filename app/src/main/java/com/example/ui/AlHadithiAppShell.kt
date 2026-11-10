@@ -2,6 +2,7 @@ package com.example.ui
 
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.border
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -121,6 +122,7 @@ fun AlHadithiAppRoot(
     val readingHistory by vm.readingHistory.collectAsStateWithLifecycle()
     val tasbihSessions by vm.tasbihSessions.collectAsStateWithLifecycle()
     val contentSources by vm.contentSources.collectAsStateWithLifecycle()
+    val cachedAyahCount by vm.cachedAyahCount.collectAsStateWithLifecycle()
     val dhikrCounters by vm.dhikrCounters.collectAsStateWithLifecycle()
 
     val activeAnnouncements by vm.activeAnnouncements.collectAsStateWithLifecycle()
@@ -176,7 +178,8 @@ fun AlHadithiAppRoot(
 
     AlHadithiTheme(
         themeMode = settings.themeMode,
-        darkTheme = settings.darkMode,
+        // SYSTEM mode must resolve from Android's actual system theme, not the legacy dark flag.
+        darkTheme = isSystemInDarkTheme(),
         accentChoice = settings.accentChoice,
         fontChoice = settings.fontChoice,
         readingFontChoice = settings.readingFontChoice,
@@ -185,12 +188,13 @@ fun AlHadithiAppRoot(
         cardDensity = settings.cardDensity,
         lineSpacing = settings.lineSpacing,
         content = {
-        val navGlassBg = if (settings.darkMode) {
-            Color(0xFF102422).copy(alpha = 0.72f)
+        val activeDarkTheme = LocalIsDarkThemeActive.current
+        val navGlassBg = if (activeDarkTheme) {
+            Color(0xFF101D2B).copy(alpha = 0.92f)
         } else {
-            Color.White.copy(alpha = 0.70f)
+            Color.White.copy(alpha = 0.88f)
         }
-        val navGlassBorder = if (settings.darkMode) {
+        val navGlassBorder = if (activeDarkTheme) {
             Color.White.copy(alpha = 0.16f)
         } else {
             Color.White.copy(alpha = 0.85f)
@@ -316,7 +320,7 @@ fun AlHadithiAppRoot(
                                         lastSurahName = settings.lastSurahName,
                                         lastAyahNumber = settings.lastAyahNumber,
                                         selectedReciterId = settings.selectedReciterId,
-                                        darkMode = settings.darkMode,
+                                        darkMode = LocalIsDarkThemeActive.current,
                                         readingFontChoice = settings.readingFontChoice,
                                         quranBackground = settings.quranBackground,
                                         autoScrollEnabled = settings.quranAutoScrollEnabled,
@@ -489,6 +493,7 @@ fun AlHadithiAppRoot(
                                     AppDestination.SETTINGS -> SettingsScreen(
                                         settings = settings,
                                         sources = contentSources,
+                                        cachedAyahCount = cachedAyahCount,
                                         onBack = { currentDestination = AppDestination.HOME },
                                         onOpenGovernorateSheet = { manualGovSheetOpen = true },
                                         onChangeThemeMode = vm::setThemeMode,
@@ -499,10 +504,10 @@ fun AlHadithiAppRoot(
                                         onChangeReadingFont = vm::setReadingFontChoice,
                                         onChangeReadingFontScale = vm::setReadingFontScale,
                                         onChangeLineSpacing = vm::setLineSpacing,
-                                        onChangeHomeLayout = vm::setHomeLayout,
                                         onChangeDailyGoals = vm::setDailyGoals,
                                         onChangeTimeFormat = vm::setTimeFormat,
                                         onChangeCalcMethod = vm::setPrayerCalcMethod,
+                                        onChangeHijriOffset = vm::setHijriOffsetDays,
                                         onChangePrayerAlert = vm::setPrayerAlert,
                                         onChangeQuietHours = vm::setQuietHours,
                                         onChangeQuranBackground = vm::setQuranBackground,
@@ -513,7 +518,7 @@ fun AlHadithiAppRoot(
                                         onChangeDailyTasbihGoal = vm::setDailyTasbihGoal,
                                         onUpdateNotifications = vm::updateNotificationPrefs,
                                         onClearQuranCache = vm::clearCachedQuranTexts,
-                                        onResetDefaults = vm::resetAllSettings,
+                                        onResetSettings = vm::resetSettings,
                                         onDeleteUserData = vm::deleteAllUserData
                                     )
 

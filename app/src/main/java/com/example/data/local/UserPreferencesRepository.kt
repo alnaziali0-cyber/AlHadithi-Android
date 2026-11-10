@@ -109,6 +109,15 @@ internal fun resolveThemeMode(storedMode: String?, legacyDarkMode: Boolean): The
     return parsed ?: if (legacyDarkMode) ThemeMode.DARK else ThemeMode.SYSTEM
 }
 
+/** Reset scopes clear preferences only; reading history, counters, favourites and downloads are preserved. */
+enum class SettingsResetScope {
+    APPEARANCE,
+    FONTS,
+    NOTIFICATIONS,
+    PRAYER,
+    ALL
+}
+
 data class UserSettingsState(
     val hasSelectedGovernorateOnce: Boolean = false,
     val governorateId: String = "baghdad",
@@ -117,7 +126,7 @@ data class UserSettingsState(
     /** Legacy boolean mirror of [themeMode]; kept so older screens keep working. */
     val darkMode: Boolean = false,
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
-    val accentChoice: AccentChoice = AccentChoice.EMERALD,
+    val accentChoice: AccentChoice = AccentChoice.TURQUOISE,
     val fontChoice: AppFontChoice = AppFontChoice.NASKH,
     val readingFontChoice: ReadingFontChoice = ReadingFontChoice.MUHAMMADI,
     val readingFontScale: Float = 1.15f,
@@ -537,12 +546,77 @@ class UserPreferencesRepository(private val context: Context) {
         return hashed == currentHash
     }
 
-    suspend fun resetSettingsToDefaults() {
+    /**
+     * Reset only the selected preference family. User-created data is intentionally outside this
+     * operation: last reading position, dhikr counters, daily tasbih progress, saved location,
+     * onboarding completion, and the developer PIN are preserved.
+     */
+    /** Explicit destructive wipe used only by the separately confirmed Delete My Data action. */
+    suspend fun clearAllUserPreferencesPreservingDeveloperPin() {
         context.alHadithiDataStore.edit { prefs ->
             val savedPin = prefs[Keys.ADMIN_PIN_HASH]
             prefs.clear()
-            if (!savedPin.isNullOrBlank()) {
-                prefs[Keys.ADMIN_PIN_HASH] = savedPin
+            if (!savedPin.isNullOrBlank()) prefs[Keys.ADMIN_PIN_HASH] = savedPin
+        }
+    }
+
+    suspend fun resetSettingsToDefaults(scope: SettingsResetScope = SettingsResetScope.ALL) {
+        context.alHadithiDataStore.edit { prefs ->
+            fun removeAppearance() {
+                prefs.remove(Keys.THEME_MODE)
+                prefs.remove(Keys.DARK_MODE)
+                prefs.remove(Keys.ACCENT_CHOICE)
+                prefs.remove(Keys.CARD_DENSITY)
+                prefs.remove(Keys.QURAN_BACKGROUND)
+            }
+            fun removeFonts() {
+                prefs.remove(Keys.FONT_CHOICE)
+                prefs.remove(Keys.READING_FONT_CHOICE)
+                prefs.remove(Keys.UI_FONT_SCALE)
+                prefs.remove(Keys.READING_FONT_SCALE)
+                prefs.remove(Keys.LINE_SPACING)
+            }
+            fun removeNotifications() {
+                prefs.remove(Keys.NOTIFY_PRAYERS)
+                prefs.remove(Keys.NOTIFY_MIN_BEFORE)
+                prefs.remove(Keys.NOTIFY_OCCASIONS)
+                prefs.remove(Keys.NOTIFY_ADHKAR)
+                prefs.remove(Keys.QUIET_HOURS)
+                PrayerKey.entries.forEach { prayer -> prefs.remove(Keys.prayerAlertKey(prayer)) }
+            }
+            fun removePrayerPreferences() {
+                prefs.remove(Keys.CALC_METHOD)
+                prefs.remove(Keys.TUNE_FAJR)
+                prefs.remove(Keys.TUNE_SUNRISE)
+                prefs.remove(Keys.TUNE_DHUHR)
+                prefs.remove(Keys.TUNE_ASR)
+                prefs.remove(Keys.TUNE_MAGHRIB)
+                prefs.remove(Keys.TUNE_ISHA)
+                prefs.remove(Keys.HIJRI_OFFSET)
+                prefs.remove(Keys.TIME_FORMAT)
+            }
+
+            when (scope) {
+                SettingsResetScope.APPEARANCE -> removeAppearance()
+                SettingsResetScope.FONTS -> removeFonts()
+                SettingsResetScope.NOTIFICATIONS -> removeNotifications()
+                SettingsResetScope.PRAYER -> removePrayerPreferences()
+                SettingsResetScope.ALL -> {
+                    removeAppearance()
+                    removeFonts()
+                    removeNotifications()
+                    removePrayerPreferences()
+                    prefs.remove(Keys.QURAN_AUTO_SCROLL)
+                    prefs.remove(Keys.QURAN_AUTO_SCROLL_SPEED)
+                    prefs.remove(Keys.HOME_LAYOUT)
+                    prefs.remove(Keys.DAILY_GOALS)
+                    prefs.remove(Keys.HAPTIC_TASBIH)
+                    prefs.remove(Keys.DAILY_TASBIH_GOAL)
+                    prefs.remove(Keys.RECITER_ID)
+                    prefs.remove(Keys.PLAYBACK_SPEED)
+                    // Governorate and exact coordinates are retained to avoid changing location
+                    // unexpectedly; user progress and private developer credential hash are kept.
+                }
             }
         }
     }

@@ -199,4 +199,58 @@ class UserPreferencesRepositoryTest {
         assertFalse(state.notifyOccasions)
         assertFalse(state.notifyAdhkar)
     }
+    @Test
+    fun `resetting all preferences preserves user progress and saved governorate`() = runBlocking {
+        val repo = repository()
+        repo.selectGovernorate("basra")
+        repo.saveLastQuranPosition(2, "سورة البقرة", 37)
+        repo.incrementDailyTasbih("1448-01-01", 7)
+        repo.saveTasbihScreenState("custom", 1, 23, 91, 100)
+        repo.setOrVerifyAdminPin("2468", currentHash = "")
+        repo.setDailyGoals(setOf(DailyGoal.QURAN_READING, DailyGoal.ADHKAR))
+        repo.setThemeMode(ThemeMode.DARK)
+        repo.setPrayerAlert(PrayerKey.ASR, PrayerAlertSettings(enabled = false, leadMinutes = 12))
+
+        repo.resetSettingsToDefaults(SettingsResetScope.ALL)
+
+        val state = repo.settingsFlow.first()
+        assertEquals(ThemeMode.SYSTEM, state.themeMode)
+        assertEquals("basra", state.governorateId)
+        assertEquals(2, state.lastSurahNumber)
+        assertEquals(37, state.lastAyahNumber)
+        assertEquals(7, state.dailyTasbihCount)
+        assertEquals("custom", state.tasbihPresetId)
+        assertEquals(91, state.tasbihTotalCount)
+        assertTrue(state.dailyGoals.isEmpty())
+        assertEquals(UserPreferencesRepository.sha256("2468"), state.adminPinSha256)
+        assertTrue(state.prayerAlertProfile.settingsFor(PrayerKey.ASR).enabled)
+    }
+
+    @Test
+    fun `scoped font reset leaves theme and notifications untouched`() = runBlocking {
+        val repo = repository()
+        repo.setThemeMode(ThemeMode.DARK)
+        repo.setFontChoice(AppFontChoice.KUFI)
+        repo.updateNotificationPrefs(notifyPrayers = true)
+
+        repo.resetSettingsToDefaults(SettingsResetScope.FONTS)
+
+        val state = repo.settingsFlow.first()
+        assertEquals(ThemeMode.DARK, state.themeMode)
+        assertEquals(AppFontChoice.NASKH, state.fontChoice)
+        assertTrue(state.notifyPrayers)
+    }
+
+    @Test
+    fun `font reset preserves daily goals and all personal progress`() = runBlocking {
+        val repo = repository()
+        repo.setDailyGoals(setOf(DailyGoal.QURAN_READING, DailyGoal.DUAS))
+        repo.incrementDailyTasbih("1448-02-01", 4)
+        repo.resetSettingsToDefaults(SettingsResetScope.FONTS)
+
+        val state = repo.settingsFlow.first()
+        assertEquals(setOf(DailyGoal.QURAN_READING, DailyGoal.DUAS), state.dailyGoals)
+        assertEquals(4, state.dailyTasbihCount)
+    }
+
 }

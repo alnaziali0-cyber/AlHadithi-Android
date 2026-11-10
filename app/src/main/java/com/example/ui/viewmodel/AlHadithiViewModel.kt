@@ -28,6 +28,7 @@ import com.example.data.local.LOCAL_PRAYER_PROFILE_KEY
 import com.example.data.local.ReadingHistoryEntity
 import com.example.data.local.TasbihSessionEntity
 import com.example.data.local.UserPreferencesRepository
+import com.example.data.local.SettingsResetScope
 import com.example.data.local.UserSettingsState
 import com.example.data.local.WallpaperEntity
 import com.example.data.remote.AdminAnnouncementFirestoreRepository
@@ -182,6 +183,10 @@ class AlHadithiViewModel(application: Application) : AndroidViewModel(applicatio
 
     val contentSources: StateFlow<List<ContentSourceEntity>> = dao.observeContentSources()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), emptyList())
+
+    /** Live count of Quran ayahs cached in Room; used by the settings storage panel. */
+    val cachedAyahCount: StateFlow<Int> = dao.observeCachedAyahCount()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), 0)
 
     /** The locally stored repeat counters of the adhkar, keyed by the dhikr id. */
     val dhikrCounters: StateFlow<Map<Long, Int>> = prefsRepo.dhikrCountersFlow
@@ -566,9 +571,16 @@ class AlHadithiViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
-    fun resetAllSettings() {
-        viewModelScope.launch { prefsRepo.resetSettingsToDefaults() }
+    fun resetSettings(scope: SettingsResetScope) {
+        viewModelScope.launch {
+            prefsRepo.resetSettingsToDefaults(scope)
+            if (scope == SettingsResetScope.NOTIFICATIONS || scope == SettingsResetScope.ALL) {
+                PrayerNotificationScheduler.disable(appCtx)
+            }
+        }
     }
+
+    fun resetAllSettings() = resetSettings(SettingsResetScope.ALL)
 
     /**
      * Removes everything the user created on this device: favourites, reading history, tasbih
@@ -584,7 +596,7 @@ class AlHadithiViewModel(application: Application) : AndroidViewModel(applicatio
             dao.deleteAllQuizAttempts()
             dao.deleteAllPrayerCompletions()
             dao.deleteAllCachedAyahs()
-            prefsRepo.resetSettingsToDefaults()
+            prefsRepo.clearAllUserPreferencesPreservingDeveloperPin()
             PrayerNotificationScheduler.disable(appCtx)
             AdhanAudioStorage.clear(appCtx)
         }

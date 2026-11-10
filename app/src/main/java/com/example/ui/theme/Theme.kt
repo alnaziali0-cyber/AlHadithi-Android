@@ -124,7 +124,7 @@ object DensityTokens {
 fun AlHadithiTheme(
     themeMode: ThemeMode = ThemeMode.SYSTEM,
     darkTheme: Boolean = isSystemInDarkTheme(),
-    accentChoice: AccentChoice = AccentChoice.EMERALD,
+    accentChoice: AccentChoice = AccentChoice.TURQUOISE,
     fontChoice: AppFontChoice = AppFontChoice.NASKH,
     readingFontChoice: ReadingFontChoice = ReadingFontChoice.MUHAMMADI,
     uiFontScale: Float = 1.0f,
@@ -167,7 +167,7 @@ fun AlHadithiTheme(
 fun MyApplicationTheme(
     themeMode: ThemeMode = ThemeMode.SYSTEM,
     darkTheme: Boolean = isSystemInDarkTheme(),
-    accentChoice: AccentChoice = AccentChoice.EMERALD,
+    accentChoice: AccentChoice = AccentChoice.TURQUOISE,
     fontChoice: AppFontChoice = AppFontChoice.NASKH,
     readingFontChoice: ReadingFontChoice = ReadingFontChoice.MUHAMMADI,
     uiFontScale: Float = 1.0f,
