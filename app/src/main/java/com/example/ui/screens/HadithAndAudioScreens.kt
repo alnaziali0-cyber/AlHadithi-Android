@@ -1,9 +1,5 @@
 package com.example.ui.screens
 
-import android.webkit.WebChromeClient
-import android.webkit.WebResourceRequest
-import android.webkit.WebView
-import android.webkit.WebViewClient
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
@@ -39,16 +35,21 @@ import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.ui.res.stringResource
+import com.example.R
+import androidx.compose.ui.draw.clip
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.background
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -57,16 +58,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.data.local.AudioTrackEntity
-import com.example.domain.ImamHussainRadioCatalog
 import com.example.data.local.HadithEntity
 import com.example.media.AudioPlayerController
 import com.example.ui.components.GlassCard
+import com.example.ui.components.GlassSurface
 import com.example.ui.components.GlassFilterChip
 import com.example.ui.components.SourceCitationBadge
 import com.example.ui.components.SubScreenTopBar
@@ -239,7 +239,6 @@ fun HadithEncyclopediaScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AudioLibraryScreen(
     tracks: List<AudioTrackEntity>,
@@ -247,12 +246,11 @@ fun AudioLibraryScreen(
     onPlayTrack: (AudioTrackEntity, List<AudioTrackEntity>) -> Unit,
     onSaveFavorite: (String, String, String, String, String) -> Unit
 ) {
+    BackHandler { onBack() }
     val context = LocalContext.current
-    var showRadioSheet by remember { mutableStateOf(false) }
     val playerState by AudioPlayerController.state.collectAsStateWithLifecycle()
     var selectedCategory by remember { mutableStateOf("الكل") }
     var searchQuery by remember { mutableStateOf("") }
-    BackHandler { if (showRadioSheet) showRadioSheet = false else onBack() }
 
     val categories = remember(tracks) {
         val base = listOf(
@@ -282,6 +280,70 @@ fun AudioLibraryScreen(
             onBack = onBack
         )
 
+        // بطاقة التشغيل الحالية: سطح زجاجي حقيقي فوق بقية المحتوى.
+        val currentTrack = playerState.currentTrack
+        if (currentTrack != null) {
+            GlassSurface(
+                shape = RoundedCornerShape(24.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .testTag("audio_now_playing_glass"),
+                content = {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "قيد التشغيل",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                Text(
+                                    text = currentTrack.title,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Text(
+                                    text = currentTrack.performer,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                            IconButton(
+                                onClick = { AudioPlayerController.togglePlayPause() },
+                                modifier = Modifier.testTag("audio_now_playing_toggle")
+                            ) {
+                                Icon(
+                                    imageVector = if (playerState.isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                                    contentDescription = stringResource(R.string.cd_play_pause)
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        LinearProgressIndicator(
+                            progress = { playerState.progressFraction },
+                            modifier = Modifier.fillMaxWidth().height(4.dp).clip(RoundedCornerShape(2.dp))
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = "${playerState.formattedPosition()} · ${currentTrack.category}",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            )
+        }
+
+
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -299,43 +361,6 @@ fun AudioLibraryScreen(
                     shape = RoundedCornerShape(18.dp),
                     modifier = Modifier.fillMaxWidth()
                 )
-            }
-
-            item {
-                GlassCard(
-                    modifier = Modifier.fillMaxWidth(),
-                    cornerRadius = 22.dp,
-                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 13.dp),
-                    onClick = { showRadioSheet = true }
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Surface(
-                            shape = CircleShape,
-                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.75f),
-                            modifier = Modifier.size(46.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.Headphones,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.padding(11.dp)
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text("إذاعة الروضة الحسينية المقدسة", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-                            Text("البث المباشر وجدول البرامج من الموقع الرسمي", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Text(
-                                text = "ترددات FM: " + ImamHussainRadioCatalog.frequencies.joinToString("  •  ") {
-                                    "${it.governorateArabic} ${"%.1f".format(java.util.Locale.US, it.frequencyMhz)}"
-                                } + " ميغاهرتز",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                        Icon(Icons.Outlined.PlayArrow, contentDescription = "تشغيل البث داخل التطبيق", tint = MaterialTheme.colorScheme.primary)
-                    }
-                }
             }
 
             item {
@@ -512,64 +537,4 @@ fun AudioLibraryScreen(
             }
         }
     }
-    if (showRadioSheet) {
-        val radioWebViewRef = remember { mutableStateOf<WebView?>(null) }
-        DisposableEffect(Unit) {
-            onDispose {
-                radioWebViewRef.value?.let { webView ->
-                    runCatching {
-                        webView.stopLoading()
-                        webView.loadUrl("about:blank")
-                        webView.webChromeClient = null
-                        webView.webViewClient = WebViewClient()
-                        webView.removeAllViews()
-                        webView.destroy()
-                    }
-                }
-                radioWebViewRef.value = null
-            }
-        }
-        ModalBottomSheet(
-            onDismissRequest = { showRadioSheet = false },
-            containerColor = MaterialTheme.colorScheme.surface
-        ) {
-            Column(Modifier.fillMaxWidth().padding(horizontal = 12.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column {
-                        Text("إذاعة الروضة الحسينية", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                        Text("مشغل الموقع الرسمي داخل التطبيق", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                    TextButton(onClick = { showRadioSheet = false }) { Text("إغلاق") }
-                }
-                AndroidView(
-                    modifier = Modifier.fillMaxWidth().height(560.dp),
-                    factory = { webContext ->
-                        WebView(webContext).apply {
-                            radioWebViewRef.value = this
-                            settings.javaScriptEnabled = true
-                            settings.domStorageEnabled = true
-                            settings.mediaPlaybackRequiresUserGesture = false
-                            settings.allowFileAccess = false
-                            settings.allowContentAccess = false
-                            settings.mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_NEVER_ALLOW
-                            webChromeClient = WebChromeClient()
-                            webViewClient = object : WebViewClient() {
-                                override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
-                                    val host = request.url.host?.lowercase(java.util.Locale.ROOT).orEmpty()
-                                    return host != "imamhussain-fm.com" && host != "www.imamhussain-fm.com"
-                                }
-                            }
-                            loadUrl(ImamHussainRadioCatalog.officialHomeUrl)
-                        }
-                    }
-                )
-                Spacer(Modifier.height(16.dp))
-            }
-        }
-    }
-
 }

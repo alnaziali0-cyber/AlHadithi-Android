@@ -3,11 +3,11 @@ package com.example.ui.theme
 import androidx.compose.ui.graphics.Color
 
 // Primary Spiritual Emerald & Turquoise Identity (Al-Hadithi)
-val TurquoisePrimaryLight = Color(0xFF087E91)
-val TurquoiseSecondaryLight = Color(0xFF119FB1)
-val EmeraldDeep = Color(0xFF155E70)
-val TurquoiseSoftContainer = Color(0xFFDDF4F7)
-val OnTurquoiseContainer = Color(0xFF063B4A)
+val TurquoisePrimaryLight = Color(0xFF0F766E)
+val TurquoiseSecondaryLight = Color(0xFF0D9488)
+val EmeraldDeep = Color(0xFF115E59)
+val TurquoiseSoftContainer = Color(0xFFDFF4F1)
+val OnTurquoiseContainer = Color(0xFF063F3A)
 
 // Muted Heritage Gold Accents
 val HeritageGold = Color(0xFFB88E35)
@@ -15,25 +15,23 @@ val HeritageGoldSoft = Color(0xFFFBF4E2)
 val OnHeritageGoldSoft = Color(0xFF543D0A)
 
 // Calm Light Backgrounds & Translucent Glass Surfaces
-val CalmAlabasterBg = Color(0xFFF4F7FA)
+val CalmAlabasterBg = Color(0xFFF3F8F7)
 val PureGlassWhite = Color(0xFFFFFFFF)
-val SoftSageSurfaceVariant = Color(0xFFEAF0F5)
-val InkDarkText = Color(0xFF102033)
-val MutedSlateText = Color(0xFF536579)
-val SubtleGlassBorderLight = Color(0x33278CA1)
+val SoftSageSurfaceVariant = Color(0xFFE6F0EE)
+val InkDarkText = Color(0xFF102422)
+val MutedSlateText = Color(0xFF496561)
+val SubtleGlassBorderLight = Color(0x330F766E)
 
 // Harmonious Spiritual Dark Mode
 val TurquoisePrimaryDark = Color(0xFF2DD4BF)
 val TurquoiseSecondaryDark = Color(0xFF5EEAD4)
-val NightSanctuaryBg = Color(0xFF07111E)
-val NightGlassSurface = Color(0xFF111E2D)
-val NightSurfaceVariant = Color(0xFF1A2A3B)
-val NightGoldAccent = Color(0xFFE4C477)
-val NightLightText = Color(0xFFF0F5FB)
-val NightMutedText = Color(0xFFAAB8C8)
-val NightEmeraldAccent = Color(0xFF4FD7E5)
-val NightEmeraldSoft = Color(0xFF143746)
-val SubtleGlassBorderDark = Color(0x444FD7E5)
+val NightSanctuaryBg = Color(0xFF091413)
+val NightGlassSurface = Color(0xFF112321)
+val NightSurfaceVariant = Color(0xFF19322F)
+val NightGoldAccent = Color(0xFFE2BA64)
+val NightLightText = Color(0xFFEAF5F3)
+val NightMutedText = Color(0xFF9BB8B4)
+val SubtleGlassBorderDark = Color(0x335EEAD4)
 
 // Occasion Adaptive Accents (Subtle, respectful, never jarring)
 val MourningBannerBgLight = Color(0xFFF6ECEF)
@@ -69,48 +67,33 @@ data class AccentPalette(
 )
 
 val EmeraldAccentPalette = AccentPalette(
-    lightPrimary = Color(0xFF26745D),
+    lightPrimary = TurquoisePrimaryLight,
     lightOnPrimary = Color.White,
-    lightPrimaryContainer = Color(0xFFDCEFE7),
-    lightOnPrimaryContainer = Color(0xFF123E31),
-    lightSecondary = Color(0xFF3D9277),
+    lightPrimaryContainer = TurquoiseSoftContainer,
+    lightOnPrimaryContainer = OnTurquoiseContainer,
+    lightSecondary = TurquoiseSecondaryLight,
     lightOnSecondary = Color.White,
-    darkPrimary = Color(0xFF72D5B2),
-    darkOnPrimary = Color(0xFF07382B),
-    darkPrimaryContainer = Color(0xFF174638),
-    darkOnPrimaryContainer = Color(0xFFD3F7E8),
-    darkSecondary = Color(0xFF9BE6CD),
-    darkOnSecondary = Color(0xFF103D30)
+    darkPrimary = TurquoisePrimaryDark,
+    darkOnPrimary = Color(0xFF042F2B),
+    darkPrimaryContainer = Color(0xFF0E3E39),
+    darkOnPrimaryContainer = Color(0xFFC7F9F1),
+    darkSecondary = TurquoiseSecondaryDark,
+    darkOnSecondary = Color(0xFF042F2B)
 )
 
 val TurquoiseAccentPalette = AccentPalette(
-    lightPrimary = Color(0xFF087E91),
+    lightPrimary = Color(0xFF0E7490),
     lightOnPrimary = Color.White,
-    lightPrimaryContainer = Color(0xFFDDF4F7),
-    lightOnPrimaryContainer = Color(0xFF073B49),
-    lightSecondary = Color(0xFF119FB1),
+    lightPrimaryContainer = Color(0xFFCFF7FB),
+    lightOnPrimaryContainer = Color(0xFF083344),
+    lightSecondary = Color(0xFF0891B2),
     lightOnSecondary = Color.White,
-    darkPrimary = Color(0xFF4FD7E5),
-    darkOnPrimary = Color(0xFF063640),
-    darkPrimaryContainer = Color(0xFF124352),
-    darkOnPrimaryContainer = Color(0xFFD7F8FA),
-    darkSecondary = Color(0xFF8CEAF0),
-    darkOnSecondary = Color(0xFF063640)
-)
-
-val LuminousCyanAccentPalette = AccentPalette(
-    lightPrimary = Color(0xFF006F8C),
-    lightOnPrimary = Color.White,
-    lightPrimaryContainer = Color(0xFFD8F5FC),
-    lightOnPrimaryContainer = Color(0xFF063747),
-    lightSecondary = Color(0xFF168EAD),
-    lightOnSecondary = Color.White,
-    darkPrimary = Color(0xFF68E4F4),
-    darkOnPrimary = Color(0xFF063442),
-    darkPrimaryContainer = Color(0xFF164A5B),
-    darkOnPrimaryContainer = Color(0xFFE0FAFF),
-    darkSecondary = Color(0xFF9CECF5),
-    darkOnSecondary = Color(0xFF063442)
+    darkPrimary = Color(0xFF22D3EE),
+    darkOnPrimary = Color(0xFF083344),
+    darkPrimaryContainer = Color(0xFF164E63),
+    darkOnPrimaryContainer = Color(0xFFCFFAFE),
+    darkSecondary = Color(0xFF67E8F9),
+    darkOnSecondary = Color(0xFF083344)
 )
 
 val GoldAccentPalette = AccentPalette(
@@ -146,7 +129,6 @@ val NightBlueAccentPalette = AccentPalette(
 fun accentPaletteFor(choice: AccentChoice): AccentPalette = when (choice) {
     AccentChoice.EMERALD -> EmeraldAccentPalette
     AccentChoice.TURQUOISE -> TurquoiseAccentPalette
-    AccentChoice.CYAN -> LuminousCyanAccentPalette
     AccentChoice.GOLD -> GoldAccentPalette
     AccentChoice.NIGHT_BLUE -> NightBlueAccentPalette
 }

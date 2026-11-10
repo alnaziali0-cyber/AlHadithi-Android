@@ -59,6 +59,6 @@ class PrayerLocationAccuracyTest {
     @Test
     fun `jafari method uses documented code`() {
         assertEquals(0, PrayerCalcMethod.JAFARI.apiCode)
-        assertTrue(PrayerCalcMethod.fromCode(0).jafariMidnight)
+        assertTrue(PrayerCalcMethod.JAFARI.jafariMidnight)
     }
 }

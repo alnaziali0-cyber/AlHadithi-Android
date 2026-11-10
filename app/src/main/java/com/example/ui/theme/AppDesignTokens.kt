@@ -21,31 +21,42 @@ enum class ThemeMode(val key: String, val arabicLabel: String) {
  * identity of the app is preserved while the primary colour follows the user's choice.
  */
 enum class AccentChoice(val key: String, val arabicLabel: String) {
-    // Existing stable keys are retained for backward compatibility with DataStore values.
-    EMERALD("emerald", "زمردي"),
-    TURQUOISE("turquoise", "فيروزي الحديثي"),
-    CYAN("cyan", "سماوي مضيء"),
-    NIGHT_BLUE("night_blue", "أزرق ملكي"),
-    GOLD("gold", "ذهبي تراثي");
+    EMERALD("emerald", "زمردي (الافتراضي)"),
+    TURQUOISE("turquoise", "فيروزي"),
+    GOLD("gold", "ذهبي تراثي"),
+    NIGHT_BLUE("night_blue", "أزرق ليلي");
 
     companion object {
         fun fromKey(key: String?): AccentChoice =
-            entries.firstOrNull { it.key == key } ?: TURQUOISE
+            entries.firstOrNull { it.key == key } ?: EMERALD
     }
 }
 
 /** Font family used for long-form reading (Quran, adhkar, duas) — independent of the UI font. */
 enum class ReadingFontChoice(val key: String, val arabicLabel: String) {
-    MUHAMMADI("MUHAMMADI", "محمدي قرآني (افتراضي)"),
-    ME_QURAN("ME_QURAN", "قرآني نسخ"),
-    AMIRI_COLORED("AMIRI_COLORED", "أميري قرآني ملوّن"),
-    AMIRI("AMIRI", "أميري تراثي"),
+    UTHMANI("UTHMANI", "خط قرآني نسخي (للآيات)"),
+    AMIRI("AMIRI", "أميري (تراثي)"),
     NASKH("NASKH", "نسخ واضح"),
     TAJAWAL("TAJAWAL", "تجوّل");
 
     companion object {
+        /**
+         * الافتراضي هو الخط القرآني النسخي المعتمد لأنه يغطي كامل علامات الضبط
+         * والوقف القرآنية دون إظهار مربعات بدل الحروف.
+         */
         fun fromKey(key: String?): ReadingFontChoice =
-            entries.firstOrNull { it.key == key } ?: MUHAMMADI
+            entries.firstOrNull { it.key == key } ?: UTHMANI
+    }
+}
+
+/** طريقة عرض نص القرآن في القارئ. */
+enum class QuranReadingLayout(val key: String, val arabicLabel: String) {
+    CARDS("CARDS", "بطاقات (كما في المصحف)"),
+    CONTINUOUS("CONTINUOUS", "نص متصل");
+
+    companion object {
+        fun fromKey(key: String?): QuranReadingLayout =
+            entries.firstOrNull { it.key == key } ?: CARDS
     }
 }
 

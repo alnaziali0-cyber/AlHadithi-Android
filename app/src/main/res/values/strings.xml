@@ -6,6 +6,8 @@
     <string name="nav_library">المكتبة</string>
     <string name="nav_duas">الأدعية</string>
     <string name="nav_more">الأقسام</string>
+    <string name="nav_favorites">المفضلة</string>
+    <string name="nav_settings">الإعدادات</string>
 
     <string name="select_governorate_title">اختر محافظتك</string>
     <string name="select_governorate_subtitle">تُحفظ إعداداتك ومفضلتك محلياً على جهازك دون الحاجة لإنشاء حساب.</string>

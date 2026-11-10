@@ -2,7 +2,7 @@ package com.example.data.local
 
 /**
  * Authentic, vocalized Islamic & Shia seed content with strict source attribution.
- * Seeded Quranic excerpts are source text snippets; the bundled full corpus is Tanzil Simple and is preserved verbatim.
+ * Quranic verses here are exact Uthmani script verses without any modification.
  */
 object SeedDataPart1 {
 

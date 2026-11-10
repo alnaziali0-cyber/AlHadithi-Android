@@ -14,27 +14,24 @@ import com.example.domain.PrayerCalcMethod
 import com.example.domain.PrayerKey
 import com.example.domain.PrayerMinuteOffsets
 import com.example.domain.QuietHours
-import com.example.data.local.AlHadithiDatabase
-import com.example.data.remote.PrayerTimesService
-import com.example.domain.IraqGovernorates
 import java.util.Calendar
+import java.util.GregorianCalendar
 import java.util.Locale
 import java.util.TimeZone
 
 /**
- * Schedules reminders only from records returned by PrayerTimesService.
- * The exact same saved schedule is consumed by the UI and alarm path; reboot recovery
- * restores these records without invoking a second calculation algorithm.
+ * Schedules local prayer notifications from the single Ja'fari calculation of the saved location.
+ * Coordinates and settings are stored only in app-private SharedPreferences for reboot recovery.
  */
 object PrayerNotificationScheduler {
     const val ACTION_PRAYER = "com.example.alhadithi.action.PRAYER_ALARM"
+    /** إشعار حديث/دعاء اليوم بعد كل صلاة. */
+    const val ACTION_CONTENT = "com.example.alhadithi.action.DAILY_CONTENT"
     const val ACTION_REFRESH = "com.example.alhadithi.action.REFRESH_PRAYER_ALARMS"
     private const val PREFS = "alhadithi_prayer_alarm_config"
     private const val KEY_ENABLED = "enabled"
-    private const val KEY_GOV = "governorate_id"
     private const val KEY_LAT = "latitude"
     private const val KEY_LON = "longitude"
-    private const val KEY_METHOD = "method"
     private const val KEY_FAJR = "offset_fajr"
     private const val KEY_SUNRISE = "offset_sunrise"
     private const val KEY_DHUHR = "offset_dhuhr"
@@ -68,9 +65,10 @@ object PrayerNotificationScheduler {
         offsets: PrayerMinuteOffsets,
         areaName: String,
         enabled: Boolean,
-        schedules: List<DailyPrayerSchedule>,
-        alertProfile: PrayerAlertProfile = PrayerAlertProfile(),
-        governorateId: String = "baghdad"
+        apiYear: Int,
+        apiMonth: Int,
+        apiMonthSchedules: List<DailyPrayerSchedule>,
+        alertProfile: PrayerAlertProfile = PrayerAlertProfile()
     ) {
         if (!enabled) {
             disable(context)
@@ -83,10 +81,23 @@ object PrayerNotificationScheduler {
             return
         }
 
-        saveConfig(context, governorateId, latitude, longitude, method, offsets, areaName, enabled = true, alertProfile)
-        val timesByDate = buildScheduleMap(schedules)
-        persistScheduleMap(context, timesByDate)
-        scheduleWindow(context, areaName, timesByDate, alertProfile)
+        saveConfig(context, latitude, longitude, offsets, areaName, enabled = true, alertProfile)
+        val apiTimesByDate = buildApiTimesMap(apiYear, apiMonth, apiMonthSchedules)
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+            .putStringSet(KEY_API_SCHEDULES, apiTimesByDate.map { (date, times) ->
+                listOf(date, times.fajr, times.dhuhr, times.asr, times.maghrib, times.isha).joinToString(",")
+            }.toSet())
+            .apply()
+        scheduleWindow(
+            context = context,
+            latitude = latitude,
+            longitude = longitude,
+            method = method,
+            offsets = offsets,
+            areaName = areaName,
+            apiTimesByDate = apiTimesByDate,
+            alertProfile = alertProfile
+        )
     }
 
     fun disable(context: Context) {
@@ -99,32 +110,50 @@ object PrayerNotificationScheduler {
         cancelRefreshAlarm(context)
     }
 
-    /** Refreshes from the one central PrayerTimesService and then schedules those exact records. */
+    /** Recalculates the current month locally for the saved location and schedules a 35-day window. */
     suspend fun refreshFromNetwork(context: Context) {
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         if (!prefs.getBoolean(KEY_ENABLED, false)) {
             restoreAndReschedule(context)
             return
         }
+
         val latitude = prefs.getString(KEY_LAT, null)?.toDoubleOrNull() ?: return
         val longitude = prefs.getString(KEY_LON, null)?.toDoubleOrNull() ?: return
-        val governorateId = prefs.getString(KEY_GOV, "baghdad") ?: "baghdad"
-        val method = PrayerCalcMethod.fromCode(prefs.getInt(KEY_METHOD, PrayerCalcMethod.JAFARI.apiCode))
+        val method = PrayerCalcMethod.JAFARI
         val offsets = PrayerMinuteOffsets(
-            fajr = prefs.getInt(KEY_FAJR, 0), sunrise = prefs.getInt(KEY_SUNRISE, 0),
-            dhuhr = prefs.getInt(KEY_DHUHR, 0), asr = prefs.getInt(KEY_ASR, 0),
-            maghrib = prefs.getInt(KEY_MAGHRIB, 0), isha = prefs.getInt(KEY_ISHA, 0)
+            fajr = prefs.getInt(KEY_FAJR, 0),
+            sunrise = prefs.getInt(KEY_SUNRISE, 0),
+            dhuhr = prefs.getInt(KEY_DHUHR, 0),
+            asr = prefs.getInt(KEY_ASR, 0),
+            maghrib = prefs.getInt(KEY_MAGHRIB, 0),
+            isha = prefs.getInt(KEY_ISHA, 0)
         )
         val areaName = prefs.getString(KEY_AREA, "موقعك المحدد") ?: "موقعك المحدد"
-        val dao = AlHadithiDatabase.getDatabase(context).dao()
-        val schedules = PrayerTimesService(context, dao).loadWindow(
-            governorateId = governorateId, latitude = latitude, longitude = longitude,
-            method = method, offsets = offsets, days = DAYS_AHEAD
+        val now = GregorianCalendar(baghdadTimeZone)
+        val year = now.get(Calendar.YEAR)
+        val month = now.get(Calendar.MONTH) + 1
+        val monthly = PrayerAndHijriCalculator.calculateMonthSchedules(
+            latitude = latitude,
+            longitude = longitude,
+            year = year,
+            month1Based = month,
+            method = method,
+            offsets = offsets,
+            hijriOffsetDays = 0
         )
         schedulePrayerAlarms(
-            context = context, latitude = latitude, longitude = longitude, method = method,
-            offsets = offsets, areaName = areaName, enabled = true, schedules = schedules,
-            alertProfile = readStoredAlertProfile(context), governorateId = governorateId
+            context = context,
+            latitude = latitude,
+            longitude = longitude,
+            method = method,
+            offsets = offsets,
+            areaName = areaName,
+            enabled = true,
+            apiYear = year,
+            apiMonth = month,
+            apiMonthSchedules = monthly,
+            alertProfile = readStoredAlertProfile(context)
         )
     }
 
@@ -137,31 +166,46 @@ object PrayerNotificationScheduler {
             return
         }
 
-        if (prefs.getString(KEY_GOV, null).isNullOrBlank()) return
-        if (prefs.getString(KEY_LAT, null)?.toDoubleOrNull() == null ||
-            prefs.getString(KEY_LON, null)?.toDoubleOrNull() == null) return
+        val latitude = prefs.getString(KEY_LAT, null)?.toDoubleOrNull() ?: return
+        val longitude = prefs.getString(KEY_LON, null)?.toDoubleOrNull() ?: return
+        val method = PrayerCalcMethod.JAFARI
+        val offsets = PrayerMinuteOffsets(
+            fajr = prefs.getInt(KEY_FAJR, 0),
+            sunrise = prefs.getInt(KEY_SUNRISE, 0),
+            dhuhr = prefs.getInt(KEY_DHUHR, 0),
+            asr = prefs.getInt(KEY_ASR, 0),
+            maghrib = prefs.getInt(KEY_MAGHRIB, 0),
+            isha = prefs.getInt(KEY_ISHA, 0)
+        )
         val areaName = prefs.getString(KEY_AREA, "موقعك المحدد") ?: "موقعك المحدد"
-        val storedSchedules = decodeScheduleMap(prefs.getStringSet(KEY_API_SCHEDULES, emptySet()).orEmpty())
-        scheduleWindow(context, areaName, storedSchedules, readStoredAlertProfile(context))
+        val apiTimesByDate = prefs.getStringSet(KEY_API_SCHEDULES, emptySet()).orEmpty()
+            .mapNotNull(::parseApiScheduleEntry)
+            .toMap()
+        scheduleWindow(
+            context = context,
+            latitude = latitude,
+            longitude = longitude,
+            method = method,
+            offsets = offsets,
+            areaName = areaName,
+            apiTimesByDate = apiTimesByDate,
+            alertProfile = readStoredAlertProfile(context)
+        )
     }
 
     private fun saveConfig(
         context: Context,
-        governorateId: String,
         latitude: Double,
         longitude: Double,
-        method: PrayerCalcMethod,
         offsets: PrayerMinuteOffsets,
         areaName: String,
         enabled: Boolean,
         alertProfile: PrayerAlertProfile
     ) {
         val editor = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
-            .putString(KEY_GOV, governorateId)
             .putBoolean(KEY_ENABLED, enabled)
             .putString(KEY_LAT, latitude.toString())
             .putString(KEY_LON, longitude.toString())
-            .putInt(KEY_METHOD, method.apiCode)
             .putInt(KEY_FAJR, offsets.fajr)
             .putInt(KEY_SUNRISE, offsets.sunrise)
             .putInt(KEY_DHUHR, offsets.dhuhr)
@@ -190,108 +234,179 @@ object PrayerNotificationScheduler {
 
     private fun scheduleWindow(
         context: Context,
+        latitude: Double,
+        longitude: Double,
+        method: PrayerCalcMethod,
+        offsets: PrayerMinuteOffsets,
         areaName: String,
-        schedulesByDate: Map<String, PrayerTimesForDate>,
+        apiTimesByDate: Map<String, PrayerTimesForDate>,
         alertProfile: PrayerAlertProfile
     ) {
         cancelPrayerAlarms(context)
         val now = System.currentTimeMillis()
         val scheduledUris = linkedSetOf<String>()
-        schedulesByDate.toSortedMap().forEach { (dateKey, schedule) ->
-            val date = calendarFromDateKey(dateKey) ?: return@forEach
-            val prayers = listOf(
-                PrayerAlarm(PrayerKey.FAJR, "الفجر", schedule.fajr),
-                PrayerAlarm(PrayerKey.DHUHR, "الظهر", schedule.dhuhr),
-                PrayerAlarm(PrayerKey.ASR, "العصر", schedule.asr),
-                PrayerAlarm(PrayerKey.MAGHRIB, "المغرب", schedule.maghrib),
-                PrayerAlarm(PrayerKey.ISHA, "العشاء", schedule.isha)
-            )
-            prayers.forEach prayerLoop@ { prayer ->
+        val dayCalendar = GregorianCalendar(baghdadTimeZone).apply {
+            timeInMillis = now
+            set(Calendar.HOUR_OF_DAY, 12)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+
+        repeat(DAYS_AHEAD) { dayOffset ->
+            val date = (dayCalendar.clone() as Calendar).apply {
+                add(Calendar.DAY_OF_YEAR, dayOffset)
+            }
+            val year = date.get(Calendar.YEAR)
+            val month = date.get(Calendar.MONTH) + 1
+            val day = date.get(Calendar.DAY_OF_MONTH)
+            val dateKey = String.format(Locale.US, "%04d%02d%02d", year, month, day)
+            val apiTimes = apiTimesByDate[dateKey]
+            val prayers = if (apiTimes != null) {
+                listOf(
+                    PrayerAlarm(PrayerKey.FAJR, "الفجر", apiTimes.fajr),
+                    PrayerAlarm(PrayerKey.DHUHR, "الظهر", apiTimes.dhuhr),
+                    PrayerAlarm(PrayerKey.ASR, "العصر", apiTimes.asr),
+                    PrayerAlarm(PrayerKey.MAGHRIB, "المغرب", apiTimes.maghrib),
+                    PrayerAlarm(PrayerKey.ISHA, "العشاء", apiTimes.isha)
+                )
+            } else {
+                val localSchedule = PrayerAndHijriCalculator.calculateLocalPrayerSchedule(
+                    latitude = latitude,
+                    longitude = longitude,
+                    cal = date,
+                    method = method,
+                    offsets = offsets,
+                    sourceLabel = "حساب محلي للموقع المحدد"
+                )
+                listOf(
+                    PrayerAlarm(PrayerKey.FAJR, "الفجر", localSchedule.fajrMinutes),
+                    PrayerAlarm(PrayerKey.DHUHR, "الظهر", localSchedule.dhuhrMinutes),
+                    PrayerAlarm(PrayerKey.ASR, "العصر", localSchedule.asrMinutes),
+                    PrayerAlarm(PrayerKey.MAGHRIB, "المغرب", localSchedule.maghribMinutes),
+                    PrayerAlarm(PrayerKey.ISHA, "العشاء", localSchedule.ishaMinutes)
+                )
+            }
+
+            prayers.forEach { prayer ->
                 val alertSettings = alertProfile.settingsFor(prayer.key)
-                if (!alertSettings.enabled || prayer.minutesOfDay !in 0..1439) return@prayerLoop
+                // A prayer the user switched off individually must not produce any alarm.
+                if (!alertSettings.enabled) return@forEach
+
                 val prayerMoment = (date.clone() as Calendar).apply {
                     set(Calendar.HOUR_OF_DAY, prayer.minutesOfDay / 60)
                     set(Calendar.MINUTE, prayer.minutesOfDay % 60)
                     set(Calendar.SECOND, 0)
                     set(Calendar.MILLISECOND, 0)
                 }
+                // The reminder may fire before the prayer time, possibly on the previous day.
                 val at = (prayerMoment.clone() as Calendar).apply {
                     add(Calendar.MINUTE, -alertSettings.leadMinutes)
                 }.timeInMillis
-                if (at <= now + 5_000L) return@prayerLoop
+                if (at <= now + 5_000L) return@forEach
+
                 val uri = "alhadithi://prayer/$dateKey/${prayer.key}"
                 val pendingIntent = prayerPendingIntent(
-                    context = context, uri = uri, prayerName = prayer.arabicName,
+                    context = context,
+                    uri = uri,
+                    prayerName = prayer.arabicName,
                     timeText = String.format(Locale.US, "%02d:%02d", prayer.minutesOfDay / 60, prayer.minutesOfDay % 60),
-                    areaName = areaName, soundEnabled = alertSettings.soundEnabled,
-                    vibrateEnabled = alertSettings.vibrateEnabled, quietHours = alertProfile.quietHours
+                    areaName = areaName,
+                    soundEnabled = alertSettings.soundEnabled,
+                    vibrateEnabled = alertSettings.vibrateEnabled,
+                    quietHours = alertProfile.quietHours
                 )
                 scheduleAlarm(context, at, pendingIntent)
                 scheduledUris += uri
+
+                // إشعار حديث/دعاء اليوم بعد كل صلاة (بدل بطاقة في الصفحة الرئيسية).
+                scheduleContentAlarmIfEnabled(context, dateKey, prayer.key.key, prayerMoment.timeInMillis)?.let { scheduledUris += it }
             }
         }
+
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
             .putStringSet(KEY_PENDING_URIS, scheduledUris)
             .apply()
         scheduleNextRefresh(context)
     }
 
-    private data class PrayerTimesForDate(
-        val dateKey: String, val fajr: Int, val dhuhr: Int, val asr: Int, val maghrib: Int, val isha: Int
-    )
 
-    private fun buildScheduleMap(schedules: List<DailyPrayerSchedule>): Map<String, PrayerTimesForDate> =
-        schedules.groupBy { it.dateKey }.mapNotNull { (dateKey, items) ->
-            // Never choose one arbitrarily when two records claim the same local day.
-            val schedule = items.singleOrNull() ?: return@mapNotNull null
-            val validTimes = listOf(
-                schedule.fajrMinutes, schedule.dhuhrMinutes, schedule.asrMinutes,
-                schedule.maghribMinutes, schedule.ishaMinutes
-            ).all { it in 0..1439 }
-            val validOrder = schedule.fajrMinutes < schedule.dhuhrMinutes &&
-                schedule.dhuhrMinutes < schedule.asrMinutes &&
-                schedule.asrMinutes < schedule.maghribMinutes &&
-                schedule.maghribMinutes < schedule.ishaMinutes
-            if (!dateKey.matches(Regex("\\d{8}")) || !validTimes || !validOrder) return@mapNotNull null
-            dateKey to PrayerTimesForDate(
-                dateKey, schedule.fajrMinutes, schedule.dhuhrMinutes, schedule.asrMinutes,
-                schedule.maghribMinutes, schedule.ishaMinutes
-            )
-        }.toMap()
+    /**
+     * يجدول إشعار المحتوى (حديث أو دعاء اليوم) بعد دخول وقت الصلاة بدقيقتين،
+     * إذا كان المستخدم قد فعّل هذا النوع من الإشعارات و اختار هذه الصلاة.
+     */
+    private fun scheduleContentAlarmIfEnabled(
+        context: Context,
+        dateKey: String,
+        prayerKey: String,
+        prayerTimeMillis: Long
+    ): String? {
+        if (!DailyContentStore.isEnabled(context)) return null
+        if (prayerKey !in DailyContentStore.enabledPrayers(context)) return null
+        val item = DailyContentStore.planItem(context, dateKey, prayerKey) ?: return null
+        if (item.body.isBlank()) return null
 
-    private fun decodeScheduleMap(entries: Set<String>): Map<String, PrayerTimesForDate> =
-        entries.mapNotNull(::parseScheduleEntry)
-            .groupBy { it.dateKey }
-            .mapNotNull { (dateKey, items) -> items.singleOrNull()?.let { dateKey to it } }
-            .toMap()
+        val at = prayerTimeMillis + CONTENT_DELAY_MINUTES * 60_000L
+        if (at <= System.currentTimeMillis() + 5_000L) return null
 
-    private fun persistScheduleMap(context: Context, map: Map<String, PrayerTimesForDate>) {
-        val encoded = map.values.map { item ->
-            listOf(item.dateKey, item.fajr, item.dhuhr, item.asr, item.maghrib, item.isha).joinToString(",")
-        }.toSet()
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
-            .putStringSet(KEY_API_SCHEDULES, encoded).apply()
+        val uri = "alhadithi://content/$dateKey/$prayerKey"
+        val intent = Intent(context, PrayerAlarmReceiver::class.java).apply {
+            action = PrayerNotificationScheduler.ACTION_CONTENT
+            data = Uri.parse(uri)
+            putExtra(PrayerAlarmReceiver.EXTRA_CONTENT_TITLE, item.title)
+            putExtra(PrayerAlarmReceiver.EXTRA_CONTENT_BODY, item.body)
+            putExtra(PrayerAlarmReceiver.EXTRA_CONTENT_TAKHRIJ, item.takhrij)
+        }
+        val pendingIntent = PendingIntent.getBroadcast(
+            context,
+            uri.hashCode(),
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        scheduleAlarm(context, at, pendingIntent)
+        return uri
     }
 
-    private fun parseScheduleEntry(value: String): PrayerTimesForDate? {
+    private const val CONTENT_DELAY_MINUTES = 2
+
+    private data class PrayerTimesForDate(
+        val fajr: Int,
+        val dhuhr: Int,
+        val asr: Int,
+        val maghrib: Int,
+        val isha: Int
+    )
+
+    private fun buildApiTimesMap(
+        year: Int,
+        month: Int,
+        schedules: List<DailyPrayerSchedule>
+    ): Map<String, PrayerTimesForDate> {
+        if (year < 1 || month !in 1..12 || schedules.isEmpty()) return emptyMap()
+        return schedules.mapIndexed { index, schedule ->
+            val dateKey = String.format(Locale.US, "%04d%02d%02d", year, month, index + 1)
+            dateKey to PrayerTimesForDate(
+                fajr = schedule.fajrMinutes,
+                dhuhr = schedule.dhuhrMinutes,
+                asr = schedule.asrMinutes,
+                maghrib = schedule.maghribMinutes,
+                isha = schedule.ishaMinutes
+            )
+        }.toMap()
+    }
+
+    private fun parseApiScheduleEntry(value: String): Pair<String, PrayerTimesForDate>? {
         val parts = value.split(',')
         if (parts.size != 6 || !parts[0].matches(Regex("\\d{8}"))) return null
         val values = parts.drop(1).map { it.toIntOrNull() ?: return null }
         if (values.any { it !in 0..1439 }) return null
-        if (!(values[0] < values[1] && values[1] < values[2] && values[2] < values[3] && values[3] < values[4])) return null
-        return PrayerTimesForDate(parts[0], values[0], values[1], values[2], values[3], values[4])
-    }
-
-    private fun calendarFromDateKey(dateKey: String): Calendar? {
-        if (!dateKey.matches(Regex("\\d{8}"))) return null
-        val year = dateKey.substring(0, 4).toIntOrNull() ?: return null
-        val month = dateKey.substring(4, 6).toIntOrNull() ?: return null
-        val day = dateKey.substring(6, 8).toIntOrNull() ?: return null
-        if (month !in 1..12 || day !in 1..31) return null
-        return Calendar.getInstance(baghdadTimeZone).apply {
-            clear(); set(year, month - 1, day, 12, 0, 0)
-            if (get(Calendar.YEAR) != year || get(Calendar.MONTH) != month - 1 || get(Calendar.DAY_OF_MONTH) != day) return null
-        }
+        return parts[0] to PrayerTimesForDate(
+            fajr = values[0],
+            dhuhr = values[1],
+            asr = values[2],
+            maghrib = values[3],
+            isha = values[4]
+        )
     }
 
     private data class PrayerAlarm(
@@ -329,7 +444,7 @@ object PrayerNotificationScheduler {
     }
 
     private fun scheduleNextRefresh(context: Context) {
-        val refreshAt = Calendar.getInstance(baghdadTimeZone).apply {
+        val refreshAt = GregorianCalendar(baghdadTimeZone).apply {
             add(Calendar.DAY_OF_YEAR, 1)
             set(Calendar.HOUR_OF_DAY, REFRESH_HOUR)
             set(Calendar.MINUTE, REFRESH_MINUTE)
@@ -374,13 +489,15 @@ object PrayerNotificationScheduler {
         val uris = prefs.getStringSet(KEY_PENDING_URIS, emptySet()).orEmpty().toSet()
         val manager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager
         uris.forEach { uri ->
+            // Prayer reminders use request code 0; daily content reminders use the URI hash code.
+            val isContent = uri.startsWith("alhadithi://content/")
             val intent = Intent(context, PrayerAlarmReceiver::class.java).apply {
-                action = ACTION_PRAYER
+                action = if (isContent) ACTION_CONTENT else ACTION_PRAYER
                 data = Uri.parse(uri)
             }
             val existing = PendingIntent.getBroadcast(
                 context,
-                0,
+                if (isContent) uri.hashCode() else 0,
                 intent,
                 PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
             )

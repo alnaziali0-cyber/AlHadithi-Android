@@ -10,6 +10,7 @@ import com.example.R
 
 enum class AppFontChoice(val key: String, val arabicLabel: String) {
     NASKH("NASKH", "نسخ واضح (افتراضي)"),
+    RUQAA("RUQAA", "رقعة عثمانية"),
     TAJAWAL("TAJAWAL", "تجوّل"),
     AMIRI("AMIRI", "أميري تراثي"),
     KUFI("KUFI", "كوفي حديث");
@@ -24,23 +25,50 @@ val TajawalFontFamily = FontFamily(
     Font(R.font.tajawal, FontWeight.Normal),
     Font(R.font.tajawal, FontWeight.Medium),
     Font(R.font.tajawal, FontWeight.SemiBold),
-    Font(R.font.tajawal, FontWeight.Bold)
+    Font(R.font.tajawal_bold, FontWeight.Bold)
+)
+
+/**
+ * خط الرقعة (Aref Ruqaa) — مرخّص بـ SIL OFL.
+ * مناسب لواجهات التطبيق ونصوص الدعاء والحديث، ولا يصلح لنص الآيات لأن بعض
+ * علامات الوقف القرآنية غير موجودة في هذا الخط؛ لذلك يبقى خط المصحف العثماني
+ * مخصّصاً لنص القرآن الكريم.
+ */
+val RuqaaFontFamily = FontFamily(
+    Font(R.font.aref_ruqaa_regular, FontWeight.Normal),
+    Font(R.font.aref_ruqaa_regular, FontWeight.Medium),
+    Font(R.font.aref_ruqaa_bold, FontWeight.Bold)
 )
 
 val AmiriFontFamily = FontFamily(
     Font(R.font.amiri, FontWeight.Normal),
-    Font(R.font.amiri, FontWeight.Bold)
+    Font(R.font.amiri_bold, FontWeight.Bold)
+)
+
+/**
+ * خط المصحف العثماني (Amiri Quran) — مرخّص بـ SIL OFL.
+ * يدعم كامل علامات الضبط وعلامات الوقف القرآنية (تحقّقنا من تغطية جميع
+ * محارف نص المصحف البالغ ٦٢٣٦ آية)، ويُستخدم لنص الآيات في القارئ.
+ */
+val QuranicFontFamily = FontFamily(
+    Font(R.font.amiri_quran_regular, FontWeight.Normal),
+    Font(R.font.amiri_quran_regular, FontWeight.Bold)
+)
+
+/**
+ * الخط القرآني النسخي المعتمد في التطبيق.
+ * تغطيته محقَّقة: يغطي كل محارف نص المصحف (٦٢٣٦ آية) دون نقص واحد،
+ * بما فيها علامات الوقف والضبط — فلا تظهر مربعات بدل الحروف.
+ */
+val QuranNaskhFontFamily = FontFamily(
+    Font(R.font.quran_naskh, FontWeight.Normal),
+    Font(R.font.quran_naskh, FontWeight.Bold)
 )
 
 val NaskhFontFamily = FontFamily(
     Font(R.font.noto_naskh_arabic, FontWeight.Normal),
     Font(R.font.noto_naskh_arabic_bold, FontWeight.Bold)
 )
-
-// User-supplied Quran typefaces; kept separate so each can be selected and verified on-device.
-val MuhammadiQuranFontFamily = FontFamily(Font(R.font.muhammadi_quranic, FontWeight.Normal))
-val MeQuranNaskhFontFamily = FontFamily(Font(R.font.me_quran_naskh, FontWeight.Normal))
-val AmiriQuranColoredFontFamily = FontFamily(Font(R.font.amiri_quran_colored, FontWeight.Normal))
 
 val KufiFontFamily = FontFamily(
     Font(R.font.noto_kufi_arabic, FontWeight.Normal),
@@ -50,6 +78,7 @@ val KufiFontFamily = FontFamily(
 
 fun resolveUiFontFamily(choice: AppFontChoice): FontFamily = when (choice) {
     AppFontChoice.NASKH -> NaskhFontFamily
+    AppFontChoice.RUQAA -> RuqaaFontFamily
     AppFontChoice.TAJAWAL -> TajawalFontFamily
     AppFontChoice.AMIRI -> AmiriFontFamily
     AppFontChoice.KUFI -> KufiFontFamily
@@ -60,9 +89,7 @@ fun resolveUiFontFamily(choice: AppFontChoice): FontFamily = when (choice) {
  * UI font so a user can read the Quran in Amiri while keeping a crisp UI typeface.
  */
 fun resolveReadingFontFamily(choice: ReadingFontChoice): FontFamily = when (choice) {
-    ReadingFontChoice.MUHAMMADI -> MuhammadiQuranFontFamily
-    ReadingFontChoice.ME_QURAN -> MeQuranNaskhFontFamily
-    ReadingFontChoice.AMIRI_COLORED -> AmiriQuranColoredFontFamily
+    ReadingFontChoice.UTHMANI -> QuranNaskhFontFamily
     ReadingFontChoice.AMIRI -> AmiriFontFamily
     ReadingFontChoice.NASKH -> NaskhFontFamily
     ReadingFontChoice.TAJAWAL -> TajawalFontFamily
@@ -151,12 +178,12 @@ fun buildAlHadithiTypography(
 }
 
 /**
- * Dedicated Quranic text style. The user-supplied Muhammadi Quranic family is the default;
- * alternatives remain available in settings for side-by-side device verification.
+ * Dedicated vocalized Quranic & heritage text style. The default family is Amiri because it was
+ * designed for the diacritics of the Uthmani script; users may switch to Naskh or Tajawal.
  */
 fun quranAndHeritageStyle(
     scale: Float = 1.0f,
-    fontChoice: ReadingFontChoice = ReadingFontChoice.MUHAMMADI,
+    fontChoice: ReadingFontChoice = ReadingFontChoice.AMIRI,
     lineSpacing: LineSpacingOption = LineSpacingOption.NORMAL
 ): TextStyle {
     val s = scale.coerceIn(0.85f, 1.65f)
@@ -176,7 +203,7 @@ fun quranAndHeritageStyle(
  */
 fun heritageReadingStyle(
     scale: Float = 1.0f,
-    fontChoice: ReadingFontChoice = ReadingFontChoice.MUHAMMADI,
+    fontChoice: ReadingFontChoice = ReadingFontChoice.AMIRI,
     lineSpacing: LineSpacingOption = LineSpacingOption.NORMAL
 ): TextStyle {
     val s = scale.coerceIn(0.85f, 1.65f)

@@ -89,8 +89,8 @@ fun GlassAmbientBackground(
         Canvas(modifier = Modifier.fillMaxSize()) {
             val w = size.width
             val h = size.height
-            val glowAlpha = if (isDark) 0.22f else 0.045f
-            val goldAlpha = if (isDark) 0.12f else 0.035f
+            val glowAlpha = if (isDark) 0.22f else 0.16f
+            val goldAlpha = if (isDark) 0.12f else 0.11f
 
             // Top-right calm turquoise sanctuary glow
             drawCircle(
@@ -171,8 +171,8 @@ fun GlassCard(
     } else if (isDark) {
         Brush.verticalGradient(
             listOf(
-                Color(0xFF14263A).copy(alpha = 0.92f),
-                Color(0xFF101C2B).copy(alpha = 0.94f)
+                Color(0xFF142B28).copy(alpha = 0.64f),
+                Color(0xFF0E201E).copy(alpha = 0.54f)
             )
         )
     } else {
@@ -190,8 +190,8 @@ fun GlassCard(
         Brush.linearGradient(
             listOf(
                 Color.White.copy(alpha = 0.22f),
-                Color(0xFF4FD7E5).copy(alpha = 0.22f),
-                HeritageGold.copy(alpha = 0.10f)
+                TurquoiseSecondaryLight.copy(alpha = 0.18f),
+                HeritageGold.copy(alpha = 0.14f)
             )
         )
     } else {
@@ -399,7 +399,7 @@ fun AlHadithiBrandTopBar(
                             modifier = Modifier.size(13.dp)
                         )
                         Text(
-                            text = "الموسوعة المتكاملة",
+                            text = "يعمل بدون إنترنت · الموسوعة المتكاملة",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1,

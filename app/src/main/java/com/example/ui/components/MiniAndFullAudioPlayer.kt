@@ -4,6 +4,8 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -52,6 +54,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.R
 import com.example.media.AudioPlayerController
+import com.example.ui.components.GlassSurface
 import com.example.ui.theme.HeritageGold
 import com.example.ui.theme.LocalIsDarkThemeActive
 
@@ -133,14 +136,14 @@ fun PersistentGlassMiniPlayer(
         MaterialTheme.colorScheme.primary.copy(alpha = 0.26f)
     }
 
-    Surface(
+    // المشغّل الصغير أثناء التشغيل: سطح زجاجي حقيقي بطمس فعلي.
+    GlassSurface(
         shape = RoundedCornerShape(22.dp),
-        color = glassColor,
-        border = BorderStroke(1.dp, glassBorder),
+        tint = glassColor,
+        borderColor = glassBorder,
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 12.dp, vertical = 6.dp)
-            .clip(RoundedCornerShape(22.dp))
             .clickable { showFullSheet = true }
             .testTag("persistent_mini_player")
     ) {
@@ -246,10 +249,16 @@ fun PersistentGlassMiniPlayer(
     if (showFullSheet) {
         ModalBottomSheet(
             onDismissRequest = { showFullSheet = false },
-            containerColor = if (isDark) Color(0xFF102422).copy(alpha = 0.82f) else Color.White.copy(alpha = 0.82f),
-            shape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp),
-            tonalElevation = 0.dp,
-            scrimColor = Color.Black.copy(alpha = 0.30f)
+            containerColor = if (isDark) Color(0xFF0E211F).copy(alpha = 0.86f) else Color(0xFFF6FBFA).copy(alpha = 0.88f),
+            dragHandle = {
+                Box(
+                    modifier = Modifier
+                        .padding(top = 10.dp)
+                        .size(width = 38.dp, height = 4.dp)
+                        .clip(RoundedCornerShape(2.dp))
+                        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.30f))
+                )
+            }
         ) {
             Column(
                 modifier = Modifier

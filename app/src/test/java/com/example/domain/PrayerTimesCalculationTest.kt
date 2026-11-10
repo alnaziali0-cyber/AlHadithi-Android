@@ -79,22 +79,31 @@ class PrayerTimesCalculationTest {
     }
 
     @Test
-    fun `the Jafari method places maghrib after the Umm al-Qura method`() {
-        val jafari = PrayerAndHijriCalculator.calculateLocalPrayerSchedule(
+    fun `the single method uses the documented Jafari parameters`() {
+        val method = PrayerCalcMethod.JAFARI
+        assertEquals(16.0, method.fajrAngle, 0.0)
+        assertEquals(4.0, method.maghribAngle ?: -1.0, 0.0)
+        assertEquals(14.0, method.ishaAngle, 0.0)
+        assertTrue(method.jafariMidnight)
+    }
+
+    @Test
+    fun `the month list has one entry per day and matches the single day calculation`() {
+        val month = PrayerAndHijriCalculator.calculateMonthSchedules(
+            latitude = 33.3152,
+            longitude = 44.3661,
+            year = 2026,
+            month1Based = 3
+        )
+        assertEquals(31, month.size)
+        val single = PrayerAndHijriCalculator.calculateLocalPrayerSchedule(
             latitude = 33.3152,
             longitude = 44.3661,
             cal = calendar(2026, 3, 15),
             method = PrayerCalcMethod.JAFARI
         )
-        val ummAlQura = PrayerAndHijriCalculator.calculateLocalPrayerSchedule(
-            latitude = 33.3152,
-            longitude = 44.3661,
-            cal = calendar(2026, 3, 15),
-            method = PrayerCalcMethod.UMM_AL_QURA
-        )
-
-        // Jafari uses a four degree depression so maghrib comes later than the sunset based rule.
-        assertTrue(jafari.maghribMinutes > ummAlQura.maghribMinutes)
+        assertEquals(single.fajrMinutes, month[14].fajrMinutes)
+        assertEquals(single.ishaMinutes, month[14].ishaMinutes)
     }
 
     @Test

@@ -12,6 +12,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import android.net.Uri
 import android.os.Build
 import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
 import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -90,6 +91,7 @@ object AudioPlayerController {
     private var nextSourceStageOnError: Int = 3
     private val activeDownloadCalls = ConcurrentHashMap<String, Call>()
     private var ttsEngine: TextToSpeech? = null
+    private var ttsLastUtteranceId: String? = null
     private var ttsReady = false
 
     private val downloadHttpClient: OkHttpClient by lazy {
@@ -229,7 +231,10 @@ object AudioPlayerController {
         val files = directory.listFiles().orEmpty()
 
         // Remove interrupted temporary downloads; they are never considered offline audio.
-        files.filter { it.isFile && it.name.endsWith(".mp3.part") }.forEach { it.delete() }
+        // Only stale temporaries are removed; a download that is still running owns its .part file.
+        val inFlight = _state.value.downloadingKeys.map { "$it.mp3.part" }.toSet()
+        files.filter { it.isFile && it.name.endsWith(".mp3.part") && it.name !in inFlight }
+            .forEach { it.delete() }
 
         // Recover a previous valid download if the app was interrupted during replacement.
         files.filter { it.isFile && it.name.endsWith(".mp3.bak") }.forEach { backup ->
@@ -522,32 +527,68 @@ object AudioPlayerController {
     fun speakArabicTextOffline(title: String, arabicText: String) {
         val ctx = appContext ?: return
         stopAndDismiss()
-        if (ttsEngine == null) {
+        val engine = ttsEngine
+        if (engine == null) {
             ttsEngine = TextToSpeech(ctx) { status ->
                 ttsReady = status == TextToSpeech.SUCCESS
-                if (ttsReady) {
-                    ttsEngine?.language = Locale.forLanguageTag("ar")
-                    ttsEngine?.setSpeechRate(0.92f)
-                    ttsEngine?.speak(
-                        arabicText.take(3800),
-                        TextToSpeech.QUEUE_FLUSH,
-                        null,
-                        "alhadithi_tts"
-                    )
-                    _state.update { it.copy(isSpeakingTts = true, ttsTitle = title) }
+                val created = ttsEngine
+                if (ttsReady && created != null) {
+                    speakWithEngine(created, title, arabicText)
+                } else {
+                    // A failed engine is released so that the next request creates a fresh one.
+                    created?.shutdown()
+                    ttsEngine = null
+                    ttsReady = false
                 }
             }
-        } else {
-            ttsEngine?.language = Locale.forLanguageTag("ar")
-            ttsEngine?.setSpeechRate(0.92f)
-            ttsEngine?.speak(
-                arabicText.take(3800),
-                TextToSpeech.QUEUE_FLUSH,
-                null,
-                "alhadithi_tts"
-            )
-            _state.update { it.copy(isSpeakingTts = true, ttsTitle = title) }
+        } else if (ttsReady) {
+            speakWithEngine(engine, title, arabicText)
         }
+    }
+
+    private fun speakWithEngine(engine: TextToSpeech, title: String, arabicText: String) {
+        val language = engine.setLanguage(Locale.forLanguageTag("ar"))
+        if (language == TextToSpeech.LANG_MISSING_DATA || language == TextToSpeech.LANG_NOT_SUPPORTED) {
+            // Without Arabic voice data the engine would read the text with a foreign voice; say so instead.
+            _state.update {
+                it.copy(errorMessage = "لا يتوفر صوت عربي للقراءة على هذا الجهاز. ثبّت بيانات النطق العربي من إعدادات النطق في أندرويد.")
+            }
+            return
+        }
+        val chunks = splitForSpeech(arabicText)
+        if (chunks.isEmpty()) return
+        engine.setSpeechRate(0.92f)
+        ttsLastUtteranceId = "alhadithi_tts_${chunks.lastIndex}"
+        engine.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+            override fun onStart(utteranceId: String?) = Unit
+            override fun onDone(utteranceId: String?) = finishTtsIfLast(utteranceId)
+            override fun onError(utteranceId: String?) = finishTtsIfLast(utteranceId)
+        })
+        var failed = false
+        chunks.forEachIndexed { index, chunk ->
+            val mode = if (index == 0) TextToSpeech.QUEUE_FLUSH else TextToSpeech.QUEUE_ADD
+            if (engine.speak(chunk, mode, null, "alhadithi_tts_$index") == TextToSpeech.ERROR) failed = true
+        }
+        if (failed) return
+        _state.update { it.copy(isSpeakingTts = true, ttsTitle = title) }
+    }
+
+    private fun finishTtsIfLast(utteranceId: String?) {
+        if (utteranceId != ttsLastUtteranceId) return
+        _state.update { it.copy(isSpeakingTts = false, ttsTitle = null) }
+    }
+
+    /** Splits long text at word boundaries; one speak() call accepts only about 4000 characters. */
+    private fun splitForSpeech(text: String, limit: Int = 3800): List<String> {
+        var rest = text.trim()
+        val parts = mutableListOf<String>()
+        while (rest.length > limit) {
+            val cut = rest.lastIndexOf(' ', limit).takeIf { it > 0 } ?: limit
+            parts += rest.substring(0, cut).trim()
+            rest = rest.substring(cut).trim()
+        }
+        if (rest.isNotEmpty()) parts += rest
+        return parts.filter { it.isNotEmpty() }
     }
 
     fun stopArabicTts() {
@@ -721,15 +762,22 @@ object AudioPlayerController {
     }
 
     fun togglePlayPause() {
-        val player = exoPlayer
         val current = _state.value
+        val player = exoPlayer
         if (player == null) {
             current.currentTrack?.let { startTrackInternal(it, attemptStage = 0) }
             return
         }
-        if (current.isPreparing) return
+        // After a playback error ExoPlayer is idle, so play() would do nothing: start the track again.
+        val track = current.currentTrack
+        if (player.playbackState == Player.STATE_IDLE && track != null) {
+            startTrackInternal(track, attemptStage = 0)
+            return
+        }
         runCatching {
-            if (player.isPlaying) {
+            // While buffering, the button shows a spinner but must still pause the pending playback.
+            val wantsToPlay = player.isPlaying || (current.isPreparing && player.playWhenReady)
+            if (wantsToPlay) {
                 player.pause()
             } else {
                 if (player.playbackState == Player.STATE_ENDED) player.seekTo(0L)
@@ -750,7 +798,7 @@ object AudioPlayerController {
     }
 
     fun setSpeed(newSpeed: Float) {
-        val clamped = newSpeed.coerceIn(0.75f, 1.5f)
+        val clamped = newSpeed.coerceIn(0.75f, 1.75f)
         _state.update { it.copy(speed = clamped) }
         runCatching { exoPlayer?.setPlaybackParameters(PlaybackParameters(clamped)) }
             .onFailure { Log.w(TAG, "Playback speed adjustment failed", it) }

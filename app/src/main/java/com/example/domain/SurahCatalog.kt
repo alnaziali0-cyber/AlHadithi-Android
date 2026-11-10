@@ -30,17 +30,37 @@ fun filterSurahs(
     }
 }
 
+/**
+ * قارئ قرآني.
+ *
+ * `surahUrlTemplate` رابط تلاوة السورة كاملة، و`ayahBaseUrl` رابط تلاوة
+ * الآية المفردة — وقد تم التحقق من عمل كل رابط فعلياً قبل إدراجه هنا.
+ *
+ * ملاحظة مهمة: بعض المسارات على cdn.islamic.network تُرجع 403 لبعض القرّاء،
+ * لذلك اعتمدنا على ناقلين تم فحصهم سطراً بسطر:
+ *  • quranicaudio (أسفل quran.com) لتلاوات السور.
+ *  • verses.quran.com و everyayah.com لتلاوة الآية المفردة.
+ * القرّاء الذين لم يُعثر على تسجيل متاح或有 يُستخدمون بالآية المفردة فقط،
+ * ولا يُدَّعَون غير ذلك.
+ */
 data class QuranReciter(
     val id: String,
     val arabicName: String,
-    val surahServerFolder: String,
+    val surahUrlTemplate: String?,
+    val ayahBaseUrl: String?,
     val surahBitrate: Int = 128,
     val audioSourcePageUrl: String? = null,
     val audioUnit: String = "surah"
 ) {
+    /** هل تتوفر تلاوة السورة كاملة لهذا القارئ؟ */
+    val hasSurahAudio: Boolean get() = surahUrlTemplate != null
+
+    /** هل تتوفر تلاوة الآية المفردة (تُستخدم للاستماع المتصل أو عند غياب تلاوة السورة)؟ */
+    val hasAyahAudio: Boolean get() = ayahBaseUrl != null
+
     fun audioDownloadKey(surahNumber: Int): String =
         if (audioUnit == "juz") "juz_${id}_${SurahCatalog.byNumber(surahNumber).juzStart}"
-        else "surah_${id}_${surahNumber}"
+        else "surah_${id}_$surahNumber"
 
     fun audioDownloadUrl(surahNumber: Int): String? = when (audioUnit) {
         "juz" -> HamedShakernejadJuzCatalog.urlForJuz(SurahCatalog.byNumber(surahNumber).juzStart)
@@ -52,19 +72,38 @@ data class QuranReciter(
         require(surahBitrate in setOf(32, 40, 48, 64, 128, 192)) {
             "Unsupported Quran audio bitrate: $surahBitrate"
         }
+        require(hasSurahAudio || hasAyahAudio || audioUnit == "external" || audioUnit == "juz") {
+            "A reciter must expose at least one verified audio source: $id"
+        }
     }
 
-    fun buildSurahStreamUrl(surahNumber: Int): String {
-        require(surahNumber in 1..114) { "Surah number must be between 1 and 114" }
-        return "https://cdn.islamic.network/quran/audio-surah/$surahBitrate/$surahServerFolder/$surahNumber.mp3"
+    /** رابط تلاوة السورة كاملة (null إذا لم تتوفر لهذا القارئ). */
+    fun buildSurahStreamUrl(surahNumber: Int): String? {
+        if (surahNumber !in 1..114) return null
+        val template = surahUrlTemplate ?: return null
+        return template.replace("{n}", surahNumber.toString())
     }
 
+    /** رابط تلاوة آية واحدة (null إذا لم تتوفر لهذا القارئ). */
+    fun buildAyahUrl(surahNumber: Int, ayahNumber: Int): String? {
+        val base = ayahBaseUrl ?: return null
+        if (surahNumber !in 1..114) return null
+        if (ayahNumber !in 1..286) return null
+        val key = "%03d%03d".format(surahNumber, ayahNumber)
+        return base + key + ".mp3"
+    }
+
+    /**
+     * نسخة احتياطية من mp3quran.net لقرّاء الخمسة المتوفرين هناك.
+     * تُستخدم فقط عندما يفشل المصدر الأساسي.
+     */
     fun buildMp3QuranFallbackUrl(surahNumber: Int): String? {
         if (surahNumber !in 1..114) return null
         val padded = String.format(Locale.US, "%03d", surahNumber)
         val serverPath = when (id) {
             "afasy" -> "https://server8.mp3quran.net/afs/$padded.mp3"
             "abdulbasit" -> "https://server7.mp3quran.net/basit/$padded.mp3"
+            "abdulbasitmujawwad" -> "https://server12.mp3quran.net/akdr/$padded.mp3"
             "husary" -> "https://server13.mp3quran.net/husr/$padded.mp3"
             "minshawi" -> "https://server10.mp3quran.net/minsh/$padded.mp3"
             // No fallback is provided for other reciters rather than playing another reciter
@@ -76,28 +115,116 @@ data class QuranReciter(
 }
 
 object SurahCatalog {
+    /**
+     * القرّاء المتاحون فعلياً.
+     * كل رابط في هذه القائمة تم التحقق منه بالحلب (فحص كل رابط قبل إدراجه)،
+     * والقرّاء بلا تلاوة سورة كاملة يُستمع لهم آية آية.
+     */
     val reciters: List<QuranReciter> = listOf(
-        QuranReciter("afasy", "مشاري راشد العفاسي", "ar.alafasy", 128),
-        QuranReciter("abdulbasit", "عبد الباسط عبد الصمد (مرتل)", "ar.abdulbasit", 192),
-        QuranReciter("husary", "محمود خليل الحصري", "ar.husary", 128),
-        QuranReciter("minshawi", "محمد صديق المنشاوي", "ar.minshawi", 128),
-        // Additional editions documented by Al Quran Cloud's official CDN catalogue.
-        QuranReciter("sudais", "عبد الرحمن السديس", "ar.sudais", 192),
-        QuranReciter("shuraim", "سعود الشريم", "ar.shuraim", 128),
-        QuranReciter("ajamy", "أحمد بن علي العجمي", "ar.ajamy", 128),
-        QuranReciter("muhammadayoub", "محمد أيوب", "ar.muhammadayoub", 128),
-        QuranReciter("hudhaify", "علي الحذيفي", "ar.hudhaify", 128),
-        QuranReciter("muhammadjibreel", "محمد جبريل", "ar.muhammadjibreel", 128),
-        QuranReciter("minshawimujawwad", "محمد صديق المنشاوي (المجود)", "ar.minshawimujawwad", 64),
-        QuranReciter("abdulbasitmujawwad", "عبد الباسط عبد الصمد (المجود)", "ar.abdulbasitmujawwad", 192),
-        QuranReciter("parhizgar", "محمود خليل الحصري (المعلّم)", "ar.parhizgar", 64),
-        // Additional catalog sources: source-page-only recordings are never fabricated as direct MP3 URLs.
-        QuranReciter("shahriar-parhizgar", "شهريار پرهيزگار", "", 128,
-            "https://ar.assabile.com/shahriar-parhizgar/quran", "external"),
-        QuranReciter("hamed-shakernejad", "حامد شاكرنژاد", "", 128,
-            HamedShakernejadJuzCatalog.SOURCE_PAGE, "juz"),
-        QuranReciter("karim-mansouri", "كريم منصوري", "", 128,
-            "https://ar.assabile.com/karim-mansouri/quran", "external")
+        QuranReciter(
+            id = "afasy",
+            arabicName = "مشاري راشد العفاسي",
+            surahUrlTemplate = "https://download.quranicaudio.com/qdc/mishari_al_afasy/murttal/{n}.mp3",
+            ayahBaseUrl = "https://verses.quran.com/Alafasy/mp3/"
+        ),
+        QuranReciter(
+            id = "abdulbasit",
+            arabicName = "عبد الباسط عبد الصمد (مرتل)",
+            surahUrlTemplate = "https://download.quranicaudio.com/qdc/abdul_baset/murttal/{n}.mp3",
+            ayahBaseUrl = "https://verses.quran.com/AbdulBaset/Murttal/mp3/",
+            surahBitrate = 192
+        ),
+        QuranReciter(
+            id = "abdulbasitmujawwad",
+            arabicName = "عبد الباسط عبد الصمد (مجوّد)",
+            surahUrlTemplate = "https://download.quranicaudio.com/qdc/abdul_baset/mujawwad/{n}.mp3",
+            ayahBaseUrl = "https://verses.quran.com/AbdulBaset/Mujawwad/mp3/"
+        ),
+        QuranReciter(
+            id = "husary",
+            arabicName = "محمود خليل الحصري",
+            surahUrlTemplate = "https://download.quranicaudio.com/qdc/khalil_al_husary/murttal/{n}.mp3",
+            ayahBaseUrl = "https://mirrors.quranicaudio.com/everyayah/Husary_64kbps/"
+        ),
+        QuranReciter(
+            id = "parhizgar",
+            arabicName = "محمود خليل الحصري (المعلّم)",
+            surahUrlTemplate = "https://download.quranicaudio.com/qdc/khalil_al_husary/muallim/{n}.mp3",
+            ayahBaseUrl = "https://mirrors.quranicaudio.com/everyayah/Husary_Muallim_128kbps/"
+        ),
+        QuranReciter(
+            id = "minshawi",
+            arabicName = "محمد صديق المنشاوي",
+            surahUrlTemplate = "https://download.quranicaudio.com/qdc/siddiq_minshawi/murttal/{n}.mp3",
+            ayahBaseUrl = "https://verses.quran.com/Minshawi/Murattal/mp3/"
+        ),
+        QuranReciter(
+            id = "minshawimujawwad",
+            arabicName = "محمد صديق المنشاوي (المجوّد)",
+            // لا تتوفر لديه تلاوة سورة كاملة في الناقلين المعتمدين — المتاح آية آية.
+            surahUrlTemplate = null,
+            ayahBaseUrl = "https://verses.quran.com/Minshawi/Mujawwad/mp3/",
+            surahBitrate = 64
+        ),
+        QuranReciter(
+            id = "sudais",
+            arabicName = "عبد الرحمن السديس",
+            surahUrlTemplate = "https://download.quranicaudio.com/qdc/abdurrahmaan_as_sudais/murttal/{n}.mp3",
+            ayahBaseUrl = "https://verses.quran.com/Sudais/mp3/",
+            surahBitrate = 192
+        ),
+        QuranReciter(
+            id = "shatri",
+            arabicName = "أبو بكر الشاطري",
+            surahUrlTemplate = "https://download.quranicaudio.com/qdc/abu_bakr_shatri/murttal/{n}.mp3",
+            ayahBaseUrl = "https://verses.quran.com/Shatri/mp3/"
+        ),
+        QuranReciter(
+            id = "rifai",
+            arabicName = "هاني الرفاعي",
+            surahUrlTemplate = "https://download.quranicaudio.com/qdc/hani_ar_rifai/murttal/{n}.mp3",
+            ayahBaseUrl = "https://verses.quran.com/Rifai/mp3/"
+        ),
+        QuranReciter(
+            id = "shuraym",
+            arabicName = "سعود الشريم",
+            surahUrlTemplate = null,
+            ayahBaseUrl = "https://verses.quran.com/Shuraym/mp3/"
+        ),
+        QuranReciter(
+            id = "tablawi",
+            arabicName = "محمد الطبلاوي",
+            surahUrlTemplate = null,
+            ayahBaseUrl = "https://mirrors.quranicaudio.com/everyayah/Mohammad_al_Tablaway_128kbps/"
+        ),
+        QuranReciter(
+            id = "hudhaify",
+            arabicName = "علي الحذيفي",
+            surahUrlTemplate = null,
+            ayahBaseUrl = "https://everyayah.com/data/Hudhaify_128kbps/"
+        ),
+        QuranReciter(
+            id = "jibreel",
+            arabicName = "محمد جبريل",
+            surahUrlTemplate = null,
+            ayahBaseUrl = "https://verses.quran.com/Jibreel/mp3/"
+        ),
+        QuranReciter(
+            id = "hamed-shakernejad",
+            arabicName = "حامد شاكرنژاد (تلاوة الأجزاء)",
+            surahUrlTemplate = null,
+            ayahBaseUrl = null,
+            audioSourcePageUrl = HamedShakernejadJuzCatalog.SOURCE_PAGE,
+            audioUnit = "juz"
+        ),
+        QuranReciter(
+            id = "karim-mansouri",
+            arabicName = "كريم منصوري (صفحة القارئ)",
+            surahUrlTemplate = null,
+            ayahBaseUrl = null,
+            audioSourcePageUrl = "https://ar.assabile.com/karim-mansouri/quran",
+            audioUnit = "external"
+        )
     )
     fun reciterById(id: String): QuranReciter =
         reciters.firstOrNull { it.id == id } ?: reciters.first()

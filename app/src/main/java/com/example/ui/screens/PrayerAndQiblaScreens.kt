@@ -1,6 +1,7 @@
 package com.example.ui.screens
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -40,7 +41,6 @@ import androidx.compose.material.icons.outlined.WbTwilight
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
@@ -86,9 +86,10 @@ import com.example.ui.components.GlassCard
 import com.example.ui.components.SubScreenTopBar
 import com.example.ui.theme.HeritageGold
 import com.example.util.SystemActionsHelper
-import com.example.util.PreciseDeviceLocationAccess
-import com.example.util.rememberPreciseDeviceLocationAction
 import com.example.media.PrayerNotificationScheduler
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
+import com.google.android.gms.tasks.CancellationTokenSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -101,7 +102,6 @@ fun PrayerTimesScreen(
     schedule: DailyPrayerSchedule,
     countdown: NextPrayerCountdown,
     monthlySchedules: List<DailyPrayerSchedule>,
-    calcMethodCode: Int,
     offsets: PrayerMinuteOffsets,
     notifyPrayers: Boolean,
     coordinatesLatitude: Double,
@@ -111,7 +111,6 @@ fun PrayerTimesScreen(
     prayerAlertProfile: PrayerAlertProfile,
     onBack: () -> Unit,
     onOpenGovernorateSheet: () -> Unit,
-    onSelectMethod: (Int) -> Unit,
     onUpdateOffsets: (PrayerMinuteOffsets) -> Unit,
     onToggleNotifyPrayers: (Boolean) -> Unit,
     onChangeTimeFormat: (TimeFormat) -> Unit,
@@ -131,7 +130,27 @@ fun PrayerTimesScreen(
     }
     var locationStatus by remember { mutableStateOf<String?>(null) }
     var adhanStatus by remember { mutableStateOf<String?>(null) }
-    var hasAdhanAudio by remember { mutableStateOf(AdhanPlaybackService.hasPlayableAudio(context)) }
+    var isImportingAdhan by remember { mutableStateOf(false) }
+    var hasAdhanAudio by remember { mutableStateOf(AdhanAudioStorage.hasAudio(context)) }
+    val adhanAudioPicker = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { selectedUri ->
+        if (selectedUri != null && !isImportingAdhan) {
+            coroutineScope.launch {
+                isImportingAdhan = true
+                val result = withContext(Dispatchers.IO) {
+                    AdhanAudioStorage.importAudio(context, selectedUri)
+                }
+                isImportingAdhan = false
+                result.onSuccess {
+                    hasAdhanAudio = true
+                    adhanStatus = "تم حفظ ملف الأذان داخل التطبيق، وسيعمل دون الحاجة إلى الإنترنت."
+                }.onFailure { error ->
+                    adhanStatus = error.message ?: "تعذر استيراد ملف الأذان."
+                }
+            }
+        }
+    }
     var exactAlarmAllowed by remember {
         mutableStateOf(PrayerNotificationScheduler.canScheduleExactAlarms(context))
     }
@@ -165,15 +184,43 @@ fun PrayerTimesScreen(
         if (granted) requestExactAlarmAccess()
     }
 
-    // One shared foreground permission flow is used by the governorate sheet, prayer times and qibla.
-    // The Android permission dialog is requested once; later attempts go to app settings.
-    val requestLocationAction = rememberPreciseDeviceLocationAction(
-        onLocation = { fix ->
-            onSetPrayerCoordinates(fix.latitude, fix.longitude)
-            locationStatus = "تم اعتماد موقعك بدقة ±${fix.accuracyMeters.toInt()} متر لمواقيت الصلاة. لا يوجد تتبع في الخلفية."
-        },
-        onStatus = { status -> locationStatus = status }
-    )
+    @SuppressLint("MissingPermission")
+    fun requestCurrentLocation() {
+        val client = LocationServices.getFusedLocationProviderClient(context)
+        val cancellation = CancellationTokenSource()
+        try {
+            client.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, cancellation.token)
+                .addOnSuccessListener { location ->
+                    if (location == null) {
+                        locationStatus = "لم يتمكن الهاتف من تحديد موقع حديث. تأكد من تشغيل GPS وحاول مجدداً."
+                    } else {
+                        onSetPrayerCoordinates(location.latitude, location.longitude)
+                        val precise = context.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) ==
+                            android.content.pm.PackageManager.PERMISSION_GRANTED
+                        locationStatus = if (precise) {
+                            "تم اعتماد إحداثيات GPS الدقيقة لمواقيت الصلاة"
+                        } else {
+                            "تم اعتماد موقع تقريبي؛ اختر (دقيق) من نافذة أذونات أندرويد لتحسين المواقيت"
+                        }
+                    }
+                }
+                .addOnFailureListener {
+                    locationStatus = "تعذر تحديد الموقع. تحقق من خدمة الموقع ثم أعد المحاولة."
+                }
+        } catch (_: SecurityException) {
+            locationStatus = "لم يُمنح إذن الموقع؛ ستُستخدم إحداثيات المحافظة"
+        }
+    }
+
+    val locationPermLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val allowed = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+            permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true ||
+            SystemActionsHelper.hasLocationPermission(context)
+        if (allowed) requestCurrentLocation()
+        else locationStatus = "لم يتم منح إذن الموقع؛ يمكنك المتابعة باستخدام إحداثيات المحافظة"
+    }
 
     Column(modifier = Modifier.fillMaxSize()) {
         SubScreenTopBar(
@@ -209,23 +256,25 @@ fun PrayerTimesScreen(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    Text(
-                        "تظهر نافذة إذن الموقع مرة واحدة عند اختيارك فقط. اختر «دقيق» و«أثناء استخدام التطبيق»؛ لا يوجد تتبع للموقع في الخلفية.",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
                     Spacer(modifier = Modifier.height(8.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Button(onClick = requestLocationAction) {
+                        Button(onClick = {
+                            // Even when approximate access was granted earlier, request again so
+                            // Android can offer the user the precise-location upgrade.
+                            if (SystemActionsHelper.hasPreciseLocationPermission(context)) {
+                                requestCurrentLocation()
+                            } else {
+                                locationPermLauncher.launch(
+                                    arrayOf(
+                                        Manifest.permission.ACCESS_COARSE_LOCATION,
+                                        Manifest.permission.ACCESS_FINE_LOCATION
+                                    )
+                                )
+                            }
+                        }) {
                             Icon(Icons.Outlined.MyLocation, contentDescription = null)
                             Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                when {
-                                    PreciseDeviceLocationAccess.hasPrecisePermission(context) -> "تحديث موقعي بدقة"
-                                    PreciseDeviceLocationAccess.hasShownPermissionPrompt(context) -> "إعدادات إذن الموقع"
-                                    else -> "تحديد موقعي بدقة"
-                                }
-                            )
+                            Text(if (SystemActionsHelper.hasPreciseLocationPermission(context)) "تحديث موقعي" else "السماح بالموقع الدقيق")
                         }
                         if (isUsingDeviceLocation) {
                             OutlinedButton(onClick = {
@@ -241,13 +290,32 @@ fun PrayerTimesScreen(
                 }
             }
 
+            item {
+                EmeraldHeroCard(modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = "مواقيت اليوم — ${schedule.hijriDate.formattedArabic()}",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = Color.White.copy(alpha = 0.85f)
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "متبقٍ لـ ${countdown.prayerArabicName}: ${countdown.countdownHhMmSs}",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFFFDF2D0)
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = "المصدر: ${schedule.sourceLabel}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.White.copy(alpha = 0.8f)
+                    )
+                }
+            }
 
             // Detailed 7 Timings Card with Distinct Icons
             item {
-                GlassCard(modifier = Modifier.fillMaxWidth(), containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.38f)) {
-                    Text("مواقيت الصلاة", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                    Text("${governorate.arabicName} · ${schedule.gregorianDateLabel}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Spacer(modifier = Modifier.height(8.dp))
+                GlassCard(modifier = Modifier.fillMaxWidth()) {
                     val rows = listOf(
                         Triple("الفجر", formatTime(schedule.fajrMinutes), Icons.Outlined.WbTwilight),
                         Triple("الشروق", formatTime(schedule.sunriseMinutes), Icons.Outlined.WbSunny),
@@ -303,53 +371,80 @@ rows.forEachIndexed { idx, (name, timeStr, iconVec) ->
                             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                         }
                     }
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text("المتبقي على ${countdown.prayerArabicName}", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Text(countdown.prayerFormattedTime, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-                        }
-                        Text(countdown.countdownHhMmSs, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text("المصدر: ${schedule.sourceLabel}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text(
-                        text = if (schedule.sourceType == "OFFICIAL" && schedule.sourceUpdatedAtMillis > 0L) {
-                            "آخر تحديث للمصدر: ${java.text.SimpleDateFormat("yyyy/MM/dd HH:mm", java.util.Locale("ar", "IQ")).format(java.util.Date(schedule.sourceUpdatedAtMillis))}"
-                        } else "هذا حساب محلي؛ لا يوجد وقت تحديث رسمي لهذا اليوم",
-                        style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    if (schedule.sourceType != "OFFICIAL") {
-                        Text("هذه أوقات محسوبة محلياً وليست جدولاً رسمياً منشوراً من العتبة الحسينية.", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error)
-                    }
                 }
             }
 
+            // User-selected, licensed adhan audio. The system picker grants access only to this file.
             item {
                 GlassCard(modifier = Modifier.fillMaxWidth()) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Icon(Icons.Outlined.MusicNote, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text("الأذان المرفق بالتطبيق", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                            Text("يُستخدم تلقائياً عند تفعيل التنبيه الصوتي.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                        IconButton(onClick = {
-                            runCatching { AdhanPlaybackService.play(context) }
-                                .onSuccess { adhanStatus = "بدأ اختبار تشغيل الأذان المرفق." }
-                                .onFailure { adhanStatus = "تعذر تشغيل الأذان؛ تحقق من إعدادات الصوت." }
-                        }) { Icon(Icons.Outlined.PlayArrow, contentDescription = "اختبار الأذان") }
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.MusicNote,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = "صوت الأذان عند دخول وقت الصلاة",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
-                    adhanStatus?.let { Text(it, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary) }
-                    Text("تم تضمين التسجيل الصوتي الذي زوّدتنا به داخل حزمة التطبيق. احرص على امتلاك حق استخدامه وتوزيعه.", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = if (hasAdhanAudio) "يوجد تسجيل أذان محفوظ على الجهاز وسيعمل مع الإشعار." else "لم يتم اختيار تسجيل أذان بعد. يمكنك اختيار تسجيل تملك حق استخدامه، مثل تسجيل الأذان الخاص بالعتبة الحسينية.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button(
+                            enabled = !isImportingAdhan,
+                            onClick = { adhanAudioPicker.launch(arrayOf("audio/*")) }
+                        ) {
+                            Icon(Icons.Outlined.MusicNote, contentDescription = null)
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(if (isImportingAdhan) "جارٍ حفظ الملف…" else "اختيار ملف الأذان")
+                        }
+                        if (hasAdhanAudio) {
+                            OutlinedButton(onClick = {
+                                runCatching { AdhanPlaybackService.play(context) }
+                                    .onSuccess { adhanStatus = "بدأ اختبار تشغيل تسجيل الأذان." }
+                                    .onFailure { adhanStatus = "تعذر بدء التشغيل؛ تحقق من إعدادات الصوت." }
+                            }) {
+                                Icon(Icons.Outlined.PlayArrow, contentDescription = null)
+                                Text("تجربة")
+                            }
+                            TextButton(onClick = {
+                                AdhanPlaybackService.stop(context)
+                                AdhanAudioStorage.clear(context)
+                                hasAdhanAudio = false
+                                adhanStatus = "تم حذف التسجيل المحفوظ. سيعود تنبيه النظام الافتراضي."
+                            }) {
+                                Icon(Icons.Outlined.DeleteOutline, contentDescription = null)
+                            }
+                        }
+                    }
+                    adhanStatus?.let { status ->
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = status,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "لا يحتاج اختيار الملف إلى إذن عام للوصول إلى كل الصوتيات؛ يفتح أندرويد منتقي الملفات وتختار تسجيلاً واحداً، ثم يُحفظ داخل مساحة التطبيق الخاصة.",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
 
-            // Calculation Method Picker
+            // Calculation method: one method, shown for transparency.
             item {
                 GlassCard(modifier = Modifier.fillMaxWidth()) {
                     Text(
@@ -358,27 +453,12 @@ rows.forEachIndexed { idx, (name, timeStr, iconVec) ->
                         fontWeight = FontWeight.Bold
                     )
                     Spacer(modifier = Modifier.height(6.dp))
-                    PrayerCalcMethod.entries.forEach { method ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            RadioButton(
-                                selected = calcMethodCode == method.apiCode,
-                                onClick = { onSelectMethod(method.apiCode) }
-                            )
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(method.arabicTitle, fontWeight = FontWeight.SemiBold)
-                                Text(
-                                    method.arabicSubtitle,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
-                    }
+                    Text(text = PrayerCalcMethod.JAFARI.arabicTitle, fontWeight = FontWeight.SemiBold)
+                    Text(
+                        text = PrayerCalcMethod.JAFARI.arabicSubtitle,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
 
@@ -757,13 +837,26 @@ fun QiblaScreen(
     val compass by compassFlow.collectAsStateWithLifecycle(initialValue = CompassReading())
     var gpsStatus by remember { mutableStateOf<String?>(null) }
 
-    val requestQiblaLocation = rememberPreciseDeviceLocationAction(
-        onLocation = { fix ->
-            onDetectedCoordinates(fix.latitude, fix.longitude)
-            gpsStatus = "تم تحديث موقعك بدقة ±${fix.accuracyMeters.toInt()} متر"
-        },
-        onStatus = { status -> gpsStatus = status }
-    )
+    @SuppressLint("MissingPermission")
+    val locLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { perms ->
+        val ok = perms[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+            perms[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+        if (ok) {
+            LocationServices.getFusedLocationProviderClient(context).lastLocation
+                .addOnSuccessListener { loc ->
+                    if (loc != null) {
+                        onDetectedCoordinates(loc.latitude, loc.longitude)
+                        gpsStatus = "تم تحديث موقعك عبر GPS بنجاح"
+                    } else {
+                        gpsStatus = "تعذر قراءة الموقع الآني — تُستخدم إحداثيات ${governorate.arabicName}"
+                    }
+                }
+        } else {
+            gpsStatus = "تم الاستمرار باستخدام إحداثيات محافظة ${governorate.arabicName}"
+        }
+    }
 
     val qiblaBearing = governorate.qiblaBearingDegrees.toFloat()
     val relativeQiblaAngle = ((qiblaBearing - compass.azimuthDegrees + 360f) % 360f)
@@ -907,17 +1000,18 @@ fun QiblaScreen(
 
             item {
                 OutlinedButton(
-                    onClick = requestQiblaLocation
+                    onClick = {
+                        locLauncher.launch(
+                            arrayOf(
+                                Manifest.permission.ACCESS_FINE_LOCATION,
+                                Manifest.permission.ACCESS_COARSE_LOCATION
+                            )
+                        )
+                    }
                 ) {
                     Icon(Icons.Outlined.MyLocation, contentDescription = null)
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        when {
-                            PreciseDeviceLocationAccess.hasPrecisePermission(context) -> "تحديث موقعي بدقة"
-                            PreciseDeviceLocationAccess.hasShownPermissionPrompt(context) -> "إعدادات إذن الموقع"
-                            else -> "استخدم موقعي بدقة (GPS)"
-                        }
-                    )
+                    Text("استخدم موقعي الحالي (GPS)")
                 }
                 if (gpsStatus != null) {
                     Spacer(modifier = Modifier.height(4.dp))

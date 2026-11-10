@@ -51,9 +51,9 @@ class AdhanPlaybackService : Service() {
     }
 
     private fun startPlayback() {
-        val audioFile = AdhanAudioStorage.resolvePlaybackFile(this)
+        val audioFile = AdhanAudioStorage.currentAudioFile(this)
         if (audioFile == null) {
-            stopSelf()
+            abortWithSystemAlert()
             return
         }
 
@@ -64,7 +64,7 @@ class AdhanPlaybackService : Service() {
                 .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
                 .build()
             if (!requestAudioFocus(audioAttributes)) {
-                stopSelf()
+                abortWithSystemAlert()
                 return
             }
             val player = MediaPlayer()
@@ -75,12 +75,36 @@ class AdhanPlaybackService : Service() {
             player.setOnPreparedListener { prepared -> prepared.start() }
             player.setOnCompletionListener { stopSelf() }
             player.setOnErrorListener { _, _, _ ->
-                stopSelf()
+                abortWithSystemAlert()
                 true
             }
             player.prepareAsync()
         } catch (_: Exception) {
-            stopSelf()
+            abortWithSystemAlert()
+        }
+    }
+
+    /** A prayer must never pass silently: when the saved recording cannot play, post an audible alert. */
+    private fun abortWithSystemAlert() {
+        postFallbackAlert()
+        stopSelf()
+    }
+
+    private fun postFallbackAlert() {
+        try {
+            NotificationChannels.ensureAll(this)
+            val manager = getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager ?: return
+            val notification = NotificationCompat.Builder(this, NotificationChannels.CHANNEL_PRAYER)
+                .setSmallIcon(R.drawable.ic_notification_alhadithi)
+                .setContentTitle("حان وقت الصلاة")
+                .setContentText("تعذّر تشغيل تسجيل الأذان المحفوظ. يمكنك استبداله من الإعدادات.")
+                .setCategory(NotificationCompat.CATEGORY_ALARM)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setAutoCancel(true)
+                .build()
+            manager.notify(FALLBACK_NOTIFICATION_ID, notification)
+        } catch (_: SecurityException) {
+            // Notifications are disabled; nothing more the service can do.
         }
     }
 
@@ -126,7 +150,7 @@ class AdhanPlaybackService : Service() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notification_alhadithi)
+            .setSmallIcon(R.drawable.ic_notification_adhan)
             .setContentTitle("أذان الحديثي")
             .setContentText("يتم تشغيل تسجيل الأذان")
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
@@ -184,6 +208,7 @@ class AdhanPlaybackService : Service() {
     companion object {
         private const val CHANNEL_ID = "alhadithi_adhan_playback"
         private const val SERVICE_NOTIFICATION_ID = 5102
+        private const val FALLBACK_NOTIFICATION_ID = 5104
         private const val STOP_REQUEST_CODE = 5103
         private const val ACTION_PLAY = "com.example.alhadithi.action.PLAY_ADHAN"
         private const val ACTION_STOP = "com.example.alhadithi.action.STOP_ADHAN"
@@ -192,8 +217,6 @@ class AdhanPlaybackService : Service() {
             val intent = Intent(context, AdhanPlaybackService::class.java).setAction(ACTION_PLAY)
             ContextCompat.startForegroundService(context, intent)
         }
-
-        fun hasPlayableAudio(context: Context): Boolean = AdhanAudioStorage.hasPlayableAudio(context)
 
         fun stop(context: Context) {
             val intent = Intent(context, AdhanPlaybackService::class.java).setAction(ACTION_STOP)

@@ -17,10 +17,8 @@ class PrayerScheduleRefreshReceiver : BroadcastReceiver() {
                 CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
                     try {
                         PrayerNotificationScheduler.refreshFromNetwork(context.applicationContext)
-                    } catch (cancel: kotlinx.coroutines.CancellationException) {
-                        throw cancel
                     } catch (_: Exception) {
-                        // Preserve a valid offline schedule if Firestore or the device network fails.
+                        // Preserve a valid offline schedule if the API or device network fails.
                         PrayerNotificationScheduler.restoreAndReschedule(context.applicationContext)
                     } finally {
                         pendingResult.finish()

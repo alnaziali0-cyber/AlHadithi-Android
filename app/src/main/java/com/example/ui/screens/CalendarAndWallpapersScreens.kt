@@ -2,7 +2,6 @@ package com.example.ui.screens
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
-import android.graphics.BitmapFactory
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -36,7 +35,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -47,7 +45,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -62,8 +59,6 @@ import com.example.ui.components.GlassCard
 import com.example.ui.components.GlassFilterChip
 import com.example.ui.components.SubScreenTopBar
 import com.example.util.SystemActionsHelper
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -278,38 +273,6 @@ fun CalendarOccasionsScreen(
     }
 }
 
-@Composable
-private fun WallpaperArtwork(wallpaper: WallpaperEntity, fallbackResId: Int, modifier: Modifier = Modifier) {
-    val bitmap by produceState<android.graphics.Bitmap?>(initialValue = null, key1 = wallpaper.localImagePath) {
-        value = if (wallpaper.localImagePath.isBlank()) null else withContext(Dispatchers.IO) {
-            runCatching {
-                val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-                BitmapFactory.decodeFile(wallpaper.localImagePath, bounds)
-                if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return@runCatching null
-                var sample = 1
-                while (bounds.outWidth / sample > 2048 || bounds.outHeight / sample > 2048) sample *= 2
-                BitmapFactory.decodeFile(
-                    wallpaper.localImagePath,
-                    BitmapFactory.Options().apply { inSampleSize = sample; inPreferredConfig = android.graphics.Bitmap.Config.RGB_565 }
-                )
-            }.getOrNull()
-        }
-    }
-    if (bitmap != null) {
-        Image(bitmap = bitmap!!.asImageBitmap(), contentDescription = wallpaper.title, contentScale = ContentScale.Crop, modifier = modifier)
-    } else {
-        Image(painter = painterResource(id = fallbackResId), contentDescription = wallpaper.title, contentScale = ContentScale.Crop, modifier = modifier)
-    }
-}
-
-private fun saveWallpaperToGallery(context: android.content.Context, wallpaper: WallpaperEntity, fallbackResId: Int) {
-    if (wallpaper.localImagePath.isNotBlank()) {
-        SystemActionsHelper.saveImageFileToGallery(context, wallpaper.localImagePath, wallpaper.title)
-    } else {
-        SystemActionsHelper.saveDrawableWallpaperToGallery(context, fallbackResId, wallpaper.title)
-    }
-}
-
 private fun resolveWallpaperResId(resName: String): Int = when (resName) {
     "bg_wallpaper_dawn_domes" -> R.drawable.bg_wallpaper_dawn_domes
     "bg_wallpaper_soft_stars" -> R.drawable.bg_wallpaper_soft_stars
@@ -368,10 +331,14 @@ fun WallpapersScreen(
                     cornerRadius = 22.dp,
                     onClick = { previewItem = wp }
                 ) {
-                    WallpaperArtwork(
-                        wallpaper = wp,
-                        fallbackResId = resId,
-                        modifier = Modifier.fillMaxWidth().height(210.dp).clip(RoundedCornerShape(16.dp))
+                    Image(
+                        painter = painterResource(id = resId),
+                        contentDescription = wp.title,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(210.dp)
+                            .clip(RoundedCornerShape(16.dp))
                     )
                     Spacer(modifier = Modifier.height(10.dp))
                     Row(
@@ -398,7 +365,7 @@ fun WallpapersScreen(
                         }
                         Row {
                             IconButton(onClick = {
-                                saveWallpaperToGallery(context, wp, resId)
+                                SystemActionsHelper.saveDrawableWallpaperToGallery(context, resId, wp.title)
                             }) {
                                 Icon(Icons.Outlined.Download, contentDescription = "حفظ في المعرض")
                             }
@@ -427,10 +394,14 @@ fun WallpapersScreen(
                     .padding(20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                WallpaperArtwork(
-                    wallpaper = wp,
-                    fallbackResId = resId,
-                    modifier = Modifier.fillMaxWidth().height(340.dp).clip(RoundedCornerShape(22.dp))
+                Image(
+                    painter = painterResource(id = resId),
+                    contentDescription = wp.title,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(340.dp)
+                        .clip(RoundedCornerShape(22.dp))
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(wp.title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
@@ -438,7 +409,7 @@ fun WallpapersScreen(
                 Spacer(modifier = Modifier.height(14.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     Button(onClick = {
-                        saveWallpaperToGallery(context, wp, resId)
+                        SystemActionsHelper.saveDrawableWallpaperToGallery(context, resId, wp.title)
                     }) {
                         Icon(Icons.Outlined.Download, contentDescription = null)
                         Spacer(modifier = Modifier.width(6.dp))
