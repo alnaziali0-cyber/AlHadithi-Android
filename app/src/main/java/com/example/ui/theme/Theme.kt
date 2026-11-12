@@ -36,7 +36,7 @@ private fun lightSchemeFor(choice: AccentChoice): androidx.compose.material3.Col
         surfaceVariant = SoftSageSurfaceVariant,
         onSurfaceVariant = MutedSlateText,
         outline = SubtleGlassBorderLight,
-        outlineVariant = Color(0xFFC8D4D0)
+        outlineVariant = Color(0xFFDCE3DE)
     )
 }
 
@@ -52,9 +52,9 @@ private fun darkSchemeFor(choice: AccentChoice): androidx.compose.material3.Colo
         secondaryContainer = NightSurfaceVariant,
         onSecondaryContainer = NightLightText,
         tertiary = NightGoldAccent,
-        onTertiary = Color(0xFF3A2804),
-        tertiaryContainer = Color(0xFF35280D),
-        onTertiaryContainer = Color(0xFFF9E2AC),
+        onTertiary = Color(0xFF211A0E),
+        tertiaryContainer = Color(0xFF3C321F),
+        onTertiaryContainer = Color(0xFFF3E6C7),
         background = NightSanctuaryBg,
         onBackground = NightLightText,
         surface = NightGlassSurface,
@@ -62,7 +62,7 @@ private fun darkSchemeFor(choice: AccentChoice): androidx.compose.material3.Colo
         surfaceVariant = NightSurfaceVariant,
         onSurfaceVariant = NightMutedText,
         outline = SubtleGlassBorderDark,
-        outlineVariant = Color(0xFF3A5550)
+        outlineVariant = Color(0xFF2B3530)
     )
 }
 
@@ -125,7 +125,7 @@ fun AlHadithiTheme(
     themeMode: ThemeMode = ThemeMode.SYSTEM,
     darkTheme: Boolean = isSystemInDarkTheme(),
     accentChoice: AccentChoice = AccentChoice.TURQUOISE,
-    fontChoice: AppFontChoice = AppFontChoice.NASKH,
+    fontChoice: AppFontChoice = AppFontChoice.ALAN_SANS,
     readingFontChoice: ReadingFontChoice = ReadingFontChoice.MUHAMMADI,
     uiFontScale: Float = 1.0f,
     readingFontScale: Float = 1.10f,
@@ -168,7 +168,7 @@ fun MyApplicationTheme(
     themeMode: ThemeMode = ThemeMode.SYSTEM,
     darkTheme: Boolean = isSystemInDarkTheme(),
     accentChoice: AccentChoice = AccentChoice.TURQUOISE,
-    fontChoice: AppFontChoice = AppFontChoice.NASKH,
+    fontChoice: AppFontChoice = AppFontChoice.ALAN_SANS,
     readingFontChoice: ReadingFontChoice = ReadingFontChoice.MUHAMMADI,
     uiFontScale: Float = 1.0f,
     readingFontScale: Float = 1.10f,

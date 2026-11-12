@@ -23,7 +23,7 @@ enum class ThemeMode(val key: String, val arabicLabel: String) {
 enum class AccentChoice(val key: String, val arabicLabel: String) {
     // Existing stable keys are retained for backward compatibility with DataStore values.
     EMERALD("emerald", "زمردي"),
-    TURQUOISE("turquoise", "فيروزي الحديثي"),
+    TURQUOISE("turquoise", "فيروزي خزائن الهدى"),
     CYAN("cyan", "سماوي مضيء"),
     NIGHT_BLUE("night_blue", "أزرق ملكي"),
     GOLD("gold", "ذهبي تراثي");

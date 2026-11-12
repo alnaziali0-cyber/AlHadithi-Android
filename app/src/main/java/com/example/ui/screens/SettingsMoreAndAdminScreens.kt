@@ -127,7 +127,7 @@ fun MoreHubScreen(
 
     Column(modifier = Modifier.fillMaxSize()) {
         SubScreenTopBar(
-            title = "جميع أقسام الحديثي",
+            title = "جميع أقسام خزائن الهدى",
             subtitle = "الموسوعة الإسلامية الشاملة؛ الأقسام المحلية متاحة دون اتصال"
         )
         LazyColumn(
@@ -137,7 +137,7 @@ fun MoreHubScreen(
         ) {
             item {
                 GlassCard(cornerRadius = 22.dp, contentPadding = PaddingValues(16.dp)) {
-                    Text("أقسام الحديثي", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                    Text("أقسام خزائن الهدى", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                     Text(
                         "بوابتك إلى القرآن والعبادات والمكتبة والخدمات الإسلامية في مكان واحد.",
                         style = MaterialTheme.typography.bodySmall,
@@ -163,6 +163,13 @@ private fun HubSectionGrid(
     items: List<HubMenuCard>,
     onNavigate: (AppDestination) -> Unit
 ) {
+    val isDark = LocalIsDarkThemeActive.current
+    val darkTones = listOf(
+        HubPastelTone(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.colorScheme.primary),
+        HubPastelTone(MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.onPrimaryContainer),
+        HubPastelTone(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.colorScheme.secondary),
+        HubPastelTone(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.colorScheme.tertiary)
+    )
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
             text = title,
@@ -176,7 +183,8 @@ private fun HubSectionGrid(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             items.forEachIndexed { index, card ->
-                val tone = hubPastelTones[index % hubPastelTones.size]
+                val tone = if (isDark) darkTones[index % darkTones.size]
+                    else hubPastelTones[index % hubPastelTones.size]
                 Column(
                     modifier = Modifier
                         .fillMaxWidth(0.235f)

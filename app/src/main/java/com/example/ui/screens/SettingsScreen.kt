@@ -77,6 +77,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -210,14 +211,14 @@ fun SettingsScreen(
                 ) {
                     Surface(
                         shape = RoundedCornerShape(18.dp),
-                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        color = Color(0xFFF7F5EE),
                         border = androidx.compose.foundation.BorderStroke(
                             1.dp, MaterialTheme.colorScheme.outlineVariant
                         )
                     ) {
                         Image(
                             painter = painterResource(R.drawable.img_alhadithi_logo),
-                            contentDescription = "شعار الحديثي",
+                            contentDescription = "الشعار الرسمي لخزائن الهدى",
                             contentScale = ContentScale.Fit,
                             modifier = Modifier.size(66.dp).padding(5.dp)
                         )
@@ -234,7 +235,7 @@ fun SettingsScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
-                            text = "AL-HADITHI  ·  ${BuildConfig.VERSION_NAME}",
+                            text = "KHAZAIN AL-HUDA  ·  ${BuildConfig.VERSION_NAME}",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.primary
                         )
@@ -288,7 +289,7 @@ fun SettingsScreen(
                 Spacer(modifier = Modifier.height(10.dp))
                 SettingsValueRow(
                     title = "أيقونة التطبيق",
-                    value = "شعار الحديثي",
+                    value = "شعار خزائن الهدى",
                     subtitle = "هذه هي الأيقونة المعتمدة فعلياً حالياً؛ لا توجد بدائل launcher إضافية مهيأة للاختيار."
                 )
             }
@@ -319,7 +320,7 @@ fun SettingsScreen(
                 }
 
                 Text(
-                    text = "معاينة خط الواجهة: الحديثي · بسم الله الرحمن الرحيم",
+                    text = "معاينة خط الواجهة: خزائن الهدى · بسم الله الرحمن الرحيم",
                     style = MaterialTheme.typography.bodyMedium.copy(
                         fontFamily = resolveUiFontFamily(settings.fontChoice)
                     ),
@@ -490,7 +491,8 @@ fun SettingsScreen(
                 }
                 if (settings.hijriOffsetDays != 0) {
                     TextButton(
-                        onClick = { onChangeHijriOffset(0) }
+                        onClick = { onChangeHijriOffset(0) },
+                        modifier = Modifier.align(Alignment.End)
                     ) { Text("استعادة التصحيح الافتراضي") }
                 }
 
@@ -933,19 +935,19 @@ fun SettingsScreen(
         item {
             SettingsSection(title = "الدعم والمساعدة") {
                 Text(
-                    "تواصل مع فريق الحديثي عبر البريد أو حساباتنا الرسمية، أو استخدم نماذج البلاغات والاقتراحات أدناه.",
+                    "تواصل مع فريق خزائن الهدى عبر البريد أو حساباتنا الرسمية، أو استخدم نماذج البلاغات والاقتراحات أدناه.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 SupportContactRow(
                     title = "البريد الإلكتروني",
-                    subtitle = SupportChannels.SUPPORT_EMAIL,
+                    subtitle = "فتح البريد الإلكتروني للدعم",
                     icon = Icons.Outlined.Email,
                     onClick = { openSupportEmail(context) }
                 )
                 SupportContactRow(
                     title = "Instagram",
-                    subtitle = SupportChannels.INSTAGRAM_HANDLE,
+                    subtitle = "فتح حساب الدعم على Instagram",
                     icon = Icons.Outlined.CameraAlt,
                     onClick = {
                         openSupportProfile(
@@ -958,7 +960,7 @@ fun SettingsScreen(
                 )
                 SupportContactRow(
                     title = "TikTok",
-                    subtitle = SupportChannels.TIKTOK_HANDLE,
+                    subtitle = "فتح حساب الدعم على TikTok",
                     icon = Icons.Outlined.MusicNote,
                     onClick = {
                         openSupportProfile(
@@ -1003,7 +1005,7 @@ fun SettingsScreen(
                 )
                 SettingsActionRow(
                     title = "اقتراح تطوير",
-                    subtitle = "شارك فكرة لتحسين الحديثي",
+                    subtitle = "شارك فكرة لتحسين التطبيق",
                     icon = Icons.Outlined.Lightbulb,
                     onClick = {
                         selectedSupportTopic = SupportTopic.SUGGESTION
@@ -1075,19 +1077,19 @@ fun SettingsScreen(
                 ) {
                     Surface(
                         shape = RoundedCornerShape(18.dp),
-                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        color = Color(0xFFF7F5EE),
                         border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
                     ) {
                         Image(
                             painter = painterResource(R.drawable.img_alhadithi_logo),
-                            contentDescription = "شعار تطبيق الحديثي",
+                            contentDescription = "الشعار الرسمي لخزائن الهدى",
                             contentScale = ContentScale.Fit,
                             modifier = Modifier.size(76.dp).padding(5.dp)
                         )
                     }
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "الحديثي | AL-HADITHI",
+                            text = "خزائن الهدى | KHAZAIN AL-HUDA",
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary
@@ -1171,7 +1173,7 @@ fun SettingsScreen(
     if (showSourcesDialog) {
         AlertDialog(
             onDismissRequest = { showSourcesDialog = false },
-            title = { Text("مصادر تطبيق الحديثي المعتمدة") },
+            title = { Text("مصادر تطبيق خزائن الهدى المعتمدة") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     sources.forEach { src ->
@@ -1345,7 +1347,7 @@ fun SettingsScreen(
                         }
                     }
                     Text(
-                        "سيُفتح مربع المشاركة في Android لتختار تطبيقاً لإرسال الرسالة. لا تُرفع البيانات تلقائياً إلى خادم الحديثي في هذا الإصدار.",
+                        "سيُفتح مربع المشاركة في Android لتختار تطبيقاً لإرسال الرسالة. لا تُرفع البيانات تلقائياً إلى خادم خزائن الهدى في هذا الإصدار.",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -1383,7 +1385,7 @@ fun SettingsScreen(
                                 putExtra(Intent.EXTRA_TEXT, message)
                                 attachmentUri?.let { uri ->
                                     putExtra(Intent.EXTRA_STREAM, uri)
-                                    clipData = ClipData.newUri(context.contentResolver, "مرفق بلاغ الحديثي", uri)
+                                    clipData = ClipData.newUri(context.contentResolver, "مرفق بلاغ خزائن الهدى", uri)
                                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                                 }
                             }
@@ -1434,7 +1436,7 @@ private fun SettingsSection(
 ) {
     var expanded by rememberSaveable(title) { mutableStateOf(false) }
     val icon = when (title) {
-        "المظهر" -> Icons.Outlined.Palette
+        "المظهر", "المظهر والألوان" -> Icons.Outlined.Palette
         "اللغة والخطوط وحجم النص", "الخطوط وحجم النص" -> Icons.Outlined.TextFields
         "المتابعة اليومية في الرئيسية" -> Icons.Outlined.Home
         "التنزيلات والتخزين" -> Icons.Outlined.DeleteForever
@@ -1447,62 +1449,71 @@ private fun SettingsSection(
         "إعادة ضبط التفضيلات" -> Icons.Outlined.DeleteForever
         else -> Icons.Outlined.Info
     }
-    GlassCard(
-        modifier = Modifier.fillMaxWidth(),
-        cornerRadius = 21.dp,
-        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 12.dp),
-        containerColor = MaterialTheme.colorScheme.surface,
-        borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.85f)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(role = Role.Button) { expanded = !expanded }
-                .padding(vertical = 4.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(start = 4.dp, end = 4.dp, bottom = 8.dp)
+        )
+        GlassCard(
+            modifier = Modifier.fillMaxWidth(),
+            cornerRadius = 21.dp,
+            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 12.dp),
+            containerColor = MaterialTheme.colorScheme.surface,
+            borderColor = MaterialTheme.colorScheme.outlineVariant
         ) {
-            Surface(
-                shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(role = Role.Button) { expanded = !expanded }
+                    .padding(vertical = 2.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                ) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(10.dp).size(21.dp)
+                    )
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = if (expanded) "إخفاء الخيارات" else "عرض الخيارات",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = if (expanded) "إعدادات هذه المجموعة ظاهرة" else "خيارات ${title}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
                 Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(10.dp).size(21.dp)
+                    imageVector = if (expanded) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore,
+                    contentDescription = if (expanded) "طي المجموعة" else "فتح المجموعة",
+                    tint = MaterialTheme.colorScheme.primary
                 )
             }
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = if (expanded) "اضغط لإغلاق المجموعة" else "اضغط لعرض الخيارات",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            Icon(
-                imageVector = if (expanded) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore,
-                contentDescription = if (expanded) "طي المجموعة" else "فتح المجموعة",
-                tint = MaterialTheme.colorScheme.primary
-            )
-        }
-        AnimatedVisibility(
-            visible = expanded,
-            enter = fadeIn() + expandVertically(),
-            exit = fadeOut() + shrinkVertically()
-        ) {
-            Column {
-                androidx.compose.material3.HorizontalDivider(
-                    modifier = Modifier.padding(top = 10.dp, bottom = 12.dp),
-                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.65f)
-                )
-                content()
+            AnimatedVisibility(
+                visible = expanded,
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkVertically()
+            ) {
+                Column {
+                    androidx.compose.material3.HorizontalDivider(
+                        modifier = Modifier.padding(top = 10.dp, bottom = 12.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant
+                    )
+                    content()
+                }
             }
         }
     }
@@ -1511,7 +1522,7 @@ private fun SettingsSection(
 private fun openSupportEmail(context: Context) {
     val intent = Intent(Intent.ACTION_SENDTO).apply {
         data = Uri.fromParts("mailto", SupportChannels.SUPPORT_EMAIL, null)
-        putExtra(Intent.EXTRA_SUBJECT, "التواصل مع دعم تطبيق الحديثي")
+        putExtra(Intent.EXTRA_SUBJECT, "التواصل مع دعم تطبيق خزائن الهدى")
     }
     try {
         context.startActivity(intent)

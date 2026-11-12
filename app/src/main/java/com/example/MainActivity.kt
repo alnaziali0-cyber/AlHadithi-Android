@@ -10,6 +10,8 @@ import com.example.util.configureAppCheck
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Keep the activity caption empty; the product identity belongs inside the Compose UI.
+        title = ""
 
         // STEP 1: Configure Firebase App Check with launch intent before UI or ViewModels
         configureAppCheck(this, intent)

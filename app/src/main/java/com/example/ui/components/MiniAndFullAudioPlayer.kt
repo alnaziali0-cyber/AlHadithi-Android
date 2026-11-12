@@ -68,7 +68,7 @@ fun PersistentGlassMiniPlayer(
     if (state.isSpeakingTts && state.ttsTitle != null) {
         Surface(
             shape = RoundedCornerShape(20.dp),
-            color = if (isDark) Color(0xFF132A27).copy(alpha = 0.78f) else Color.White.copy(alpha = 0.76f),
+            color = if (isDark) MaterialTheme.colorScheme.surface.copy(alpha = 0.98f) else Color.White.copy(alpha = 0.76f),
             border = BorderStroke(1.dp, HeritageGold.copy(alpha = 0.45f)),
             modifier = modifier
                 .fillMaxWidth()
@@ -123,7 +123,7 @@ fun PersistentGlassMiniPlayer(
     var showFullSheet by remember { mutableStateOf(false) }
 
     val glassColor = if (isDark) {
-        Color(0xFF132A27).copy(alpha = 0.76f)
+        MaterialTheme.colorScheme.surface.copy(alpha = 0.98f)
     } else {
         Color.White.copy(alpha = 0.74f)
     }
@@ -246,7 +246,7 @@ fun PersistentGlassMiniPlayer(
     if (showFullSheet) {
         ModalBottomSheet(
             onDismissRequest = { showFullSheet = false },
-            containerColor = if (isDark) Color(0xFF102422).copy(alpha = 0.82f) else Color.White.copy(alpha = 0.82f),
+            containerColor = if (isDark) MaterialTheme.colorScheme.surface else Color.White.copy(alpha = 0.82f),
             shape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp),
             tonalElevation = 0.dp,
             scrimColor = Color.Black.copy(alpha = 0.30f)

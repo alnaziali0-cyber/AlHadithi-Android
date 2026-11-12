@@ -434,7 +434,7 @@ fun HiddenDeveloperPanelScreen(
 
     Column(modifier = Modifier.fillMaxSize()) {
         SubScreenTopBar(
-            title = "لوحة المطور · AL-HADITHI",
+            title = "لوحة المطور · KHAZAIN AL-HUDA",
             subtitle = "جلسة المطوّر محمية · تحقق موثّق عبر Firebase",
             onBack = onBack,
             trailing = {

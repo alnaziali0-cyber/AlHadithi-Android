@@ -1,5 +1,6 @@
 package com.example.ui
 
+import android.app.Activity
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -41,6 +42,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,10 +55,12 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.R
@@ -188,13 +192,23 @@ fun AlHadithiAppRoot(
         lineSpacing = settings.lineSpacing,
         content = {
         val activeDarkTheme = LocalIsDarkThemeActive.current
+        val systemBarsView = LocalView.current
+        SideEffect {
+            val window = (systemBarsView.context as? Activity)?.window
+            if (window != null) {
+                WindowInsetsControllerCompat(window, systemBarsView).apply {
+                    isAppearanceLightStatusBars = !activeDarkTheme
+                    isAppearanceLightNavigationBars = !activeDarkTheme
+                }
+            }
+        }
         val navGlassBg = if (activeDarkTheme) {
-            Color(0xFF101D2B).copy(alpha = 0.92f)
+            MaterialTheme.colorScheme.surface.copy(alpha = 0.98f)
         } else {
             Color.White.copy(alpha = 0.88f)
         }
         val navGlassBorder = if (activeDarkTheme) {
-            Color.White.copy(alpha = 0.16f)
+            MaterialTheme.colorScheme.outlineVariant
         } else {
             Color.White.copy(alpha = 0.85f)
         }

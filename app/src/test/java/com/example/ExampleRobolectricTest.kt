@@ -23,10 +23,10 @@ import org.robolectric.annotation.Config
 class ExampleRobolectricTest {
 
     @Test
-    fun appName_andDeveloperEmailRestriction_matchAlHadithiSpec() {
+    fun appName_andDeveloperEmailRestriction_matchKhazainAlHudaSpec() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val appName = context.getString(R.string.app_name)
-        assertEquals("الحديثي", appName)
+        assertEquals("خزائن الهدى", appName)
         assertEquals("alnaziali0@gmail.com", AUTHORIZED_DEVELOPER_EMAIL)
     }
 

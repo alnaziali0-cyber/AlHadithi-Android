@@ -1,8 +1,5 @@
 package com.example.ui.screens
 
-import android.content.Intent
-import android.net.Uri
-
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

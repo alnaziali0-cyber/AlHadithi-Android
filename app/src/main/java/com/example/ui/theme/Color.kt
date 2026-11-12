@@ -2,7 +2,7 @@ package com.example.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// AL-HADITHI refreshed identity — muted teal, ink and soft botanical neutrals.
+// KHAZAIN AL-HUDA refreshed identity — muted teal, ink and soft botanical neutrals.
 val TurquoisePrimaryLight = Color(0xFF39766F)
 val TurquoiseSecondaryLight = Color(0xFF568A82)
 val EmeraldDeep = Color(0xFF24564F)
@@ -26,25 +26,25 @@ val PastelInk = Color(0xFF172D2B)
 val PastelMutedText = Color(0xFF637875)
 
 // Calm light surfaces and borders — avoid heavy shadows or high-contrast separators.
-val CalmAlabasterBg = Color(0xFFEAF3F0)
-val PureGlassWhite = Color(0xFFFAFDFC)
-val SoftSageSurfaceVariant = Color(0xFFE4EFED)
-val InkDarkText = Color(0xFF172D2B)
-val MutedSlateText = Color(0xFF637875)
-val SubtleGlassBorderLight = Color(0x66D6E2DE)
+val CalmAlabasterBg = Color(0xFFF7F8F5)
+val PureGlassWhite = Color(0xFFFFFFFF)
+val SoftSageSurfaceVariant = Color(0xFFF1F4F1)
+val InkDarkText = Color(0xFF18221D)
+val MutedSlateText = Color(0xFF68766F)
+val SubtleGlassBorderLight = Color(0xFFDCE3DE)
 
 // Deep mode remains available, but uses the same teal/navy family.
-val TurquoisePrimaryDark = Color(0xFF8BC5B9)
-val TurquoiseSecondaryDark = Color(0xFFA8D6CD)
-val NightSanctuaryBg = Color(0xFF101A1B)
-val NightGlassSurface = Color(0xFF182526)
-val NightSurfaceVariant = Color(0xFF223334)
-val NightGoldAccent = Color(0xFFE4C477)
-val NightLightText = Color(0xFFEAF3F0)
-val NightMutedText = Color(0xFFB1C3BE)
-val NightEmeraldAccent = Color(0xFF8BC5B9)
-val NightEmeraldSoft = Color(0xFF213D39)
-val SubtleGlassBorderDark = Color(0x445D9B90)
+val TurquoisePrimaryDark = Color(0xFF4D9A8C)
+val TurquoiseSecondaryDark = Color(0xFF8BC8B8)
+val NightSanctuaryBg = Color(0xFF101312)
+val NightGlassSurface = Color(0xFF1B211E)
+val NightSurfaceVariant = Color(0xFF202824)
+val NightGoldAccent = Color(0xFFC6A15B)
+val NightLightText = Color(0xFFF4F5F2)
+val NightMutedText = Color(0xFFA8B1AC)
+val NightEmeraldAccent = Color(0xFF4D9A8C)
+val NightEmeraldSoft = Color(0xFF233A32)
+val SubtleGlassBorderDark = Color(0xFF2B3530)
 
 // Occasion adaptive accents (subtle and readable in both themes).
 val MourningBannerBgLight = Color(0xFFF6ECEF)
@@ -61,7 +61,7 @@ val JoyBannerTextDark = Color(0xFF9FE8D6)
  * Accent families offered in the appearance settings.
  *
  * Every palette keeps the calm background surfaces and the heritage gold tertiary so that the
- * identity of Al-Hadithi is preserved; only the primary/secondary family changes. Contrast
+ * identity of Khazain Al-Huda is preserved; only the primary/secondary family changes. Contrast
  * against the paired `on*` colour was chosen to stay at or above the WCAG AA ratio for body text.
  */
 data class AccentPalette(
@@ -86,12 +86,12 @@ val EmeraldAccentPalette = AccentPalette(
     lightOnPrimaryContainer = Color(0xFF123E31),
     lightSecondary = Color(0xFF3D9277),
     lightOnSecondary = Color.White,
-    darkPrimary = Color(0xFF72D5B2),
-    darkOnPrimary = Color(0xFF07382B),
-    darkPrimaryContainer = Color(0xFF174638),
-    darkOnPrimaryContainer = Color(0xFFD3F7E8),
-    darkSecondary = Color(0xFF9BE6CD),
-    darkOnSecondary = Color(0xFF103D30)
+    darkPrimary = Color(0xFF5AA88D),
+    darkOnPrimary = Color(0xFF0D1B15),
+    darkPrimaryContainer = Color(0xFF243B32),
+    darkOnPrimaryContainer = Color(0xFFDDF3E8),
+    darkSecondary = Color(0xFF8BC8B8),
+    darkOnSecondary = Color(0xFF13221C)
 )
 
 val TurquoiseAccentPalette = AccentPalette(
@@ -101,12 +101,12 @@ val TurquoiseAccentPalette = AccentPalette(
     lightOnPrimaryContainer = Color(0xFF173D38),
     lightSecondary = Color(0xFF568A82),
     lightOnSecondary = Color.White,
-    darkPrimary = Color(0xFF8BC5B9),
-    darkOnPrimary = Color(0xFF173D38),
-    darkPrimaryContainer = Color(0xFF213D39),
-    darkOnPrimaryContainer = Color(0xFFEAF3F0),
-    darkSecondary = Color(0xFFA8D6CD),
-    darkOnSecondary = Color(0xFF173D38)
+    darkPrimary = Color(0xFF4D9A8C),
+    darkOnPrimary = Color(0xFF081A15),
+    darkPrimaryContainer = Color(0xFF223B34),
+    darkOnPrimaryContainer = Color(0xFFDDF2EB),
+    darkSecondary = Color(0xFF8BC8B8),
+    darkOnSecondary = Color(0xFF10231D)
 )
 
 val LuminousCyanAccentPalette = AccentPalette(
@@ -116,12 +116,12 @@ val LuminousCyanAccentPalette = AccentPalette(
     lightOnPrimaryContainer = Color(0xFF063747),
     lightSecondary = Color(0xFF168EAD),
     lightOnSecondary = Color.White,
-    darkPrimary = Color(0xFF68E4F4),
-    darkOnPrimary = Color(0xFF063442),
-    darkPrimaryContainer = Color(0xFF164A5B),
-    darkOnPrimaryContainer = Color(0xFFE0FAFF),
-    darkSecondary = Color(0xFF9CECF5),
-    darkOnSecondary = Color(0xFF063442)
+    darkPrimary = Color(0xFF519C9A),
+    darkOnPrimary = Color(0xFF0B1D1C),
+    darkPrimaryContainer = Color(0xFF213A39),
+    darkOnPrimaryContainer = Color(0xFFD7F0EE),
+    darkSecondary = Color(0xFF8BC8B8),
+    darkOnSecondary = Color(0xFF12231F)
 )
 
 val GoldAccentPalette = AccentPalette(
@@ -132,11 +132,11 @@ val GoldAccentPalette = AccentPalette(
     lightSecondary = Color(0xFF7A5C17),
     lightOnSecondary = Color.White,
     darkPrimary = NightGoldAccent,
-    darkOnPrimary = Color(0xFF3A2804),
-    darkPrimaryContainer = Color(0xFF35280D),
-    darkOnPrimaryContainer = Color(0xFFF9E2AC),
-    darkSecondary = Color(0xFFD8B45C),
-    darkOnSecondary = Color(0xFF3A2804)
+    darkOnPrimary = Color(0xFF211A0E),
+    darkPrimaryContainer = Color(0xFF3C321F),
+    darkOnPrimaryContainer = Color(0xFFF3E6C7),
+    darkSecondary = Color(0xFFD8B875),
+    darkOnSecondary = Color(0xFF211A0E)
 )
 
 val NightBlueAccentPalette = AccentPalette(
@@ -146,12 +146,12 @@ val NightBlueAccentPalette = AccentPalette(
     lightOnPrimaryContainer = Color(0xFF1B2C4A),
     lightSecondary = Color(0xFF3D5F99),
     lightOnSecondary = Color.White,
-    darkPrimary = Color(0xFF93C5FD),
-    darkOnPrimary = Color(0xFF1E3A5F),
-    darkPrimaryContainer = Color(0xFF1E3350),
-    darkOnPrimaryContainer = Color(0xFFDBEAFE),
-    darkSecondary = Color(0xFFA5C9F5),
-    darkOnSecondary = Color(0xFF1E3A5F)
+    darkPrimary = Color(0xFF879BB7),
+    darkOnPrimary = Color(0xFF151E2A),
+    darkPrimaryContainer = Color(0xFF2A3543),
+    darkOnPrimaryContainer = Color(0xFFE1E8F1),
+    darkSecondary = Color(0xFFB0BCD0),
+    darkOnSecondary = Color(0xFF1A2430)
 )
 
 fun accentPaletteFor(choice: AccentChoice): AccentPalette = when (choice) {
@@ -178,10 +178,10 @@ fun readerBackdropFor(
     isDark: Boolean
 ): ReaderBackdrop = when {
     isDark -> ReaderBackdrop(
-        background = Color(0xFF0D1513),
-        onBackground = Color(0xFFE7EFEC),
-        markerColor = Color(0xFFE2BA64),
-        surfaceTint = Color(0xFF16211F)
+        background = NightSanctuaryBg,
+        onBackground = NightLightText,
+        markerColor = NightGoldAccent,
+        surfaceTint = NightGlassSurface
     )
 
     style == QuranBackgroundStyle.MUSHAF -> ReaderBackdrop(

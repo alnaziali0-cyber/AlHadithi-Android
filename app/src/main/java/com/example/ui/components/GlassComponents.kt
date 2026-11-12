@@ -89,8 +89,8 @@ fun GlassAmbientBackground(
         Canvas(modifier = Modifier.fillMaxSize()) {
             val w = size.width
             val h = size.height
-            val glowAlpha = if (isDark) 0.22f else 0.045f
-            val goldAlpha = if (isDark) 0.12f else 0.035f
+            val glowAlpha = if (isDark) 0.0f else 0.035f
+            val goldAlpha = if (isDark) 0.0f else 0.025f
 
             // Top-right calm turquoise sanctuary glow
             drawCircle(
@@ -161,18 +161,15 @@ fun GlassCard(
         label = "glass_press_scale"
     )
 
-    val resolvedBgBrush = if (containerColor != null) {
+    val resolvedBgBrush = if (isDark) {
+        // Dark surfaces stay solid charcoal; callers cannot accidentally reintroduce pastel glass.
+        val darkSurface = containerColor ?: MaterialTheme.colorScheme.surface
+        Brush.verticalGradient(listOf(darkSurface, darkSurface))
+    } else if (containerColor != null) {
         Brush.verticalGradient(
             listOf(
                 containerColor.copy(alpha = (containerColor.alpha * 0.82f).coerceIn(0.45f, 0.92f)),
                 containerColor.copy(alpha = (containerColor.alpha * 0.68f).coerceIn(0.40f, 0.88f))
-            )
-        )
-    } else if (isDark) {
-        Brush.verticalGradient(
-            listOf(
-                Color(0xFF14263A).copy(alpha = 0.92f),
-                Color(0xFF101C2B).copy(alpha = 0.94f)
             )
         )
     } else {
@@ -189,9 +186,8 @@ fun GlassCard(
     } else if (isDark) {
         Brush.linearGradient(
             listOf(
-                Color.White.copy(alpha = 0.22f),
-                Color(0xFF4FD7E5).copy(alpha = 0.22f),
-                HeritageGold.copy(alpha = 0.10f)
+                MaterialTheme.colorScheme.outlineVariant,
+                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.72f)
             )
         )
     } else {
@@ -245,9 +241,9 @@ fun EmeraldHeroCard(
     val gradient = if (isDark) {
         Brush.linearGradient(
             colors = listOf(
-                Color(0xFF0E3A36).copy(alpha = 0.82f),
-                Color(0xFF0A2724).copy(alpha = 0.76f),
-                Color(0xFF13453F).copy(alpha = 0.80f)
+                Color(0xFF202824),
+                Color(0xFF1B211E),
+                Color(0xFF202824)
             )
         )
     } else {
@@ -304,12 +300,12 @@ fun AlHadithiBrandTopBar(
     var lastTapMs by remember { mutableLongStateOf(0L) }
 
     val glassSurfaceColor = if (isDark) {
-        Color(0xFF122825).copy(alpha = 0.56f)
+        MaterialTheme.colorScheme.surface.copy(alpha = 0.97f)
     } else {
         Color.White.copy(alpha = 0.62f)
     }
     val glassBorderColor = if (isDark) {
-        Color.White.copy(alpha = 0.16f)
+        MaterialTheme.colorScheme.outlineVariant
     } else {
         Color.White.copy(alpha = 0.85f)
     }
@@ -336,8 +332,8 @@ fun AlHadithiBrandTopBar(
             ) {
                 Surface(
                     shape = RoundedCornerShape(14.dp),
-                    color = Color.Transparent,
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.18f)),
+                    color = Color(0xFFF7F5EE),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
                     modifier = Modifier
                         .size(46.dp)
                         .clip(RoundedCornerShape(14.dp))
@@ -458,10 +454,10 @@ fun SubScreenTopBar(
     val isDark = LocalIsDarkThemeActive.current
     Surface(
         shape = RoundedCornerShape(20.dp),
-        color = if (isDark) Color(0xFF122825).copy(alpha = 0.52f) else Color.White.copy(alpha = 0.60f),
+        color = if (isDark) MaterialTheme.colorScheme.surface.copy(alpha = 0.97f) else Color.White.copy(alpha = 0.60f),
         border = BorderStroke(
             1.dp,
-            if (isDark) Color.White.copy(alpha = 0.14f) else Color.White.copy(alpha = 0.82f)
+            if (isDark) MaterialTheme.colorScheme.outlineVariant else Color.White.copy(alpha = 0.82f)
         ),
         modifier = Modifier
             .fillMaxWidth()
@@ -531,7 +527,7 @@ fun GlassFilterChip(
     val bgColor = if (selected) {
         MaterialTheme.colorScheme.primary.copy(alpha = 0.88f)
     } else if (isDark) {
-        Color(0xFF152E2B).copy(alpha = 0.56f)
+        MaterialTheme.colorScheme.surfaceVariant
     } else {
         Color.White.copy(alpha = 0.62f)
     }
@@ -543,7 +539,7 @@ fun GlassFilterChip(
     val borderColor = if (selected) {
         HeritageGold.copy(alpha = 0.55f)
     } else if (isDark) {
-        Color.White.copy(alpha = 0.16f)
+        MaterialTheme.colorScheme.outlineVariant
     } else {
         MaterialTheme.colorScheme.primary.copy(alpha = 0.20f)
     }

@@ -29,7 +29,7 @@ services = json.loads((ROOT / "app/google-services.json").read_text(encoding="ut
 
 require(f'applicationId = "{APP_ID}"' in build, "applicationId preserved")
 require('namespace = "com.example"' in build, "Kotlin namespace preserved")
-require("versionCode = 23" in build and 'versionName = "1.0.21"' in build, "version is 1.0.21 (23)")
+require("versionCode = 24" in build and 'versionName = "1.0.22"' in build, "version is 1.0.22 (24)")
 require("minSdk = 24" in build and "targetSdk = 36" in build, "SDK constraints remain explicit")
 require("verifyReleaseSigningInputs" in build, "Release signing fail-fast guard exists")
 require("isDebuggable = false" in build, "Release debuggable is explicitly false")
@@ -97,7 +97,7 @@ require("observeCachedAyahCount(): Flow<Int>" in dao, "Room exposes a live local
 require("dao.observeCachedAyahCount()" in view_model and "cachedAyahCount = cachedAyahCount" in shell, "cached Quran count reaches SettingsScreen through ViewModel")
 require("ThemeMode.SYSTEM -> darkTheme" in theme and "darkTheme = isSystemInDarkTheme()" in (ROOT / "app/src/main/java/com/example/ui/AlHadithiAppShell.kt").read_text(encoding="utf-8"), "system theme follows actual Android system mode")
 require("darkMode = LocalIsDarkThemeActive.current" in shell and "darkMode = settings.darkMode" not in shell, "Quran reader uses resolved theme state rather than legacy dark flag")
-require("LuminousCyanAccentPalette" in colors and "NightSanctuaryBg" in colors, "dark navy and luminous cyan design tokens exist")
+require("LuminousCyanAccentPalette" in colors and "NightSanctuaryBg = Color(0xFF101312)" in colors and "NightGlassSurface = Color(0xFF1B211E)" in colors, "charcoal dark-mode design tokens exist")
 require("font reset preserves daily goals" in repo_tests and "resetting all preferences preserves user progress" in repo_tests, "preference reset regression tests are present")
 require("onChangeHijriOffset" in shell and "onChangeHijriOffset" in settings, "Hijri offset setting is connected from UI to ViewModel")
 require("onChangeHomeLayout" not in settings, "fixed home layout exposes no inert reorder callback")
@@ -157,7 +157,24 @@ require("AppDestination.PRAYER_TIMES" in sections_ui and "مواقيت الصل�
 require("fun SectionDivider" in (ROOT / "app/src/main/java/com/example/ui/components/SectionDivider.kt").read_text(encoding="utf-8"), "shared segmented SectionDivider component exists")
 require("PastelGreenSurface" in sections_ui and "PastelPurpleSurface" in sections_ui and "PastelPeachSurface" in sections_ui, "section tiles use the shared pastel identity palette")
 
-print(f"AL-HADITHI static preflight: {len(checks)} checks passed, {len(errors)} failed")
+brand_strings = (ROOT / "app/src/main/res/values/strings.xml").read_text(encoding="utf-8")
+require('<string name="app_name">خزائن الهدى</string>' in brand_strings, "Android application display name is Khazain Al-Huda")
+require("KHAZAIN AL-HUDA" in brand_strings and "AL-HADITHI" not in brand_strings, "brand subtitle is updated")
+font_file = ROOT / "app/src/main/res/font/alan_sans_light.ttf"
+require(font_file.is_file() and font_file.stat().st_size > 50000, "Alan Sans Light UI font is bundled")
+require((ROOT / "app/src/main/assets/licenses/ALAN_SANS_OFL.txt").is_file(), "Alan Sans OFL license notice is bundled")
+main_activity = (ROOT / "app/src/main/java/com/example/MainActivity.kt").read_text(encoding="utf-8")
+require('title = ""' in main_activity, "extra Android activity caption is disabled")
+window_theme = (ROOT / "app/src/main/res/values/themes.xml").read_text(encoding="utf-8")
+require('parent="android:Theme.DeviceDefault.NoActionBar"' in window_theme and 'android:windowNoTitle">true' in window_theme, "native window title and ActionBar are explicitly disabled")
+require("AlanSansFontFamily" in (ROOT / "app/src/main/java/com/example/ui/theme/Type.kt").read_text(encoding="utf-8"), "Alan Sans is part of the global UI typography")
+glass_components = (ROOT / "app/src/main/java/com/example/ui/components/GlassComponents.kt").read_text(encoding="utf-8")
+require("val resolvedBgBrush = if (isDark)" in glass_components, "dark GlassCard surfaces cannot inherit bright pastel container tints")
+more_hub = (ROOT / "app/src/main/java/com/example/ui/screens/SettingsMoreAndAdminScreens.kt").read_text(encoding="utf-8")
+require("val darkTones = listOf(" in more_hub and "if (isDark) darkTones" in more_hub, "all-sections icon tiles switch to charcoal-safe colors in dark mode")
+shell_source = (ROOT / "app/src/main/java/com/example/ui/AlHadithiAppShell.kt").read_text(encoding="utf-8")
+require("isAppearanceLightStatusBars = !activeDarkTheme" in shell_source and "isAppearanceLightNavigationBars = !activeDarkTheme" in shell_source, "system bar icon contrast follows the selected in-app theme")
+print(f"KHAZAIN AL-HUDA static preflight: {len(checks)} checks passed, {len(errors)} failed")
 for item in checks:
     print(f"PASS  {item}")
 for item in errors:

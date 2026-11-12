@@ -12,7 +12,7 @@
   },
   "locationPolicy": {
     "provider": "saved_governorate_coordinates",
-    "description": "Use the coordinates belonging to the governorate selected and saved by the user in AL-HADITHI. Do not let IP geolocation, VPN, or ISP lookup silently replace that selection.",
+    "description": "Use the coordinates belonging to the governorate selected and saved by the user in KHAZAIN AL-HUDA. Do not let IP geolocation, VPN, or ISP lookup silently replace that selection.",
     "timeZone": "Asia/Baghdad"
   },
   "calculationParameters": {

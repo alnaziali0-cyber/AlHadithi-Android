@@ -237,7 +237,7 @@ class UserPreferencesRepositoryTest {
 
         val state = repo.settingsFlow.first()
         assertEquals(ThemeMode.DARK, state.themeMode)
-        assertEquals(AppFontChoice.NASKH, state.fontChoice)
+        assertEquals(AppFontChoice.ALAN_SANS, state.fontChoice)
         assertTrue(state.notifyPrayers)
     }
 

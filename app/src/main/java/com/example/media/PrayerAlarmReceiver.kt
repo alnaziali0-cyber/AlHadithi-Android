@@ -52,7 +52,7 @@ class PrayerAlarmReceiver : BroadcastReceiver() {
         val builder = NotificationCompat.Builder(context, selectedChannel)
             .setSmallIcon(R.drawable.ic_notification_alhadithi)
             .setContentTitle("حان الآن وقت صلاة $prayerName")
-            .setContentText(listOf("الحديثي", areaName, timeText).filter { it.isNotBlank() }.joinToString(" · "))
+            .setContentText(listOf("خزائن الهدى", areaName, timeText).filter { it.isNotBlank() }.joinToString(" · "))
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setPriority(if (audible) NotificationCompat.PRIORITY_HIGH else NotificationCompat.PRIORITY_LOW)
             .setAutoCancel(true)

@@ -87,7 +87,7 @@ fun GovernorateSelectorSheet(
     val isDark = com.example.ui.theme.LocalIsDarkThemeActive.current
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        containerColor = if (isDark) Color(0xFF102422).copy(alpha = 0.90f) else Color.White.copy(alpha = 0.88f)
+        containerColor = if (isDark) MaterialTheme.colorScheme.surface else Color.White.copy(alpha = 0.88f)
     ) {
         Column(
             modifier = Modifier
@@ -114,7 +114,7 @@ fun GovernorateSelectorSheet(
                 }
                 Column {
                     Text(
-                        text = "الحديثي | AL-HADITHI",
+                        text = "خزائن الهدى | KHAZAIN AL-HUDA",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )
@@ -128,7 +128,7 @@ fun GovernorateSelectorSheet(
 
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "تظهر نافذة إذن الموقع مرة واحدة عند الضغط فقط. اختر «الموقع الدقيق» و«أثناء استخدام التطبيق»؛ يُستخدم لتحديد المحافظة والمواقيت والقبلة ولا يتتبع الحديثي موقعك في الخلفية.",
+                text = "تظهر نافذة إذن الموقع مرة واحدة عند الضغط فقط. اختر «الموقع الدقيق» و«أثناء استخدام التطبيق»؛ يُستخدم لتحديد المحافظة والمواقيت والقبلة ولا يتتبع خزائن الهدى موقعك في الخلفية.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

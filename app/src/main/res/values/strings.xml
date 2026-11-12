@@ -1,6 +1,6 @@
 <resources>
-    <string name="app_name">الحديثي</string>
-    <string name="app_brand_subtitle">AL-HADITHI · الموسوعة الإسلامية المتكاملة</string>
+    <string name="app_name">خزائن الهدى</string>
+    <string name="app_brand_subtitle">KHAZAIN AL-HUDA · الموسوعة الإسلامية المتكاملة</string>
     <string name="nav_home">الرئيسية</string>
     <string name="nav_quran">القرآن</string>
     <string name="nav_library">المكتبة</string>
@@ -32,9 +32,9 @@
     <string name="ai_scholar_disclaimer">تنبيه علمي: يعتمد الباحث الذكي على المصادر الإسلامية الموثقة للشرح والربط الموضوعي فقط، ولا يُنشئ آيات قرآنية أو يُصدر فتاوى شرعية مستقلة. يُرجع في الأحكام العملية إلى الرسالة العملية لمرجع التقليد.</string>
 
     <string name="ad_free_title">إزالة الإعلانات</string>
-    <string name="ad_free_message">تطبيق الحديثي خالٍ تماماً من الإعلانات التجارية حالياً لوجه الله تعالى وخدمةً للقارئ الكريم، ولا توجد أي رسوم أو اشتراكات مخفية.</string>
+    <string name="ad_free_message">تطبيق خزائن الهدى خالٍ تماماً من الإعلانات التجارية حالياً لوجه الله تعالى وخدمةً للقارئ الكريم، ولا توجد أي رسوم أو اشتراكات مخفية.</string>
 
-    <string name="cd_logo">شعار تطبيق الحديثي</string>
+    <string name="cd_logo">شعار تطبيق خزائن الهدى</string>
     <string name="cd_back">رجوع</string>
     <string name="cd_search">البحث الشامل</string>
     <string name="cd_settings">الإعدادات</string>

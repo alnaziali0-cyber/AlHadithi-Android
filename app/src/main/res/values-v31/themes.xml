@@ -1,8 +1,8 @@
 <resources>
-    <!-- Android 12+ system splash screen follows the refreshed Al-Hadithi identity. -->
+    <!-- Khazain Al-Huda identity for the Android 12+ system splash screen. -->
     <style name="Theme.MyApplication">
-        <item name="android:windowSplashScreenBackground">#EAF3F0</item>
+        <item name="android:windowSplashScreenBackground">#F6F4ED</item>
         <item name="android:windowSplashScreenAnimatedIcon">@drawable/alhadithi_launcher_mark</item>
-        <item name="android:windowSplashScreenIconBackgroundColor">#EAF3F0</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">#F6F4ED</item>
     </style>
 </resources>

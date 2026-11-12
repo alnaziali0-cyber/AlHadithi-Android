@@ -127,7 +127,7 @@ class AdhanPlaybackService : Service() {
         )
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification_alhadithi)
-            .setContentTitle("أذان الحديثي")
+            .setContentTitle("أذان خزائن الهدى")
             .setContentText("يتم تشغيل تسجيل الأذان")
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
             .setPriority(NotificationCompat.PRIORITY_LOW)

@@ -9,16 +9,19 @@ import androidx.compose.ui.unit.sp
 import com.example.R
 
 enum class AppFontChoice(val key: String, val arabicLabel: String) {
-    NASKH("NASKH", "نسخ واضح (افتراضي)"),
+    ALAN_SANS("ALAN_SANS", "Alan Sans Light (الخط المعتمد)"),
+    NASKH("NASKH", "نسخ واضح"),
     TAJAWAL("TAJAWAL", "تجوّل"),
     AMIRI("AMIRI", "أميري تراثي"),
     KUFI("KUFI", "كوفي حديث");
 
     companion object {
         fun fromKey(key: String): AppFontChoice =
-            entries.firstOrNull { it.key == key } ?: NASKH
+            entries.firstOrNull { it.key == key } ?: ALAN_SANS
     }
 }
+
+val AlanSansFontFamily = FontFamily(Font(R.font.alan_sans_light, FontWeight.Light))
 
 val TajawalFontFamily = FontFamily(
     Font(R.font.tajawal, FontWeight.Normal),
@@ -49,6 +52,7 @@ val KufiFontFamily = FontFamily(
 )
 
 fun resolveUiFontFamily(choice: AppFontChoice): FontFamily = when (choice) {
+    AppFontChoice.ALAN_SANS -> AlanSansFontFamily
     AppFontChoice.NASKH -> NaskhFontFamily
     AppFontChoice.TAJAWAL -> TajawalFontFamily
     AppFontChoice.AMIRI -> AmiriFontFamily
@@ -69,7 +73,7 @@ fun resolveReadingFontFamily(choice: ReadingFontChoice): FontFamily = when (choi
 }
 
 fun buildAlHadithiTypography(
-    fontChoice: AppFontChoice = AppFontChoice.NASKH,
+    fontChoice: AppFontChoice = AppFontChoice.ALAN_SANS,
     scale: Float = 1.0f
 ): Typography {
     val uiFamily = resolveUiFontFamily(fontChoice)

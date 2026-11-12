@@ -28,7 +28,7 @@ object SystemActionsHelper {
     }
 
     fun sharePlainText(context: Context, title: String, body: String) {
-        val shareText = "$body\n\n— عبر تطبيق الحديثي | AL-HADITHI"
+        val shareText = "$body\n\n— عبر تطبيق خزائن الهدى | KHAZAIN AL-HUDA"
         val sendIntent = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
             putExtra(Intent.EXTRA_SUBJECT, title)
@@ -68,13 +68,13 @@ object SystemActionsHelper {
     ): Boolean {
         return try {
             val bitmap = BitmapFactory.decodeResource(context.resources, drawableResId) ?: return false
-            val filename = "AlHadithi_${displayName.replace(" ", "_")}_${System.currentTimeMillis()}.png"
+            val filename = "KhazainAlHuda_${displayName.replace(" ", "_")}_${System.currentTimeMillis()}.png"
             val resolver = context.contentResolver
             val contentValues = ContentValues().apply {
                 put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
                 put(MediaStore.MediaColumns.MIME_TYPE, "image/png")
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/AlHadithi")
+                    put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/KhazainAlHuda")
                 }
             }
             val uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
@@ -102,12 +102,12 @@ object SystemActionsHelper {
                 BitmapFactory.Options().apply { inSampleSize = sample; inPreferredConfig = Bitmap.Config.RGB_565 }
             ) ?: return false
             val safeName = displayName.replace(Regex("[^\\p{L}\\p{N}_-]"), "_").take(60)
-            val filename = "AlHadithi_${safeName}_${System.currentTimeMillis()}.png"
+            val filename = "KhazainAlHuda_${safeName}_${System.currentTimeMillis()}.png"
             val values = ContentValues().apply {
                 put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
                 put(MediaStore.MediaColumns.MIME_TYPE, "image/png")
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/AlHadithi")
+                    put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/KhazainAlHuda")
                 }
             }
             val uri = context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values) ?: run {
