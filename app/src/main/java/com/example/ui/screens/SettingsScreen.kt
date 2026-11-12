@@ -490,8 +490,7 @@ fun SettingsScreen(
                 }
                 if (settings.hijriOffsetDays != 0) {
                     TextButton(
-                        onClick = { onChangeHijriOffset(0) },
-                        modifier = Modifier.align(Alignment.End)
+                        onClick = { onChangeHijriOffset(0) }
                     ) { Text("استعادة التصحيح الافتراضي") }
                 }
 
