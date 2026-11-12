@@ -26,6 +26,7 @@ import com.example.ui.theme.QuranBackgroundStyle
 import com.example.ui.theme.ReadingFontChoice
 import com.example.ui.theme.ThemeMode
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import java.security.MessageDigest
 
@@ -54,6 +55,7 @@ enum class HomeCard(val key: String, val arabicTitle: String) {
 
         val defaultOrder: List<HomeCard> = listOf(
             OCCASIONS,
+            PRAYER_HERO,
             DAILY_TIMES,
             PRAYER_TRACKING,
             QUICK_ACCESS
@@ -204,6 +206,7 @@ class UserPreferencesRepository(private val context: Context) {
         val RECITER_ID = stringPreferencesKey("reciter_id")
         val PLAYBACK_SPEED = floatPreferencesKey("playback_speed")
         val ADMIN_PIN_HASH = stringPreferencesKey("admin_pin_hash")
+        val DEVELOPER_PROBE = stringPreferencesKey("developer_probe")
         val THEME_MODE = stringPreferencesKey("theme_mode")
         val ACCENT_CHOICE = stringPreferencesKey("accent_choice")
         val READING_FONT_CHOICE = stringPreferencesKey("reading_font_choice")
@@ -532,6 +535,23 @@ class UserPreferencesRepository(private val context: Context) {
             return true
         }
         return hashed == currentHash
+    }
+
+    /**
+     * Writes a temporary probe value. It is only used by the developer diagnostics to verify
+     * that the preference store can be written and read back.
+     */
+    suspend fun setDeveloperProbe(value: String) {
+        context.alHadithiDataStore.edit { it[Keys.DEVELOPER_PROBE] = value }
+    }
+
+    /** Reads the temporary probe value back. */
+    suspend fun readDeveloperProbe(key: String): String? =
+        context.alHadithiDataStore.data.map { it[Keys.DEVELOPER_PROBE] }.firstOrNull()
+
+    /** Removes the temporary probe value. */
+    suspend fun clearDeveloperProbe(key: String) {
+        context.alHadithiDataStore.edit { it.remove(Keys.DEVELOPER_PROBE) }
     }
 
     /**

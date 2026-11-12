@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      Night-mode window background. It matches the Compose dark-theme `background`
+      (AppSoftBlackBackground) so the window never paints pure black behind the status bar.
+    -->
+    <color name="kh_window_background">#111715</color>
+    <color name="kh_splash_background">#111715</color>
+</resources>

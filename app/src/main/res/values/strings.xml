@@ -41,4 +41,15 @@
     <string name="cd_favorites">المفضلة والسجل</string>
     <string name="cd_play_pause">تشغيل أو إيقاف الصوت</string>
     <string name="cd_close_player">إغلاق المشغل</string>
+
+    <!-- Shared labels used by more than one screen. -->
+    <string name="settings_title">الإعدادات</string>
+    <string name="developer_name">علي اديب العنزي</string>
+    <string name="developer_panel_title">لوحة المطور</string>
+    <string name="developer_only_notice">هذه الأدوات مخصصة للمطوّر فقط. لا تشارك محتواها مع المستخدمين العاديين.</string>
+    <string name="developer_leave_mode">خروج من وضع المطور</string>
+    <string name="prayer_times_title">مواقيت الصلاة</string>
+    <string name="prayer_tracking_title">متابعة الصلوات</string>
+    <string name="prayer_tracking_counter">%1$d / 5 منجزة</string>
+    <string name="delete_confirmation">هل أنت متأكد؟ سيتم حذف البيانات المحلية ولا يمكن التراجع عن هذه العملية.</string>
 </resources>

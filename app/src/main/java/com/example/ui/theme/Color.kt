@@ -34,11 +34,16 @@ val MutedSlateText = Color(0xFF68766F)
 val SubtleGlassBorderLight = Color(0xFFDCE3DE)
 
 // Deep mode remains available, but uses the same teal/navy family.
+//
+// The night palette is a "soft black": near-black but never a dead #000000 slab. Keeping a hint
+// of green-teal in the dark surfaces removes the harsh contrast of a pure-black app and keeps the
+// cards readable without heavy borders.
 val TurquoisePrimaryDark = Color(0xFF4D9A8C)
 val TurquoiseSecondaryDark = Color(0xFF8BC8B8)
-val NightSanctuaryBg = Color(0xFF101312)
-val NightGlassSurface = Color(0xFF1B211E)
-val NightSurfaceVariant = Color(0xFF202824)
+val AppSoftBlackBackground = Color(0xFF111715)
+val NightSanctuaryBg = AppSoftBlackBackground
+val NightGlassSurface = Color(0xFF1A211E)
+val NightSurfaceVariant = Color(0xFF212A26)
 val NightGoldAccent = Color(0xFFC6A15B)
 val NightLightText = Color(0xFFF4F5F2)
 val NightMutedText = Color(0xFFA8B1AC)
@@ -56,6 +61,28 @@ val JoyBannerBgLight = Color(0xFFECF8F4)
 val JoyBannerTextLight = Color(0xFF0B5345)
 val JoyBannerBgDark = Color(0xFF112B25)
 val JoyBannerTextDark = Color(0xFF9FE8D6)
+
+/**
+ * Shared semantic status colours.
+ *
+ * They live here (instead of being re-declared inside screens) so the "completed", "warning" and
+ * "error" states always read the same across the dashboard, the settings and the developer
+ * panel, in both light and dark mode.
+ */
+val StatusSuccessLight = Color(0xFF1F7A4D)
+val StatusSuccessDark = Color(0xFF5CC38C)
+val StatusWarningLight = Color(0xFF9A6410)
+val StatusWarningDark = Color(0xFFE0B055)
+val StatusErrorLight = Color(0xFFB3261E)
+val StatusErrorDark = Color(0xFFF2B8B5)
+
+/** Container colours for the same semantic states (used for soft badges and banners). */
+val StatusSuccessContainerLight = Color(0xFFDDF0E4)
+val StatusSuccessContainerDark = Color(0xFF17301F)
+val StatusWarningContainerLight = Color(0xFFFBEEDA)
+val StatusWarningContainerDark = Color(0xFF332611)
+val StatusErrorContainerLight = Color(0xFFFBE4E2)
+val StatusErrorContainerDark = Color(0xFF3A1A19)
 
 /**
  * Accent families offered in the appearance settings.

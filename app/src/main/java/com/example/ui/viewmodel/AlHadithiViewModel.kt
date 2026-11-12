@@ -45,9 +45,11 @@ import com.example.domain.PrayerAlertSettings
 import com.example.domain.PrayerAndHijriCalculator
 import com.example.domain.PrayerDailyProgress
 import com.example.domain.PrayerKey
+import com.example.domain.PrayerTimetableVerifier
 import com.example.domain.QuietHours
 import com.example.domain.HamedShakernejadJuzCatalog
 import com.example.domain.SurahCatalog
+import com.example.domain.TimetableVerification
 import com.example.domain.TimeFormat
 import com.example.media.AudioPlayerController
 import com.example.media.AudioQueueItem
@@ -65,6 +67,7 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.auth
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -74,9 +77,11 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.Calendar
 
 data class UnifiedSearchResults(
@@ -123,6 +128,18 @@ class AlHadithiViewModel(application: Application) : AndroidViewModel(applicatio
         PrayerTimesService.unavailableSchedule(initialBaghdad)
     )
     val todaySchedule: StateFlow<DailyPrayerSchedule> = _todaySchedule.asStateFlow()
+
+    /**
+     * The verification result of the current timetable against the reference configuration.
+     * It drives the calm warning banner on the dashboard and the developer diagnostics.
+     */
+    val timetableVerification: StateFlow<TimetableVerification> = _todaySchedule
+        .map { schedule -> PrayerTimetableVerifier.verify(schedule) }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000L),
+            initialValue = PrayerTimetableVerifier.verify(_todaySchedule.value)
+        )
 
     private val _nextPrayerCountdown = MutableStateFlow(
         PrayerAndHijriCalculator.computeNextPrayerCountdown(_todaySchedule.value)
@@ -434,6 +451,99 @@ class AlHadithiViewModel(application: Application) : AndroidViewModel(applicatio
 
     fun setThemeMode(mode: ThemeMode) {
         viewModelScope.launch { prefsRepo.setThemeMode(mode) }
+    }
+
+    /**
+     * The content counters shown in the developer diagnostics. They are read straight from Room
+     * so the numbers always reflect the real database and never a cached guess.
+     */
+    data class ContentCounters(
+        val hadiths: Int = 0,
+        val duasAndZiyarat: Int = 0,
+        val adhkar: Int = 0,
+        val books: Int = 0,
+        val audioTracks: Int = 0,
+        val occasions: Int = 0,
+        val wallpapers: Int = 0,
+        val cachedAyahs: Int = 0
+    )
+
+    private val _contentCounters = MutableStateFlow(ContentCounters())
+    val contentCounters: StateFlow<ContentCounters> = _contentCounters.asStateFlow()
+
+    /** Recounts every content table. Used by the developer panel and by the diagnostics tab. */
+    fun refreshContentCounters() {
+        viewModelScope.launch {
+            _contentCounters.value = ContentCounters(
+                hadiths = dao.countHadiths(),
+                duasAndZiyarat = dao.countDuasZiyarat(),
+                adhkar = dao.countAdhkar(),
+                books = dao.countBooks(),
+                audioTracks = dao.countAudioTracks(),
+                occasions = dao.countOccasions(),
+                wallpapers = dao.countWallpapers(),
+                cachedAyahs = dao.countCachedAyahs()
+            )
+        }
+    }
+
+    /**
+     * Checks that the bundled Quran text is complete enough to be used offline. The check reads
+     * the local manifest and reports how many surahs are stored locally.
+     */
+    suspend fun verifyQuranDataIntegrity(): String = withContext(Dispatchers.IO) {
+        runCatching {
+            val manifest = appCtx.assets.open("quran_simple_manifest.json").bufferedReader().use { it.readText() }
+            val surahCount = Regex("\"surahNumber\"\\s*:\\s*\\d+").findAll(manifest).count()
+            val cached = dao.countCachedAyahs()
+            "سور في الحزمة المحلية: $surahCount · آيات مخزنة في قاعدة البيانات: $cached"
+        }.getOrElse { "تعذّر فحص بيانات القرآن: ${it.message ?: "خطأ غير معروف"}" }
+    }
+
+    /**
+     * Verifies that the preference store can be written and read back. The test value is written
+     * and removed immediately so it never affects the user's settings.
+     */
+    suspend fun verifyPreferencesRoundTrip(): String = withContext(Dispatchers.IO) {
+        runCatching {
+            val probeKey = "__developer_probe__"
+            prefsRepo.setDeveloperProbe(probeKey)
+            val readBack = prefsRepo.readDeveloperProbe(probeKey)
+            prefsRepo.clearDeveloperProbe(probeKey)
+            if (readBack == probeKey) {
+                "نجح حفظ واسترجاع الإعدادات."
+            } else {
+                "فشل استرجاع الإعدادات: القيمة لا تطابق ما حُفظ."
+            }
+        }.getOrElse { "تعذّر اختبار الإعدادات: ${it.message ?: "خطأ غير معروف"}" }
+    }
+
+    /** Reloads the prayer timetable from the central source. */
+    fun reloadPrayerTimes() = refreshPrayerTimes()
+
+    /**
+     * Re-initialises the bundled seed content so a broken installation can be repaired.
+     *
+     * The bundled encyclopedia tables are emptied and re-seeded. The user's own rows
+     * (favourites, reading history, counters) are left untouched.
+     */
+    fun reseedSampleData() {
+        viewModelScope.launch {
+            runCatching {
+                dao.deleteAllCachedAyahs()
+                dao.deleteAllHadiths()
+                dao.deleteAllDuasZiyarat()
+                dao.deleteAllAdhkar()
+                dao.deleteAllBooks()
+                dao.deleteAllAudioTracks()
+                dao.deleteAllOccasions()
+                dao.deleteAllWallpapers()
+                AlHadithiDatabase.ensureSeeded(dao)
+            }.onFailure {
+                android.util.Log.e("AlHadithiViewModel", "Re-seeding the bundled content failed", it)
+            }
+            refreshContentCounters()
+        }
     }
 
     fun setAccentChoice(choice: AccentChoice) {

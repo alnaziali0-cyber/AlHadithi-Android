@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      Android 12+ splash screen in night mode. The splash follows the dark window colour so the
+      cold-start transition never flashes a bright band in the middle of a dark session.
+    -->
+    <style name="Theme.MyApplication" parent="android:Theme.DeviceDefault.NoActionBar">
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowBackground">@color/kh_window_background</item>
+        <item name="android:colorBackground">@color/kh_window_background</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
+        <item name="android:windowSplashScreenBackground">@color/kh_splash_background</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/alhadithi_launcher_mark</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">@color/kh_splash_background</item>
+    </style>
+</resources>

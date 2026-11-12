@@ -74,6 +74,7 @@ import com.example.ui.components.GlassCard
 import com.example.ui.components.GlassFilterChip
 import com.example.ui.components.SubScreenTopBar
 import com.example.ui.theme.HeritageGold
+import com.example.ui.viewmodel.AlHadithiViewModel
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -115,7 +116,25 @@ fun HiddenDeveloperPanelScreen(
     onAddOccasion: (IslamicOccasionEntity) -> Unit,
     onDeleteOccasion: (Long) -> Unit,
     onAddWallpaper: (WallpaperEntity) -> Unit,
-    onDeleteWallpaper: (Long) -> Unit
+    onDeleteWallpaper: (Long) -> Unit,
+    contentCounters: AlHadithiViewModel.ContentCounters = AlHadithiViewModel.ContentCounters(),
+    verificationMessage: String = "",
+    onRefreshCounters: () -> Unit = {},
+    onTestPrayerFetch: () -> Unit = {},
+    onTestNotifications: () -> Unit = {},
+    onTestAdhan: () -> Unit = {},
+    onRescheduleAlerts: () -> Unit = {},
+    onClearCache: () -> Unit = {},
+    onDeleteLocalData: () -> Unit = {},
+    onVerifyDatabase: () -> Unit = {},
+    onVerifyQuranIntegrity: () -> Unit = {},
+    onVerifyPreferences: () -> Unit = {},
+    onCopyErrorLog: () -> Unit = {},
+    onShareDiagnostics: () -> Unit = {},
+    onExportSettings: () -> Unit = {},
+    onImportSettings: () -> Unit = {},
+    onSendReportToDeveloper: () -> Unit = {},
+    onLeaveDeveloperMode: () -> Unit = {}
 ) {
     BackHandler { onBack() }
     val context = LocalContext.current
@@ -512,7 +531,8 @@ fun HiddenDeveloperPanelScreen(
                     "الأذكار",
                     "الكتب والسيرة",
                     "المناسبات",
-                    "الخلفيات"
+                    "الخلفيات",
+                    "الأدوات والتشخيص"
                 )
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     items(tabs.size) { idx ->
@@ -888,6 +908,32 @@ fun HiddenDeveloperPanelScreen(
                     6 -> items(occasions, key = { it.id }) { o ->
                         DeveloperCmsRow(o.title, "${o.hijriDay}/${o.hijriMonth} هـ") { onDeleteOccasion(o.id) }
                     }
+                }
+            }
+
+            if (sectionTab == 8) {
+                // --- TAB 8: DEVELOPER DIAGNOSTICS & TOOLS ---
+                item {
+                    DeveloperDiagnosticsTab(
+                        contentCounters = contentCounters,
+                        verificationMessage = verificationMessage,
+                        onRefreshCounters = onRefreshCounters,
+                        onTestPrayerFetch = onTestPrayerFetch,
+                        onTestNotifications = onTestNotifications,
+                        onTestAdhan = onTestAdhan,
+                        onRescheduleAlerts = onRescheduleAlerts,
+                        onClearCache = onClearCache,
+                        onDeleteLocalData = onDeleteLocalData,
+                        onVerifyDatabase = onVerifyDatabase,
+                        onVerifyQuranIntegrity = onVerifyQuranIntegrity,
+                        onVerifyPreferences = onVerifyPreferences,
+                        onCopyErrorLog = onCopyErrorLog,
+                        onShareDiagnostics = onShareDiagnostics,
+                        onExportSettings = onExportSettings,
+                        onImportSettings = onImportSettings,
+                        onSendReportToDeveloper = onSendReportToDeveloper,
+                        onLeaveDeveloperMode = onLeaveDeveloperMode
+                    )
                 }
             }
         }

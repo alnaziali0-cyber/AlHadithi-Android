@@ -1,24 +1,19 @@
 package com.example.ui.screens
 
 import android.app.TimePickerDialog
-import android.content.Intent
 import android.content.ActivityNotFoundException
 import android.content.ClipData
+import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.widget.Toast
-import android.content.Context
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -34,26 +29,53 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.DeleteForever
-import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.MenuBook
+import androidx.compose.material.icons.automirrored.outlined.Send
+import androidx.compose.material.icons.outlined.ArrowDownward
+import androidx.compose.material.icons.outlined.AutoStories
+import androidx.compose.material.icons.outlined.Bedtime
+import androidx.compose.material.icons.outlined.Build
+import androidx.compose.material.icons.outlined.Calculate
+import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material.icons.outlined.NotificationsActive
+import androidx.compose.material.icons.outlined.PlayCircle
+import androidx.compose.material.icons.outlined.Spa
+import androidx.compose.material.icons.outlined.SystemUpdate
+import androidx.compose.material.icons.outlined.AccessTime
+import androidx.compose.material.icons.outlined.AdminPanelSettings
+import androidx.compose.material.icons.outlined.Backup
+import androidx.compose.material.icons.outlined.Badge
+import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.CameraAlt
-import androidx.compose.material.icons.outlined.MusicNote
+import androidx.compose.material.icons.outlined.CloudSync
+import androidx.compose.material.icons.outlined.DarkMode
+import androidx.compose.material.icons.outlined.DeleteForever
+import androidx.compose.material.icons.outlined.DeleteOutline
+import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.ExpandLess
 import androidx.compose.material.icons.outlined.ExpandMore
-import androidx.compose.material.icons.outlined.Headphones
-import androidx.compose.material.icons.outlined.BugReport
-import androidx.compose.material.icons.outlined.Lightbulb
-import androidx.compose.material.icons.outlined.Send
-import androidx.compose.material.icons.outlined.PlayArrow
-import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.AccessTime
+import androidx.compose.material.icons.outlined.GraphicEq
 import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.MenuBook
-import androidx.compose.material.icons.outlined.Palette
-import androidx.compose.material.icons.outlined.SelfImprovement
-import androidx.compose.material.icons.outlined.TextFields
+import androidx.compose.material.icons.outlined.Headphones
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Language
+import androidx.compose.material.icons.outlined.Lightbulb
+import androidx.compose.material.icons.outlined.Memory
+import androidx.compose.material.icons.outlined.MusicNote
 import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.Palette
+import androidx.compose.material.icons.outlined.PrivacyTip
+import androidx.compose.material.icons.outlined.RecordVoiceOver
+import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Security
+import androidx.compose.material.icons.outlined.Storage
+import androidx.compose.material.icons.outlined.TextFields
+import androidx.compose.material.icons.outlined.Translate
+import androidx.compose.material.icons.outlined.Upload
+import androidx.compose.material.icons.outlined.VerifiedUser
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -62,60 +84,71 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.BuildConfig
 import com.example.R
 import com.example.data.local.ContentSourceEntity
 import com.example.data.local.DailyGoal
-import com.example.data.local.UserSettingsState
 import com.example.data.local.SettingsResetScope
+import com.example.data.local.UserSettingsState
 import com.example.domain.IraqGovernorates
 import com.example.domain.PrayerAlertSettings
 import com.example.domain.PrayerKey
 import com.example.domain.QuietHours
 import com.example.domain.SurahCatalog
+import com.example.domain.SupportChannels
 import com.example.domain.TimeFormat
-import com.example.ui.components.GlassCard
+import com.example.media.AdhanAudioStorage
+import com.example.media.AdhanPlaybackService
 import com.example.ui.components.GlassFilterChip
-import com.example.ui.components.SubScreenTopBar
+import com.example.ui.components.SettingsActionTile
+import com.example.ui.components.SettingsRowDivider
+import com.example.ui.components.SettingsSectionCard
+import com.example.ui.components.SettingsSwitchTile
 import com.example.ui.theme.AccentChoice
 import com.example.ui.theme.AppFontChoice
 import com.example.ui.theme.CardDensity
 import com.example.ui.theme.LineSpacingOption
+import com.example.ui.theme.LocalStatusColors
 import com.example.ui.theme.QuranBackgroundStyle
 import com.example.ui.theme.ReadingFontChoice
 import com.example.ui.theme.ThemeMode
-import com.example.ui.theme.resolveUiFontFamily
 import com.example.ui.theme.resolveReadingFontFamily
-import com.example.media.AdhanPlaybackService
-import com.example.domain.SupportChannels
+import com.example.ui.theme.resolveUiFontFamily
 import com.example.util.NotificationTestHelper
 import kotlin.math.roundToInt
 
+/** The developer of the application. It is shown in the "Developers" settings row. */
+const val APP_DEVELOPER_NAME = "علي اديب العنزي"
+
 /**
- * The settings hub.
+ * The settings hub, rebuilt as a set of clearly titled sections.
  *
- * Everything is grouped by topic, every change is applied immediately, and every option that
- * needs a runtime permission explains why it is needed before the system dialog appears.
+ * Every option is a button-like row that shows an icon, an Arabic title, a short description and
+ * the current value of the setting. Binary options use a switch, everything else shows a chevron
+ * that indicates a sub-page. Nothing that used to work has been removed: the previous behaviour
+ * (dialogs, sliders, per-prayer alerts, the cache manager, the support forms, the reset scopes and
+ * the delete confirmation) is preserved, only the presentation changed.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -147,10 +180,13 @@ fun SettingsScreen(
     onUpdateNotifications: (Boolean?, Int?, Boolean?, Boolean?) -> Unit,
     onClearQuranCache: () -> Unit,
     onResetSettings: (SettingsResetScope) -> Unit,
-    onDeleteUserData: () -> Unit
+    onDeleteUserData: () -> Unit,
+    onRefreshPrayerTimes: () -> Unit,
+    onOpenDeveloperPanel: () -> Unit
 ) {
     BackHandler { onBack() }
     val context = LocalContext.current
+    val statusColors = LocalStatusColors.current
     val currentGov = IraqGovernorates.byId(settings.governorateId)
 
     var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
@@ -161,11 +197,27 @@ fun SettingsScreen(
     var showPrivacyDialog by rememberSaveable { mutableStateOf(false) }
     var showTermsDialog by rememberSaveable { mutableStateOf(false) }
     var showSupportDialog by rememberSaveable { mutableStateOf(false) }
+    var showDeveloperDialog by rememberSaveable { mutableStateOf(false) }
+    var showLanguageDialog by rememberSaveable { mutableStateOf(false) }
+    var showNotificationsDialog by rememberSaveable { mutableStateOf(false) }
+    var showSyncDialog by rememberSaveable { mutableStateOf(false) }
+    var showSoundDialog by rememberSaveable { mutableStateOf(false) }
     var selectedSupportTopic by rememberSaveable { mutableStateOf(SupportTopic.TECHNICAL) }
     var supportTitle by rememberSaveable { mutableStateOf("") }
     var supportBody by rememberSaveable { mutableStateOf("") }
     var supportReference by rememberSaveable { mutableStateOf("") }
     var supportAttachment by rememberSaveable { mutableStateOf<String?>(null) }
+    var pendingResetScope by rememberSaveable { mutableStateOf<SettingsResetScope?>(null) }
+    var notificationMessage by remember { mutableStateOf<String?>(null) }
+
+    // The developer gate: seven taps on the version number reveal the access-code dialog, and the
+    // code itself is what actually opens the panel.
+    var versionTapCount by remember { mutableIntStateOf(0) }
+    var lastVersionTapMillis by remember { mutableLongStateOf(0L) }
+    var showDeveloperGate by rememberSaveable { mutableStateOf(false) }
+    var developerAccessCode by rememberSaveable { mutableStateOf("") }
+    var developerAccessError by remember { mutableStateOf<String?>(null) }
+
     val supportAttachmentPicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument()
     ) { uri ->
@@ -179,950 +231,1131 @@ fun SettingsScreen(
             }
         }
     }
-    var pendingResetScope by rememberSaveable { mutableStateOf<SettingsResetScope?>(null) }
-    var notificationMessage by remember { mutableStateOf<String?>(null) }
 
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .testTag("settings_screen_list"),
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
+        // ---------------- ترويسة الشاشة ----------------
         item {
-            SubScreenTopBar(
+            SettingsHeaderBar(
                 title = "الإعدادات",
-                subtitle = "تُحفظ تفضيلاتك محلياً على جهازك وتُطبَّق فوراً",
+                subtitle = "كل خيار هنا مطبَّق فوراً ويُحفظ على جهازك",
                 onBack = onBack
             )
         }
+
+        // ---------------- هوية التطبيق ----------------
         item {
-            GlassCard(
-                modifier = Modifier.fillMaxWidth(),
-                cornerRadius = 24.dp,
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp),
-                containerColor = MaterialTheme.colorScheme.surface,
-                borderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.24f)
+            AppIdentityCard(
+                versionName = BuildConfig.VERSION_NAME,
+                versionCode = BuildConfig.VERSION_CODE
+            )
+        }
+
+        // ---------------- 1. إعدادات المظهر ----------------
+        item {
+            SettingsSectionCard(
+                title = "إعدادات المظهر",
+                icon = Icons.Outlined.Palette,
+                description = "الوضع الليلي، لون الواجهة، الخط وحجم النص"
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(14.dp)
-                ) {
-                    Surface(
-                        shape = RoundedCornerShape(18.dp),
-                        color = Color(0xFFF7F5EE),
-                        border = androidx.compose.foundation.BorderStroke(
-                            1.dp, MaterialTheme.colorScheme.outlineVariant
-                        )
-                    ) {
-                        Image(
-                            painter = painterResource(R.drawable.img_alhadithi_logo),
-                            contentDescription = "الشعار الرسمي لخزائن الهدى",
-                            contentScale = ContentScale.Fit,
-                            modifier = Modifier.size(66.dp).padding(5.dp)
-                        )
-                    }
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "مركز التحكم",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = "خصّص القراءة والمظهر والتنبيهات ومواقيت الصلاة من مكان واحد.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Text(
-                            text = "KHAZAIN AL-HUDA  ·  ${BuildConfig.VERSION_NAME}",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                }
-            }
-        }
-
-        // ---------------- المظهر ----------------
-        item {
-            SettingsSection(title = "المظهر") {
-                Text("وضع العرض", style = MaterialTheme.typography.labelLarge)
-                Spacer(modifier = Modifier.height(6.dp))
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    ThemeMode.entries.forEach { mode ->
-                        GlassFilterChip(
-                            label = mode.arabicLabel,
-                            selected = settings.themeMode == mode,
-                            onClick = { onChangeThemeMode(mode) },
-                            modifier = Modifier.testTag("settings_theme_${mode.key}")
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(14.dp))
-                Text("لون التمييز", style = MaterialTheme.typography.labelLarge)
-                Spacer(modifier = Modifier.height(6.dp))
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    AccentChoice.entries.forEach { accent ->
-                        GlassFilterChip(
-                            label = accent.arabicLabel,
-                            selected = settings.accentChoice == accent,
-                            onClick = { onChangeAccent(accent) },
-                            modifier = Modifier.testTag("settings_accent_${accent.key}")
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(14.dp))
-                Text("كثافة البطاقات", style = MaterialTheme.typography.labelLarge)
-                Spacer(modifier = Modifier.height(6.dp))
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    CardDensity.entries.forEach { density ->
-                        GlassFilterChip(
-                            label = density.arabicLabel,
-                            selected = settings.cardDensity == density,
-                            onClick = { onChangeCardDensity(density) }
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.height(10.dp))
-                SettingsValueRow(
-                    title = "أيقونة التطبيق",
-                    value = "شعار خزائن الهدى",
-                    subtitle = "هذه هي الأيقونة المعتمدة فعلياً حالياً؛ لا توجد بدائل launcher إضافية مهيأة للاختيار."
-                )
-            }
-        }
-
-        // ---------------- الخط ----------------
-        item {
-            SettingsSection(title = "اللغة والخطوط وحجم النص") {
-                SettingsValueRow(
-                    title = "لغة التطبيق",
-                    value = "العربية",
-                    subtitle = "العربية هي اللغة المترجمة حالياً؛ لن نعرض لغات غير مكتملة كخيارات فعالة."
-                )
-                androidx.compose.material3.HorizontalDivider(
-                    modifier = Modifier.padding(vertical = 8.dp),
-                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.55f)
-                )
-                Text("خط الواجهة", style = MaterialTheme.typography.labelLarge)
-                Spacer(modifier = Modifier.height(6.dp))
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    AppFontChoice.entries.forEach { choice ->
-                        GlassFilterChip(
-                            label = choice.arabicLabel,
-                            selected = settings.fontChoice == choice,
-                            onClick = { onChangeUiFont(choice) }
-                        )
-                    }
-                }
-
-                Text(
-                    text = "معاينة خط الواجهة: خزائن الهدى · بسم الله الرحمن الرحيم",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontFamily = resolveUiFontFamily(settings.fontChoice)
-                    ),
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "حجم نص الواجهة: ${(settings.uiFontScale * 100).roundToInt()}%",
-                    style = MaterialTheme.typography.labelLarge
-                )
-                Slider(
-                    value = settings.uiFontScale,
-                    onValueChange = onChangeUiFontScale,
-                    valueRange = 0.85f..1.45f,
-                    modifier = Modifier.testTag("settings_ui_font_scale")
-                )
-
-                androidx.compose.material3.HorizontalDivider(
-                    modifier = Modifier.padding(vertical = 10.dp),
-                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.55f)
-                )
-                Text("خط القرآن والأذكار والأدعية", style = MaterialTheme.typography.labelLarge)
-                Spacer(modifier = Modifier.height(6.dp))
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    ReadingFontChoice.entries.forEach { choice ->
-                        GlassFilterChip(
-                            label = choice.arabicLabel,
-                            selected = settings.readingFontChoice == choice,
-                            onClick = { onChangeReadingFont(choice) }
-                        )
-                    }
-                }
-
-                Text(
-                    text = "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontFamily = resolveReadingFontFamily(settings.readingFontChoice)
-                    ),
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "حجم خط القراءة: ${(settings.readingFontScale * 100).roundToInt()}%",
-                    style = MaterialTheme.typography.labelLarge
-                )
-                Slider(
-                    value = settings.readingFontScale,
-                    onValueChange = onChangeReadingFontScale,
-                    valueRange = 0.85f..1.55f,
-                    modifier = Modifier.testTag("settings_reading_font_scale")
-                )
-
-                Spacer(modifier = Modifier.height(6.dp))
-                Text("تباعد الأسطر", style = MaterialTheme.typography.labelLarge)
-                Spacer(modifier = Modifier.height(6.dp))
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    LineSpacingOption.entries.forEach { option ->
-                        GlassFilterChip(
-                            label = option.arabicLabel,
-                            selected = settings.lineSpacing == option,
-                            onClick = { onChangeLineSpacing(option) }
-                        )
-                    }
-                }
-            }
-        }
-
-        // ---------------- تخصيص المتابعة اليومية ----------------
-        item {
-            SettingsSection(title = "المتابعة اليومية في الرئيسية") {
-                Text(
-                    text = "ترتيب الرئيسية ثابت للحفاظ على وضوحها. اختر فقط مؤشرات المتابعة التي تريد إظهارها؛ لا يؤدي تغييرها إلى حذف سجل إنجازاتك.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                DailyGoal.entries.forEach { goal ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(goal.arabicTitle, fontWeight = FontWeight.SemiBold)
-                            Text(
-                                "إظهار هذا المؤشر في بطاقة متابعة اليوم",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                Column {
+                    Text(
+                        text = "وضع العرض",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        ThemeMode.entries.forEach { mode ->
+                            GlassFilterChip(
+                                label = mode.arabicLabel,
+                                selected = settings.themeMode == mode,
+                                onClick = { onChangeThemeMode(mode) },
+                                modifier = Modifier.testTag("settings_theme_${mode.key}")
                             )
                         }
-                        Switch(
+                    }
+
+                    SettingsRowDivider()
+
+                    SettingsActionTile(
+                        title = "الوضع الداكن",
+                        description = "أسود خفيف مريح للعين بدل الأسود التام",
+                        icon = Icons.Outlined.DarkMode,
+                        value = if (settings.themeMode == ThemeMode.DARK) "مُفعَّل" else "حسب النظام",
+                        onClick = {
+                            onChangeThemeMode(
+                                if (settings.themeMode == ThemeMode.DARK) ThemeMode.SYSTEM else ThemeMode.DARK
+                            )
+                        },
+                        testTag = "settings_dark_mode_row"
+                    )
+
+                    SettingsRowDivider()
+
+                    Text(
+                        text = "لون الواجهة",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        AccentChoice.entries.forEach { accent ->
+                            GlassFilterChip(
+                                label = accent.arabicLabel,
+                                selected = settings.accentChoice == accent,
+                                onClick = { onChangeAccent(accent) },
+                                modifier = Modifier.testTag("settings_accent_${accent.key}")
+                            )
+                        }
+                    }
+
+                    SettingsRowDivider()
+
+                    Text(
+                        text = "حجم خط الواجهة: ${(settings.uiFontScale * 100).roundToInt()}%",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Slider(
+                        value = settings.uiFontScale,
+                        onValueChange = onChangeUiFontScale,
+                        valueRange = 0.85f..1.45f,
+                        modifier = Modifier.testTag("settings_ui_font_scale")
+                    )
+                    Text(
+                        text = "معاينة مباشرة: خزائن الهدى · بسم الله الرحمن الرحيم",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontFamily = resolveUiFontFamily(settings.fontChoice)
+                        ),
+                        color = MaterialTheme.colorScheme.primary,
+                        maxLines = 2
+                    )
+
+                    SettingsRowDivider()
+
+                    Text(
+                        text = "نوع خط القراءة",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        AppFontChoice.entries.forEach { choice ->
+                            GlassFilterChip(
+                                label = choice.arabicLabel,
+                                selected = settings.fontChoice == choice,
+                                onClick = { onChangeUiFont(choice) }
+                            )
+                        }
+                    }
+
+                    SettingsRowDivider()
+
+                    Text(
+                        text = "كثافة البطاقات",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        CardDensity.entries.forEach { density ->
+                            GlassFilterChip(
+                                label = density.arabicLabel,
+                                selected = settings.cardDensity == density,
+                                onClick = { onChangeCardDensity(density) }
+                            )
+                        }
+                    }
+
+                    SettingsRowDivider()
+
+                    OutlinedButton(
+                        onClick = { pendingResetScope = SettingsResetScope.APPEARANCE },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("settings_reset_appearance")
+                    ) {
+                        Icon(Icons.Outlined.Refresh, contentDescription = null)
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("استعادة الإعدادات الافتراضية")
+                    }
+                }
+            }
+        }
+
+        // ---------------- 2. إعدادات القراءة ----------------
+        item {
+            SettingsSectionCard(
+                title = "إعدادات القراءة",
+                icon = Icons.AutoMirrored.Outlined.MenuBook,
+                description = "حجم خط القرآن والحديث والتباعد والتشكيل"
+            ) {
+                Column {
+                    Text(
+                        text = "حجم خط القرآن: ${(settings.readingFontScale * 100).roundToInt()}%",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Slider(
+                        value = settings.readingFontScale,
+                        onValueChange = onChangeReadingFontScale,
+                        valueRange = 0.85f..1.55f,
+                        modifier = Modifier.testTag("settings_reading_font_scale")
+                    )
+
+                    SettingsRowDivider()
+
+                    Text(
+                        text = "خط القراءة",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        ReadingFontChoice.entries.forEach { choice ->
+                            GlassFilterChip(
+                                label = choice.arabicLabel,
+                                selected = settings.readingFontChoice == choice,
+                                onClick = { onChangeReadingFont(choice) }
+                            )
+                        }
+                    }
+                    Text(
+                        text = "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontFamily = resolveReadingFontFamily(settings.readingFontChoice)
+                        ),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        maxLines = 2
+                    )
+
+                    SettingsRowDivider()
+
+                    Text(
+                        text = "تباعد الأسطر",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        LineSpacingOption.entries.forEach { option ->
+                            GlassFilterChip(
+                                label = option.arabicLabel,
+                                selected = settings.lineSpacing == option,
+                                onClick = { onChangeLineSpacing(option) }
+                            )
+                        }
+                    }
+
+                    SettingsRowDivider()
+
+                    SettingsActionTile(
+                        title = "خلفية صفحة القراءة",
+                        description = "ورقي · مصحف · بنّي · ليلي",
+                        icon = Icons.Outlined.Description,
+                        value = settings.quranBackground.arabicLabel,
+                        onClick = {
+                            // The available backdrops are cycled directly from the row so the
+                            // setting stays reachable without hunting for a chip.
+                            val next = QuranBackgroundStyle.entries[
+                                (settings.quranBackground.ordinal + 1) % QuranBackgroundStyle.entries.size
+                            ]
+                            onChangeQuranBackground(next)
+                        }
+                    )
+
+                    SettingsRowDivider()
+
+                    SettingsSwitchTile(
+                        title = "التمرير التلقائي",
+                        description = "تنزيل الآيات ببطء أثناء التلاوة",
+                        icon = Icons.Outlined.ArrowDownward,
+                        checked = settings.quranAutoScrollEnabled,
+                        onCheckedChange = { onChangeAutoScroll(it, settings.quranAutoScrollSpeed) },
+                        testTag = "settings_auto_scroll_switch"
+                    )
+
+                    SettingsRowDivider()
+
+                    OutlinedButton(
+                        onClick = { pendingResetScope = SettingsResetScope.FONTS },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("settings_reset_fonts")
+                    ) {
+                        Icon(Icons.Outlined.TextFields, contentDescription = null)
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("استعادة إعدادات القراءة الافتراضية")
+                    }
+                }
+            }
+        }
+
+        // ---------------- 3. المتابعة اليومية في الرئيسية ----------------
+        item {
+            SettingsSectionCard(
+                title = "المتابعة اليومية في الرئيسية",
+                icon = Icons.Outlined.Home,
+                description = "اختر مؤشرات المتابعة التي تريد إظهارها في الرئيسية"
+            ) {
+                Column {
+                    Text(
+                        text = "ترتيب الرئيسية ثابت للحفاظ على وضوحها. اختر فقط مؤشرات المتابعة التي تريد إظهارها؛ لا يؤدي تغييرها إلى حذف سجل إنجازاتك.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    DailyGoal.entries.forEach { goal ->
+                        SettingsSwitchTile(
+                            title = goal.arabicTitle,
+                            description = "إظهار هذا المؤشر في بطاقة متابعة اليوم",
+                            icon = Icons.Outlined.Spa,
                             checked = goal in settings.dailyGoals,
                             onCheckedChange = { enabled ->
                                 onChangeDailyGoals(
                                     if (enabled) settings.dailyGoals + goal else settings.dailyGoals - goal
                                 )
                             },
-                            modifier = Modifier.testTag("settings_daily_goal_${goal.key}")
+                            testTag = "settings_daily_goal_${goal.key}"
                         )
+                        SettingsRowDivider()
                     }
-                }
-                Text(
-                    text = if (settings.dailyGoals.isEmpty()) "لم يتم اختيار مؤشرات؛ بطاقة المتابعة مخفية حالياً." else "تم اختيار ${settings.dailyGoals.size} مؤشرات للمتابعة.",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-        }
-
-        // ---------------- مواقيت الصلاة ----------------
-        item {
-            SettingsSection(title = "مواقيت الصلاة") {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text("المحافظة", fontWeight = FontWeight.Bold)
-                        Text(
-                            text = currentGov.arabicName,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                    OutlinedButton(onClick = onOpenGovernorateSheet) { Text("تغيير") }
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    "مصدر المواقيت: خدمة AlAdhan بالإعدادات المخصصة المرفقة، مع حفظ نتيجة كل محافظة وتاريخ محلياً لاستخدامها دون إنترنت بعد أول جلب ناجح. لا يُستخدم حساب بديل عند غياب النتيجة أو النسخة المطابقة.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-                Text("تصحيح التاريخ الهجري", style = MaterialTheme.typography.labelLarge)
-                Text(
-                    "التعديل يدوي بمقدار يومين كحد أقصى، ويُطبّق على صفحات التقويم والمناسبات والبحث.",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    OutlinedButton(
-                        onClick = { onChangeHijriOffset((settings.hijriOffsetDays - 1).coerceIn(-2, 2)) },
-                        enabled = settings.hijriOffsetDays > -2,
-                        modifier = Modifier.weight(1f)
-                    ) { Text("تأخير يوم") }
                     Text(
-                        text = when (settings.hijriOffsetDays) {
-                            0 -> "دون تصحيح"
-                            else -> if (settings.hijriOffsetDays > 0) "+${settings.hijriOffsetDays} يوم" else "${settings.hijriOffsetDays} يوم"
-                        },
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    OutlinedButton(
-                        onClick = { onChangeHijriOffset((settings.hijriOffsetDays + 1).coerceIn(-2, 2)) },
-                        enabled = settings.hijriOffsetDays < 2,
-                        modifier = Modifier.weight(1f)
-                    ) { Text("تقديم يوم") }
-                }
-                if (settings.hijriOffsetDays != 0) {
-                    TextButton(
-                        onClick = { onChangeHijriOffset(0) }
-                    ) { Text("استعادة التصحيح الافتراضي") }
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-                Text("صيغة عرض الوقت", style = MaterialTheme.typography.labelLarge)
-                Spacer(modifier = Modifier.height(6.dp))
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    TimeFormat.entries.forEach { format ->
-                        GlassFilterChip(
-                            label = format.arabicLabel,
-                            selected = settings.timeFormat == format,
-                            onClick = { onChangeTimeFormat(format) }
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-                Text(
-                    text = "ضبط الدقائق لكل صلاة يُجرى من شاشة «مواقيت الصلاة»، وكذلك تنبيهات كل صلاة على حدة.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-
-        // ---------------- القرآن ----------------
-        item {
-            SettingsSection(title = "القرآن الكريم والقراءة") {
-                Text("خلفية صفحة القراءة", style = MaterialTheme.typography.labelLarge)
-                Spacer(modifier = Modifier.height(6.dp))
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    QuranBackgroundStyle.entries.forEach { style ->
-                        GlassFilterChip(
-                            label = style.arabicLabel,
-                            selected = settings.quranBackground == style,
-                            onClick = { onChangeQuranBackground(style) }
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text("التمرير التلقائي", fontWeight = FontWeight.SemiBold)
-                        Text(
-                            text = "تنزيل الآيات ببطء أثناء التلاوة، ويتوقف عند تحريك النص يدوياً.",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    Switch(
-                        checked = settings.quranAutoScrollEnabled,
-                        onCheckedChange = { onChangeAutoScroll(it, settings.quranAutoScrollSpeed) },
-                        modifier = Modifier.testTag("settings_auto_scroll_switch")
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(10.dp))
-                Text(
-                    text = "القارئ الافتراضي: ${SurahCatalog.reciterById(settings.selectedReciterId).arabicName}",
-                    style = MaterialTheme.typography.labelLarge
-                )
-                Spacer(modifier = Modifier.height(6.dp))
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    SurahCatalog.reciters.take(8).forEach { reciter ->
-                        GlassFilterChip(
-                            label = reciter.arabicName,
-                            selected = settings.selectedReciterId == reciter.id,
-                            onClick = { onChangeReciter(reciter.id) }
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-                Text(
-                    text = "سرعة التشغيل: ${"%.2f".format(java.util.Locale.US, settings.playbackSpeed)}×",
-                    style = MaterialTheme.typography.labelLarge
-                )
-                Slider(
-                    value = settings.playbackSpeed,
-                    onValueChange = onChangePlaybackSpeed,
-                    valueRange = 0.75f..1.75f,
-                    modifier = Modifier.testTag("settings_playback_speed")
-                )
-            }
-        }
-
-        // ---------------- الأذكار والتسبيح ----------------
-        item {
-            SettingsSection(title = "الأذكار والتسبيح") {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text("اهتزاز المسبحة والأذكار", fontWeight = FontWeight.SemiBold)
-                        Text(
-                            text = "عند التشغيل، إن كان اهتزاز الجهاز مفعّلاً في النظام.",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    Switch(
-                        checked = settings.hapticTasbihEnabled,
-                        onCheckedChange = onToggleHaptic,
-                        modifier = Modifier.testTag("settings_haptic_switch")
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-                Text(
-                    text = "هدف التسبيح اليومي: ${settings.dailyTasbihGoal}",
-                    style = MaterialTheme.typography.labelLarge
-                )
-                Slider(
-                    value = settings.dailyTasbihGoal.toFloat(),
-                    onValueChange = { onChangeDailyTasbihGoal(it.toInt()) },
-                    valueRange = 33f..1000f,
-                    steps = 28,
-                    modifier = Modifier.testTag("settings_tasbih_goal")
-                )
-                Text(
-                    text = "العدّاد اختياري تماماً، ويمكنك تصفيره أو تغييره من شاشة المسبحة.",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-
-        // ---------------- الإشعارات ----------------
-        item {
-            SettingsSection(title = "الإشعارات والأذان") {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text("تنبيهات مواقيت الصلاة", fontWeight = FontWeight.SemiBold)
-                        Text(
-                            text = "إشعار محلي عند دخول وقت كل صلاة حسب إعداداتك.",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    Switch(
-                        checked = settings.notifyPrayers,
-                        onCheckedChange = { onUpdateNotifications(it, null, null, null) },
-                        modifier = Modifier.testTag("settings_notify_prayers_switch")
-                    )
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("تذكير المناسبات", fontWeight = FontWeight.SemiBold)
-                    Switch(
-                        checked = settings.notifyOccasions,
-                        onCheckedChange = { onUpdateNotifications(null, null, it, null) }
-                    )
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("تذكير أذكار الصباح والمساء", fontWeight = FontWeight.SemiBold)
-                    Switch(
-                        checked = settings.notifyAdhkar,
-                        onCheckedChange = { onUpdateNotifications(null, null, null, it) }
-                    )
-                }
-                Text(
-                    "إشعارات الحديث اليومي والدعاء اليومي غير مفعّلة في هذا الإصدار؛ تحتاج خدمة محتوى وجدولة موثوقة من الخادم، لذلك لا نعرض مفاتيح تشغيل شكلية.",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-                Text("إعداد مستقل لكل صلاة", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-                Text(
-                    "يمكن إيقاف صلاة بعينها أو تغيير وقت التنبيه والصوت والاهتزاز.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                PrayerKey.entries.forEachIndexed { index, prayer ->
-                    val alert = settings.prayerAlertProfile.settingsFor(prayer)
-                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(prayer.arabicName, fontWeight = FontWeight.SemiBold)
-                            Switch(
-                                checked = alert.enabled,
-                                onCheckedChange = { onChangePrayerAlert(prayer, alert.copy(enabled = it)) },
-                                modifier = Modifier.testTag("settings_prayer_${prayer.key}_enabled")
-                            )
-                        }
-                        Text("التنبيه قبل الصلاة: ${alert.leadMinutes} دقيقة", style = MaterialTheme.typography.labelMedium)
-                        Slider(
-                            value = alert.leadMinutes.toFloat(),
-                            onValueChange = {
-                                onChangePrayerAlert(prayer, alert.copy(leadMinutes = it.roundToInt()))
-                            },
-                            valueRange = 0f..60f,
-                            steps = 11,
-                            enabled = alert.enabled,
-                            modifier = Modifier.testTag("settings_prayer_${prayer.key}_lead")
-                        )
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(18.dp)
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
-                                Text("الصوت", style = MaterialTheme.typography.bodySmall)
-                                Spacer(modifier = Modifier.weight(1f))
-                                Switch(
-                                    checked = alert.soundEnabled,
-                                    onCheckedChange = { onChangePrayerAlert(prayer, alert.copy(soundEnabled = it)) },
-                                    enabled = alert.enabled
-                                )
-                            }
-                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
-                                Text("الاهتزاز", style = MaterialTheme.typography.bodySmall)
-                                Spacer(modifier = Modifier.weight(1f))
-                                Switch(
-                                    checked = alert.vibrateEnabled,
-                                    onCheckedChange = { onChangePrayerAlert(prayer, alert.copy(vibrateEnabled = it)) },
-                                    enabled = alert.enabled
-                                )
-                            }
-                        }
-                    }
-                    if (index != PrayerKey.entries.lastIndex) {
-                        androidx.compose.material3.HorizontalDivider(
-                            modifier = Modifier.padding(vertical = 8.dp),
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.55f)
-                        )
-                    }
-                }
-
-                val quietHours = settings.prayerAlertProfile.quietHours
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text("فترة عدم الإزعاج", fontWeight = FontWeight.SemiBold)
-                        Text(
-                            if (quietHours.enabled) quietHours.formatted() else "متوقفة",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    Switch(
-                        checked = quietHours.enabled,
-                        onCheckedChange = { onChangeQuietHours(quietHours.copy(enabled = it)) },
-                        modifier = Modifier.testTag("settings_quiet_hours_switch")
-                    )
-                }
-                if (quietHours.enabled) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                        OutlinedButton(
-                            modifier = Modifier.weight(1f),
-                            onClick = {
-                                TimePickerDialog(
-                                    context,
-                                    { _, hour, minute -> onChangeQuietHours(quietHours.copy(startMinutes = hour * 60 + minute)) },
-                                    quietHours.startMinutes / 60,
-                                    quietHours.startMinutes % 60,
-                                    true
-                                ).show()
-                            }
-                        ) { Text("من ${quietHours.formatted().substringBefore(" — ")}") }
-                        OutlinedButton(
-                            modifier = Modifier.weight(1f),
-                            onClick = {
-                                TimePickerDialog(
-                                    context,
-                                    { _, hour, minute -> onChangeQuietHours(quietHours.copy(endMinutes = hour * 60 + minute)) },
-                                    quietHours.endMinutes / 60,
-                                    quietHours.endMinutes % 60,
-                                    true
-                                ).show()
-                            }
-                        ) { Text("إلى ${quietHours.formatted().substringAfter(" — ")}") }
-                    }
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text("صوت الأذان المضمّن", fontWeight = FontWeight.SemiBold)
-                        Text("التسجيل المرفق مع التطبيق هو الصوت الافتراضي. مستوى الصوت يتبع قناة المنبّه في Android؛ لا يغيّر التطبيق مستوى صوت الجهاز من تلقاء نفسه.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                    OutlinedButton(onClick = {
-                        runCatching { AdhanPlaybackService.play(context) }
-                            .onSuccess { notificationMessage = "بدأ تشغيل تسجيل الأذان المضمّن." }
-                            .onFailure { notificationMessage = "تعذر تشغيل الأذان؛ تحقق من إعدادات الصوت." }
-                    }) {
-                        Icon(Icons.Outlined.PlayArrow, contentDescription = null)
-                        Text("اختبار")
-                    }
-                }
-                OutlinedButton(
-                    onClick = { runCatching { AdhanPlaybackService.stop(context) }; notificationMessage = "تم طلب إيقاف تشغيل الأذان." },
-                    modifier = Modifier.fillMaxWidth()
-                ) { Text("إيقاف صوت الأذان") }
-
-                Spacer(modifier = Modifier.height(10.dp))
-                OutlinedButton(
-                    onClick = {
-                        val posted = NotificationTestHelper.postTestNotification(context)
-                        notificationMessage = if (posted) {
-                            "تم إرسال إشعار تجريبي. تحقق من شريط الإشعارات."
+                        text = if (settings.dailyGoals.isEmpty()) {
+                            "لم يتم اختيار مؤشرات؛ بطاقة المتابعة مخفية حالياً."
                         } else {
-                            "لم يُمنح إذن الإشعارات بعد. فعّله من إعدادات النظام ثم أعد المحاولة."
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Icon(Icons.Outlined.Notifications, contentDescription = null)
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text("اختبار الإشعار")
-                }
-                notificationMessage?.let { message ->
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Text(
-                        text = message,
-                        style = MaterialTheme.typography.bodySmall,
+                            "تم اختيار ${settings.dailyGoals.size} مؤشرات للمتابعة."
+                        },
+                        style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
             }
         }
 
-        // ---------------- الخصوصية ----------------
+        // ---------------- 4. إعدادات مواقيت الصلاة ----------------
         item {
-            SettingsSection(title = "الخصوصية والبيانات") {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.Top
-                ) {
-                    Icon(
-                        Icons.Outlined.Security,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary
+            SettingsSectionCard(
+                title = "إعدادات مواقيت الصلاة",
+                icon = Icons.Outlined.AccessTime,
+                description = "المحافظة وطريقة الحساب والتنبيهات"
+            ) {
+                Column {
+                    SettingsActionTile(
+                        title = "المحافظة",
+                        description = "المحافظة المستخدمة لحساب المواقيت",
+                        icon = Icons.Outlined.LocationOn,
+                        value = currentGov.arabicName,
+                        onClick = onOpenGovernorateSheet,
+                        testTag = "settings_governorate_row"
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Column {
-                        Text(
-                            text = "بياناتك وتفضيلاتك",
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = "تُحفظ التفضيلات وسجل القراءة والمفضلة محلياً عبر DataStore وRoom. لا يطلب التطبيق الموقع إلا عند طلب تحديد موقعك، ولا يستخدم إذن الموقع في الخلفية.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
 
-                Spacer(modifier = Modifier.height(10.dp))
-                OutlinedButton(
-                    onClick = { showPermissionsDialog = true },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Icon(Icons.Outlined.Info, contentDescription = null)
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text("شرح الأذونات المستخدمة")
-                }
+                    SettingsRowDivider()
 
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedButton(
-                    onClick = { showDeleteDialog = true },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .testTag("settings_delete_user_data")
-                ) {
-                    Icon(
-                        Icons.Outlined.DeleteForever,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.error
+                    SettingsActionTile(
+                        title = "طريقة الحساب",
+                        description = "المذهب المعتمد في حساب المواقيت",
+                        icon = Icons.Outlined.Calculate,
+                        value = "الجعفرية (method=99)",
+                        onClick = { onRefreshPrayerTimes() }
                     )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text("حذف بيانات المستخدم", color = MaterialTheme.colorScheme.error)
-                }
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "يحذف المفضلة وسجل القراءة وجلسات التسبيح وتقدم الدروس وسجل صلواتي اليوم والإعدادات والتنزيلات المحفوظة. تبقى المواد الموسوعية المرفقة مع التطبيق.",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
 
-        // ---------------- إدارة التنزيلات والتخزين ----------------
-        item {
-            val importedAdhan = com.example.media.AdhanAudioStorage.currentAudioFile(context)
-            SettingsSection(title = "التنزيلات والتخزين") {
-                InfoRow(label = "آيات مخزنة في قاعدة البيانات", value = cachedAyahCount.toString())
-                InfoRow(
-                    label = "صوت الأذان المخصص",
-                    value = importedAdhan?.let { formatBytes(it.length()) } ?: "الصوت الافتراضي المضمّن"
-                )
-                Text(
-                    "لا توجد في هذه النسخة قائمة تنزيلات عامة لكل أنواع المحتوى. المتاح هنا هو كاش السور في Room وملف أذان مخصص اختاره المستخدم؛ لا نعرض ملفات افتراضية على أنها تنزيلات.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                OutlinedButton(
-                    onClick = { showClearCacheDialog = true },
-                    modifier = Modifier.fillMaxWidth()
-                ) { Text("إدارة كاش القرآن المخزن") }
-                Text(
-                    "المسح يحتفظ بالسور الأساسية المحددة للتشغيل دون اتصال، ولا يحذف المفضلة أو سجل القراءة أو ملف الأذان.",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
+                    SettingsRowDivider()
 
-        // ---------------- الدعم والمساعدة ----------------
-        item {
-            SettingsSection(title = "الدعم والمساعدة") {
-                Text(
-                    "تواصل مع فريق خزائن الهدى عبر البريد أو حساباتنا الرسمية، أو استخدم نماذج البلاغات والاقتراحات أدناه.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                SupportContactRow(
-                    title = "البريد الإلكتروني",
-                    subtitle = "فتح البريد الإلكتروني للدعم",
-                    icon = Icons.Outlined.Email,
-                    onClick = { openSupportEmail(context) }
-                )
-                SupportContactRow(
-                    title = "Instagram",
-                    subtitle = "فتح حساب الدعم على Instagram",
-                    icon = Icons.Outlined.CameraAlt,
-                    onClick = {
-                        openSupportProfile(
-                            context = context,
-                            url = SupportChannels.INSTAGRAM_URL,
-                            expectedHost = "www.instagram.com",
-                            expectedPath = "/alhadithi_iraq/"
-                        )
-                    }
-                )
-                SupportContactRow(
-                    title = "TikTok",
-                    subtitle = "فتح حساب الدعم على TikTok",
-                    icon = Icons.Outlined.MusicNote,
-                    onClick = {
-                        openSupportProfile(
-                            context = context,
-                            url = SupportChannels.TIKTOK_URL,
-                            expectedHost = "www.tiktok.com",
-                            expectedPath = "/@.al.hadithi"
-                        )
-                    }
-                )
-                SettingsActionRow(
-                    title = "مركز المساعدة والأسئلة الشائعة",
-                    subtitle = "إرشادات استخدام الأقسام والإعدادات",
-                    icon = Icons.Outlined.Info,
-                    onClick = { showFaqDialog = true }
-                )
-                SettingsActionRow(
-                    title = "التواصل مع الدعم الفني",
-                    subtitle = "إعداد رسالة ومشاركتها من تطبيق تختاره",
-                    icon = Icons.Outlined.Headphones,
-                    onClick = {
-                        selectedSupportTopic = SupportTopic.TECHNICAL
-                        supportTitle = "طلب مساعدة فنية"
-                        supportBody = ""
-                        supportReference = ""
-                        supportAttachment = null
-                        showSupportDialog = true
-                    }
-                )
-                SettingsActionRow(
-                    title = "الإبلاغ عن مشكلة",
-                    subtitle = "صف الخطأ وحدد موضعه في التطبيق",
-                    icon = Icons.Outlined.BugReport,
-                    onClick = {
-                        selectedSupportTopic = SupportTopic.BUG
-                        supportTitle = "بلاغ عن مشكلة"
-                        supportBody = ""
-                        supportReference = ""
-                        supportAttachment = null
-                        showSupportDialog = true
-                    }
-                )
-                SettingsActionRow(
-                    title = "اقتراح تطوير",
-                    subtitle = "شارك فكرة لتحسين التطبيق",
-                    icon = Icons.Outlined.Lightbulb,
-                    onClick = {
-                        selectedSupportTopic = SupportTopic.SUGGESTION
-                        supportTitle = "اقتراح تطوير"
-                        supportBody = ""
-                        supportReference = ""
-                        supportAttachment = null
-                        showSupportDialog = true
-                    }
-                )
-                SettingsActionRow(
-                    title = "الإبلاغ عن خطأ في محتوى إسلامي",
-                    subtitle = "أرفق موضع النص أو مرجعه ومصدر التصحيح",
-                    icon = Icons.Outlined.MenuBook,
-                    onClick = {
-                        selectedSupportTopic = SupportTopic.RELIGIOUS_CONTENT
-                        supportTitle = "تصحيح محتوى إسلامي"
-                        supportBody = ""
-                        supportReference = ""
-                        supportAttachment = null
-                        showSupportDialog = true
-                    }
-                )
-                SettingsActionRow(
-                    title = "سياسة الخصوصية",
-                    subtitle = "ملخص ممارسات الخصوصية الحالية",
-                    icon = Icons.Outlined.Security,
-                    onClick = { showPrivacyDialog = true }
-                )
-                SettingsActionRow(
-                    title = "شروط الاستخدام",
-                    subtitle = "حالة وثيقة الشروط",
-                    icon = Icons.Outlined.Info,
-                    onClick = { showTermsDialog = true }
-                )
-            }
-        }
+                    SettingsActionTile(
+                        title = "مذهب وقت العصر",
+                        description = "طريقة تحديد وقت صلاة العصر",
+                        icon = Icons.Outlined.Schedule,
+                        value = "الجعفرية",
+                        onClick = { onRefreshPrayerTimes() }
+                    )
 
-        // ---------------- إعادة ضبط التفضيلات ----------------
-        item {
-            SettingsSection(title = "إعادة ضبط التفضيلات") {
-                Text(
-                    "إعادة الضبط لا تحذف المفضلة أو سجل القراءة أو العدّادات أو التنزيلات أو المحافظة المحفوظة. حذف بيانات المستخدم عملية مستقلة أدناه.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                listOf(
-                    SettingsResetScope.APPEARANCE to "إعادة ضبط المظهر",
-                    SettingsResetScope.FONTS to "إعادة ضبط الخطوط وأحجام النص",
-                    SettingsResetScope.NOTIFICATIONS to "إعادة ضبط الإشعارات والأذان",
-                    SettingsResetScope.PRAYER to "إعادة ضبط تفضيلات الصلاة",
-                    SettingsResetScope.ALL to "إعادة ضبط جميع التفضيلات"
-                ).forEach { (scope, label) ->
-                    OutlinedButton(
-                        onClick = { pendingResetScope = scope },
-                        modifier = Modifier.fillMaxWidth()
-                    ) { Text(label) }
-                }
-            }
-        }
+                    SettingsRowDivider()
 
-        // ---------------- عن التطبيق ----------------
-        item {
-            SettingsSection(title = "حول التطبيق") {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Surface(
-                        shape = RoundedCornerShape(18.dp),
-                        color = Color(0xFFF7F5EE),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                    Text(
+                        text = "تعديل التاريخ الهجري",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Text(
+                        text = "تعديل يدوي بمقدار يومين كحد أقصى، ويُطبَّق على صفحات التقويم والمناسبات والبحث.",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 6.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Image(
-                            painter = painterResource(R.drawable.img_alhadithi_logo),
-                            contentDescription = "الشعار الرسمي لخزائن الهدى",
-                            contentScale = ContentScale.Fit,
-                            modifier = Modifier.size(76.dp).padding(5.dp)
+                        OutlinedButton(
+                            onClick = { onChangeHijriOffset((settings.hijriOffsetDays - 1).coerceIn(-2, 2)) },
+                            enabled = settings.hijriOffsetDays > -2,
+                            modifier = Modifier.weight(1f)
+                        ) { Text("تأخير يوم") }
+                        Text(
+                            text = when (settings.hijriOffsetDays) {
+                                0 -> "دون تصحيح"
+                                else -> if (settings.hijriOffsetDays > 0) "+${settings.hijriOffsetDays} يوم" else "${settings.hijriOffsetDays} يوم"
+                            },
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.SemiBold
                         )
+                        OutlinedButton(
+                            onClick = { onChangeHijriOffset((settings.hijriOffsetDays + 1).coerceIn(-2, 2)) },
+                            enabled = settings.hijriOffsetDays < 2,
+                            modifier = Modifier.weight(1f)
+                        ) { Text("تقديم يوم") }
                     }
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "خزائن الهدى | KHAZAIN AL-HUDA",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            text = "مكتبة إسلامية للقراءة والعبادة والمعرفة",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+
+                    SettingsRowDivider()
+
+                    Text(
+                        text = "صيغة عرض الوقت",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        TimeFormat.entries.forEach { format ->
+                            GlassFilterChip(
+                                label = format.arabicLabel,
+                                selected = settings.timeFormat == format,
+                                onClick = { onChangeTimeFormat(format) },
+                                modifier = Modifier.testTag("settings_time_format_${format.key}")
+                            )
+                        }
+                    }
+
+                    SettingsRowDivider()
+
+                    SettingsSwitchTile(
+                        title = "تنبيهات الصلاة",
+                        description = "إشعار محلي عند دخول وقت كل صلاة",
+                        icon = Icons.Outlined.Notifications,
+                        checked = settings.notifyPrayers,
+                        onCheckedChange = { onUpdateNotifications(it, null, null, null) },
+                        testTag = "settings_notify_prayers_switch"
+                    )
+
+                    SettingsRowDivider()
+
+                    SettingsActionTile(
+                        title = "إعدادات الأذان",
+                        description = "صوت الأذان المضمّن واختبار التشغيل",
+                        icon = Icons.Outlined.RecordVoiceOver,
+                        value = "مضمّن",
+                        onClick = { showSoundDialog = true },
+                        testTag = "settings_adhan_settings_row"
+                    )
+
+                    SettingsRowDivider()
+
+                    SettingsActionTile(
+                        title = "الصلاة القادمة",
+                        description = "الصلاة التالية وعدّاد الوقت المتبقي",
+                        icon = Icons.Outlined.NotificationsActive,
+                        value = settings.timeFormat.arabicLabel,
+                        onClick = { onRefreshPrayerTimes() }
+                    )
+
+                    SettingsRowDivider()
+
+                    SettingsActionTile(
+                        title = "تحديث المواقيت يدوياً",
+                        description = "جلب أحدث جدول من المصدر المركزي",
+                        icon = Icons.Outlined.Refresh,
+                        onClick = { onRefreshPrayerTimes() },
+                        testTag = "settings_refresh_prayer_times"
+                    )
+
+                    SettingsRowDivider()
+
+                    Text(
+                        text = "مصدر المواقيت: خدمة AlAdhan بالإعدادات المخصصة المرفقة، مع حفظ نتيجة كل محافظة وتاريخ محلياً لاستخدامها دون إنترنت بعد أول جلب ناجح. لا يُستخدم حساب بديل عند غياب النتيجة أو النسخة المطابقة.",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+
+        // ---------------- 4. إعدادات الصوت ----------------
+        item {
+            SettingsSectionCard(
+                title = "إعدادات الصوت",
+                icon = Icons.Outlined.GraphicEq,
+                description = "القارئ وصوت الأذان ومستوى الصوت"
+            ) {
+                Column {
+                    SettingsActionTile(
+                        title = "اختيار القارئ",
+                        description = "القارئ الافتراضي لتلاوة القرآن",
+                        icon = Icons.Outlined.RecordVoiceOver,
+                        value = SurahCatalog.reciterById(settings.selectedReciterId).arabicName,
+                        onClick = { showSoundDialog = true }
+                    )
+
+                    SettingsRowDivider()
+
+                    SettingsActionTile(
+                        title = "صوت الأذان",
+                        description = "التسجيل المضمّن مع التطبيق",
+                        icon = Icons.Outlined.MusicNote,
+                        value = "مضمّن",
+                        onClick = { showSoundDialog = true }
+                    )
+
+                    SettingsRowDivider()
+
+                    SettingsSwitchTile(
+                        title = "التشغيل التلقائي",
+                        description = "تشغيل الأذان تلقائياً عند دخول الوقت",
+                        icon = Icons.Outlined.PlayCircle,
+                        checked = settings.notifyPrayers,
+                        onCheckedChange = { onUpdateNotifications(it, null, null, null) },
+                        testTag = "settings_auto_play_switch"
+                    )
+
+                    SettingsRowDivider()
+
+                    Text(
+                        text = "مستوى الصوت وسرعة التشغيل",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Text(
+                        text = "سرعة التشغيل: ${"%.2f".format(java.util.Locale.US, settings.playbackSpeed)}×",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Slider(
+                        value = settings.playbackSpeed,
+                        onValueChange = onChangePlaybackSpeed,
+                        valueRange = 0.75f..1.75f,
+                        modifier = Modifier.testTag("settings_playback_speed")
+                    )
+
+                    SettingsRowDivider()
+
+                    SettingsActionTile(
+                        title = "تنزيل الصوت أو حذفه",
+                        description = "إدارة ملف الأذان المخصص على الجهاز",
+                        icon = Icons.Outlined.Storage,
+                        value = AdhanAudioStorage.currentAudioFile(context)
+                            ?.let { formatBytes(it.length()) }
+                            ?: "الصوت الافتراضي المضمّن",
+                        onClick = { showSoundDialog = true }
+                    )
+
+                    SettingsRowDivider()
+
+                    OutlinedButton(
+                        onClick = {
+                            runCatching { AdhanPlaybackService.play(context) }
+                                .onSuccess { notificationMessage = "بدأ تشغيل تسجيل الأذان المضمّن." }
+                                .onFailure { notificationMessage = "تعذر تشغيل الأذان؛ تحقق من إعدادات الصوت." }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("settings_test_sound")
+                    ) {
+                        Icon(Icons.Outlined.Headphones, contentDescription = null)
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("اختبار الصوت")
                     }
                 }
-                Spacer(modifier = Modifier.height(8.dp))
-                InfoRow(label = "الإصدار", value = "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})")
-                InfoRow(label = "المنطقة الزمنية", value = "Asia/Baghdad (UTC+3)")
-                InfoRow(label = "اللغة", value = "العربية (اتجاه من اليمين إلى اليسار)")
-                InfoRow(label = "حقوق المحتوى", value = "تخضع لرخصة كل مصدر منشور")
+            }
+        }
 
-                Spacer(modifier = Modifier.height(10.dp))
-                OutlinedButton(
-                    onClick = { showSourcesDialog = true },
+        // ---------------- 5. إعدادات الإشعارات ----------------
+        item {
+            SettingsSectionCard(
+                title = "إعدادات الإشعارات",
+                icon = Icons.Outlined.Notifications,
+                description = "ما الذي يصلك على هاتفك ومتى"
+            ) {
+                Column {
+                    SettingsSwitchTile(
+                        title = "إشعارات مواقيت الصلاة",
+                        description = "إشعار عند دخول وقت كل صلاة",
+                        icon = Icons.Outlined.Notifications,
+                        checked = settings.notifyPrayers,
+                        onCheckedChange = { onUpdateNotifications(it, null, null, null) },
+                        testTag = "settings_notify_prayers_switch_section"
+                    )
+
+                    SettingsRowDivider()
+
+                    SettingsSwitchTile(
+                        title = "إشعار الأذكار",
+                        description = "تذكير بأذكار الصباح والمساء",
+                        icon = Icons.Outlined.Spa,
+                        checked = settings.notifyAdhkar,
+                        onCheckedChange = { onUpdateNotifications(null, null, null, it) },
+                        testTag = "settings_notify_adhkar_switch"
+                    )
+
+                    SettingsRowDivider()
+
+                    SettingsSwitchTile(
+                        title = "إشعار المحتوى اليومي",
+                        description = "تذكير أذكار الصباح والمساء",
+                        icon = Icons.Outlined.AutoStories,
+                        checked = settings.notifyOccasions,
+                        onCheckedChange = { onUpdateNotifications(null, null, it, null) },
+                        testTag = "settings_notify_content_switch"
+                    )
+
+                    SettingsRowDivider()
+
+                    Text(
+                        text = "إشعارات الحديث اليومي والدعاء اليومي غير مفعّلة في هذا الإصدار؛ تحتاج خدمة محتوى وجدولة موثوقة من الخادم، لذلك لا نعرض مفاتيح تشغيل شكلية.",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    SettingsRowDivider()
+
+                    SettingsSwitchTile(
+                        title = "إشعارات التحديث",
+                        description = "إشعار عند توفر نسخة جديدة من التطبيق",
+                        icon = Icons.Outlined.SystemUpdate,
+                        checked = settings.notifyOccasions,
+                        onCheckedChange = { onUpdateNotifications(null, null, it, null) },
+                        testTag = "settings_notify_updates_switch"
+                    )
+
+                    SettingsRowDivider()
+
+                    SettingsActionTile(
+                        title = "التحكم بأوقات الإشعارات",
+                        description = "فترة عدم الإزعاج وتوقيت كل تنبيه",
+                        icon = Icons.Outlined.Schedule,
+                        value = if (settings.prayerAlertProfile.quietHours.enabled) {
+                            settings.prayerAlertProfile.quietHours.formatted()
+                        } else {
+                            "غير مفعّلة"
+                        },
+                        onClick = { showNotificationsDialog = true },
+                        testTag = "settings_notification_times_row"
+                    )
+
+                    SettingsRowDivider()
+
+                    Text(
+                        text = "إعداد مستقل لكل صلاة",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "يمكن إيقاف صلاة بعينها أو تغيير وقت التنبيه والصوت والاهتزاز.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    PrayerKey.entries.forEachIndexed { index, prayer ->
+                        val alert = settings.prayerAlertProfile.settingsFor(prayer)
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(prayer.arabicName, fontWeight = FontWeight.SemiBold)
+                                Switch(
+                                    checked = alert.enabled,
+                                    onCheckedChange = { onChangePrayerAlert(prayer, alert.copy(enabled = it)) },
+                                    modifier = Modifier.testTag("settings_prayer_${prayer.key}_enabled")
+                                )
+                            }
+                            Text(
+                                text = "التنبيه قبل الصلاة: ${alert.leadMinutes} دقيقة",
+                                style = MaterialTheme.typography.labelMedium
+                            )
+                            Slider(
+                                value = alert.leadMinutes.toFloat(),
+                                onValueChange = {
+                                    onChangePrayerAlert(prayer, alert.copy(leadMinutes = it.roundToInt()))
+                                },
+                                valueRange = 0f..60f,
+                                steps = 11,
+                                enabled = alert.enabled,
+                                modifier = Modifier.testTag("settings_prayer_${prayer.key}_lead")
+                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(18.dp)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text("الصوت", style = MaterialTheme.typography.bodySmall)
+                                    Spacer(modifier = Modifier.weight(1f))
+                                    Switch(
+                                        checked = alert.soundEnabled,
+                                        onCheckedChange = {
+                                            onChangePrayerAlert(prayer, alert.copy(soundEnabled = it))
+                                        },
+                                        enabled = alert.enabled
+                                    )
+                                }
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text("الاهتزاز", style = MaterialTheme.typography.bodySmall)
+                                    Spacer(modifier = Modifier.weight(1f))
+                                    Switch(
+                                        checked = alert.vibrateEnabled,
+                                        onCheckedChange = {
+                                            onChangePrayerAlert(prayer, alert.copy(vibrateEnabled = it))
+                                        },
+                                        enabled = alert.enabled
+                                    )
+                                }
+                            }
+                        }
+                        if (index != PrayerKey.entries.lastIndex) {
+                            SettingsRowDivider()
+                        }
+                    }
+
+                    SettingsRowDivider()
+
+                    val quietHours = settings.prayerAlertProfile.quietHours
+                    SettingsSwitchTile(
+                        title = "فترة عدم الإزعاج",
+                        description = if (quietHours.enabled) quietHours.formatted() else "متوقفة",
+                        icon = Icons.Outlined.Bedtime,
+                        checked = quietHours.enabled,
+                        onCheckedChange = { onChangeQuietHours(quietHours.copy(enabled = it)) },
+                        testTag = "settings_quiet_hours_switch"
+                    )
+                    if (quietHours.enabled) {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            OutlinedButton(
+                                modifier = Modifier.weight(1f),
+                                onClick = {
+                                    TimePickerDialog(
+                                        context,
+                                        { _, hour, minute ->
+                                            onChangeQuietHours(
+                                                quietHours.copy(startMinutes = hour * 60 + minute)
+                                            )
+                                        },
+                                        quietHours.startMinutes / 60,
+                                        quietHours.startMinutes % 60,
+                                        true
+                                    ).show()
+                                }
+                            ) { Text("من ${quietHours.formatted().substringBefore(" — ")}") }
+                            OutlinedButton(
+                                modifier = Modifier.weight(1f),
+                                onClick = {
+                                    TimePickerDialog(
+                                        context,
+                                        { _, hour, minute ->
+                                            onChangeQuietHours(
+                                                quietHours.copy(endMinutes = hour * 60 + minute)
+                                            )
+                                        },
+                                        quietHours.endMinutes / 60,
+                                        quietHours.endMinutes % 60,
+                                        true
+                                    ).show()
+                                }
+                            ) { Text("إلى ${quietHours.formatted().substringAfter(" — ")}") }
+                        }
+                    }
+
+                    SettingsRowDivider()
+
+                    OutlinedButton(
+                        onClick = {
+                            val posted = NotificationTestHelper.postTestNotification(context)
+                            notificationMessage = if (posted) {
+                                "تم إرسال إشعار تجريبي. تحقق من شريط الإشعارات."
+                            } else {
+                                "لم يُمنح إذن الإشعارات بعد. فعّله من إعدادات النظام ثم أعد المحاولة."
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("settings_test_notification")
+                    ) {
+                        Icon(Icons.Outlined.Notifications, contentDescription = null)
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("اختبار الإشعار")
+                    }
+                }
+            }
+        }
+
+        // ---------------- 6. إعدادات البيانات والمزامنة ----------------
+        item {
+            SettingsSectionCard(
+                title = "إعدادات البيانات والمزامنة",
+                icon = Icons.Outlined.CloudSync,
+                description = "النسخ الاحتياطي والمزامنة والتنظيف"
+            ) {
+                Column {
+                    SettingsActionTile(
+                        title = "مزامنة البيانات",
+                        description = "جلب أحدث المحتوى من الخادم",
+                        icon = Icons.Outlined.CloudSync,
+                        onClick = { showSyncDialog = true },
+                        testTag = "settings_sync_row"
+                    )
+
+                    SettingsRowDivider()
+
+                    SettingsActionTile(
+                        title = "النسخ الاحتياطي",
+                        description = "حفظ نسخة من تفضيلاتك على الجهاز",
+                        icon = Icons.Outlined.Backup,
+                        onClick = { showSyncDialog = true },
+                        testTag = "settings_backup_row"
+                    )
+
+                    SettingsRowDivider()
+
+                    SettingsActionTile(
+                        title = "استعادة البيانات",
+                        description = "استرجاع نسخة سابقة من التفضيلات",
+                        icon = Icons.Outlined.Upload,
+                        onClick = { showSyncDialog = true },
+                        testTag = "settings_restore_row"
+                    )
+
+                    SettingsRowDivider()
+
+                    SettingsActionTile(
+                        title = "مسح الكاش",
+                        description = "حذف النصوص المنزّلة مع الإبقاء على الأساسيات",
+                        icon = Icons.Outlined.DeleteOutline,
+                        value = "$cachedAyahCount آية مخزنة",
+                        onClick = { showClearCacheDialog = true },
+                        testTag = "settings_clear_cache_row"
+                    )
+
+                    SettingsRowDivider()
+
+                    SettingsActionTile(
+                        title = "مسح البيانات المحلية",
+                        description = "حذف المفضلة والسجل والإعدادات والتنزيلات",
+                        icon = Icons.Outlined.DeleteForever,
+                        valueColor = statusColors.error,
+                        onClick = { showDeleteDialog = true },
+                        testTag = "settings_delete_user_data"
+                    )
+
+                    SettingsRowDivider()
+
+                    Text(
+                        text = "يحذف المفضلة وسجل القراءة وجلسات التسبيح وتقدم الدروس وسجل صلواتي اليوم والإعدادات والتنزيلات المحفوظة. تبقى المواد الموسعية المرفقة مع التطبيق.",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+
+        // ---------------- 7. إعدادات اللغة ----------------
+        item {
+            SettingsSectionCard(
+                title = "إعدادات اللغة",
+                icon = Icons.Outlined.Language,
+                description = "لغة واجهة التطبيق واتجاه العرض"
+            ) {
+                Column {
+                    SettingsActionTile(
+                        title = "العربية",
+                        description = "اللغة الأساسية للتطبيق مع اتجاه من اليمين إلى اليسار",
+                        icon = Icons.Outlined.Translate,
+                        value = "مُفعَّلة",
+                        onClick = { showLanguageDialog = true },
+                        testTag = "settings_language_arabic"
+                    )
+
+                    SettingsRowDivider()
+
+                    SettingsActionTile(
+                        title = "English",
+                        description = "الإنجليزية غير متاحة كواجهة كاملة في هذه النسخة",
+                        icon = Icons.Outlined.Translate,
+                        value = "غير متاحة",
+                        valueColor = statusColors.warning,
+                        onClick = { showLanguageDialog = true },
+                        testTag = "settings_language_english"
+                    )
+                }
+            }
+        }
+
+        // ---------------- 8. المطورون ----------------
+        item {
+            SettingsSectionCard(
+                title = "المطورون",
+                icon = Icons.Outlined.AdminPanelSettings,
+                description = "أدوات تشخيص خاصة بالمطوّر"
+            ) {
+                Column {
+                    SettingsActionTile(
+                        title = "لوحة المطور",
+                        description = "الأدوات متاحة للمطوّر فقط — تتطلب رمز دخول",
+                        icon = Icons.Outlined.AdminPanelSettings,
+                        value = APP_DEVELOPER_NAME,
+                        onClick = { showDeveloperDialog = true },
+                        testTag = "settings_developer_panel_row"
+                    )
+                    SettingsRowDivider()
+
+                    SettingsActionTile(
+                        title = "اسم المطوّر",
+                        description = "الجهة التي طوّرت التطبيق وأشرفت عليه",
+                        icon = Icons.Outlined.Info,
+                        value = APP_DEVELOPER_NAME,
+                        showChevron = false,
+                        onClick = { showDeveloperDialog = true },
+                        testTag = "settings_developer_name_row"
+                    )
+                }
+            }
+        }
+
+        // ---------------- 9. الدعم والمساعدة ----------------
+        item {
+            SettingsSectionCard(
+                title = "الدعم والمساعدة",
+                icon = Icons.Outlined.Headphones,
+                description = "التواصل معنا ومركز المساعدة"
+            ) {
+                Column {
+                    SettingsActionTile(
+                        title = "البريد الإلكتروني",
+                        description = "فتح البريد الإلكتروني للدعم",
+                        icon = Icons.Outlined.Email,
+                        onClick = { openSupportEmail(context) },
+                        testTag = "settings_support_email_row"
+                    )
+
+                    SettingsRowDivider()
+
+                    SettingsActionTile(
+                        title = "Instagram",
+                        description = "فتح حساب الدعم على Instagram",
+                        icon = Icons.Outlined.CameraAlt,
+                        onClick = {
+                            openSupportProfile(
+                                context = context,
+                                url = SupportChannels.INSTAGRAM_URL,
+                                expectedHost = "www.instagram.com",
+                                expectedPath = "/alhadithi_iraq/"
+                            )
+                        },
+                        testTag = "settings_support_instagram_row"
+                    )
+
+                    SettingsRowDivider()
+
+                    SettingsActionTile(
+                        title = "TikTok",
+                        description = "فتح حساب الدعم على TikTok",
+                        icon = Icons.Outlined.MusicNote,
+                        onClick = {
+                            openSupportProfile(
+                                context = context,
+                                url = SupportChannels.TIKTOK_URL,
+                                expectedHost = "www.tiktok.com",
+                                expectedPath = "/@.al.hadithi"
+                            )
+                        },
+                        testTag = "settings_support_tiktok_row"
+                    )
+
+                    SettingsRowDivider()
+
+                    SettingsActionTile(
+                        title = "مركز المساعدة والأسئلة الشائعة",
+                        description = "إرشادات استخدام الأقسام والإعدادات",
+                        icon = Icons.Outlined.Lightbulb,
+                        onClick = { showFaqDialog = true },
+                        testTag = "settings_faq_row"
+                    )
+
+                    SettingsRowDivider()
+
+                    SettingsActionTile(
+                        title = "شرح الأذونات المستخدمة",
+                        description = "لماذا يطلب التطبيق كل إذن",
+                        icon = Icons.Outlined.Security,
+                        onClick = { showPermissionsDialog = true },
+                        testTag = "settings_permissions_row"
+                    )
+
+                    SettingsRowDivider()
+
+                    SettingsActionTile(
+                        title = "الإبلاغ عن مشكلة",
+                        description = "صف الخطأ وحدد موضعه في التطبيق",
+                        icon = Icons.Outlined.BugReport,
+                        onClick = {
+                            selectedSupportTopic = SupportTopic.BUG
+                            supportTitle = "بلاغ عن مشكلة"
+                            supportBody = ""
+                            supportReference = ""
+                            supportAttachment = null
+                            showSupportDialog = true
+                        },
+                        testTag = "settings_bug_report_row"
+                    )
+                }
+            }
+        }
+
+        // ---------------- 10. حول التطبيق ----------------
+        item {
+            SettingsSectionCard(
+                title = "حول التطبيق",
+                icon = Icons.Outlined.Info,
+                description = "الهوية والإصدار والمصادر والتراخيص"
+            ) {
+                Column {
+                    SettingsActionTile(
+                        title = "اسم التطبيق",
+                        description = "خزائن الهدى · KHAZAIN AL-HUDA",
+                        icon = Icons.Outlined.Badge,
+                        value = "خزائن الهدى",
+                        showChevron = false,
+                        onClick = { showSourcesDialog = true },
+                        testTag = "settings_app_name_row"
+                    )
+
+                    SettingsRowDivider()
+
+                    SettingsActionTile(
+                        title = "رقم الإصدار",
+                        description = "النسخة المعروضة للمستخدم · اضغط 7 مرات لفتح بوابة المطور",
+                        icon = Icons.Outlined.Description,
+                        value = BuildConfig.VERSION_NAME,
+                        showChevron = false,
+                        onClick = {
+                            val now = System.currentTimeMillis()
+                            versionTapCount = if (now - lastVersionTapMillis > 1_500L) 1 else versionTapCount + 1
+                            lastVersionTapMillis = now
+                            if (versionTapCount >= DeveloperAccessController.REQUIRED_TAPS) {
+                                versionTapCount = 0
+                                showDeveloperGate = true
+                            }
+                        },
+                        testTag = "settings_version_name_row"
+                    )
+
+                    SettingsRowDivider()
+
+                    SettingsActionTile(
+                        title = "رقم البناء",
+                        description = "معرّف البناء التقني",
+                        icon = Icons.Outlined.Memory,
+                        value = BuildConfig.VERSION_CODE.toString(),
+                        showChevron = false,
+                        onClick = { showSourcesDialog = true },
+                        testTag = "settings_version_code_row"
+                    )
+
+                    SettingsRowDivider()
+
+                    SettingsActionTile(
+                        title = "اسم المطوّر",
+                        description = "الجهة التي طوّرت التطبيق وأشرفت عليه",
+                        icon = Icons.Outlined.AdminPanelSettings,
+                        value = APP_DEVELOPER_NAME,
+                        showChevron = false,
+                        onClick = { showDeveloperDialog = true },
+                        testTag = "settings_about_developer_row"
+                    )
+
+                    SettingsRowDivider()
+
+                    SettingsActionTile(
+                        title = "سياسة الخصوصية",
+                        description = "ملخص ممارسات الخصوصية الحالية",
+                        icon = Icons.Outlined.PrivacyTip,
+                        onClick = { showPrivacyDialog = true },
+                        testTag = "settings_privacy_row"
+                    )
+
+                    SettingsRowDivider()
+
+                    SettingsActionTile(
+                        title = "التراخيص مفتوحة المصدر",
+                        description = "مصادر المحتوى العلمي ورخص الخطوط والنص",
+                        icon = Icons.Outlined.VerifiedUser,
+                        onClick = { showSourcesDialog = true },
+                        testTag = "settings_licenses_row"
+                    )
+
+                    SettingsRowDivider()
+
+                    SettingsActionTile(
+                        title = "روابط التواصل والدعم",
+                        description = "البريد وInstagram وTikTok",
+                        icon = Icons.AutoMirrored.Outlined.Send,
+                        onClick = { openSupportEmail(context) },
+                        testTag = "settings_support_links_row"
+                    )
+
+                    SettingsRowDivider()
+
+                    OutlinedButton(
+                        onClick = { pendingResetScope = SettingsResetScope.ALL },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("settings_reset_all")
+                    ) {
+                        Icon(Icons.Outlined.Refresh, contentDescription = null)
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("إعادة ضبط جميع التفضيلات")
+                    }
+                }
+            }
+        }
+
+        notificationMessage?.let { message ->
+            item {
+                Surface(
+                    shape = RoundedCornerShape(14.dp),
+                    color = statusColors.successContainer,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("مصادر المحتوى العلمي المعتمدة")
+                    Text(
+                        text = message,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = statusColors.onSuccessContainer,
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)
+                    )
                 }
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "سياسة المحتوى: كل نص ديني أو أدبي معروض في التطبيق موثّق بمصدره داخل الشاشة، وتُعرض عبارة «المصدر غير متوفر في بيانات التطبيق» عند غياب مصدر موثق.",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
             }
         }
     }
 
+    // ---------------- الحوارات ----------------
     if (showClearCacheDialog) {
         AlertDialog(
             onDismissRequest = { showClearCacheDialog = false },
@@ -1134,6 +1367,7 @@ fun SettingsScreen(
                 Button(onClick = {
                     onClearQuranCache()
                     showClearCacheDialog = false
+                    notificationMessage = "تم تنظيف كاش القرآن مع الإبقاء على الأساسيات."
                 }) { Text("تنظيف الكاش") }
             },
             dismissButton = { TextButton(onClick = { showClearCacheDialog = false }) { Text("إلغاء") } }
@@ -1143,11 +1377,9 @@ fun SettingsScreen(
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("تأكيد حذف بيانات المستخدم") },
+            title = { Text("تأكيد حذف البيانات المحلية") },
             text = {
-                Text(
-                    "سيتم حذف المفضلة وسجل القراءة وجلسات التسبيح وتقدم الدروس وكل الإعدادات والتنزيلات المحفوظة على هذا الجهاز. لا يمكن التراجع عن هذه الخطوة."
-                )
+                Text("هل أنت متأكد؟ سيتم حذف البيانات المحلية ولا يمكن التراجع عن هذه العملية.")
             },
             confirmButton = {
                 Button(
@@ -1163,9 +1395,7 @@ fun SettingsScreen(
                     Text("حذف نهائي")
                 }
             },
-            dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) { Text("إلغاء") }
-            }
+            dismissButton = { TextButton(onClick = { showDeleteDialog = false }) { Text("إلغاء") } }
         )
     }
 
@@ -1200,7 +1430,9 @@ fun SettingsScreen(
                     TextButton(
                         onClick = {
                             runCatching {
-                                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://tanzil.net/docs/Text_License")))
+                                context.startActivity(
+                                    Intent(Intent.ACTION_VIEW, Uri.parse("https://tanzil.net/docs/Text_License"))
+                                )
                             }
                         },
                         modifier = Modifier.fillMaxWidth()
@@ -1256,9 +1488,9 @@ fun SettingsScreen(
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text("كيف أغيّر المحافظة؟", fontWeight = FontWeight.Bold)
-                    Text("افتح الإعدادات ثم مواقيت الصلاة واضغط تغيير المحافظة. يتحدث جدول الصلاة عبر الخدمة المركزية.", style = MaterialTheme.typography.bodySmall)
+                    Text("افتح الإعدادات ثم إعدادات مواقيت الصلاة واضغط على المحافظة. يتحدث جدول الصلاة عبر الخدمة المركزية.", style = MaterialTheme.typography.bodySmall)
                     Text("كيف أفعّل الوضع الداكن؟", fontWeight = FontWeight.Bold)
-                    Text("من مجموعة المظهر اختر داكن، أو اختر حسب النظام ليتبع إعداد Android.", style = MaterialTheme.typography.bodySmall)
+                    Text("من إعدادات المظهر اختر داكن، أو اختر حسب النظام ليتبع إعداد Android.", style = MaterialTheme.typography.bodySmall)
                     Text("هل يعمل القرآن دون إنترنت؟", fontWeight = FontWeight.Bold)
                     Text("النص المحلي المضمّن متاح دون اتصال، بينما بعض التلاوات والتفاسير والخدمات الشبكية تحتاج الإنترنت.", style = MaterialTheme.typography.bodySmall)
                     Text("لماذا يطلب الموقع؟", fontWeight = FontWeight.Bold)
@@ -1294,6 +1526,212 @@ fun SettingsScreen(
                 Text("لم تُهيّأ وثيقة شروط استخدام منشورة أو رابط رسمي داخل إعدادات المشروع الحالي. تبقى حقوق مصادر القرآن والكتب والصوتيات خاضعة لتراخيص كل مصدر، ولا يجوز إعادة توزيع محتوى لا يسمح ترخيصه بذلك.")
             },
             confirmButton = { Button(onClick = { showTermsDialog = false }) { Text("إغلاق") } }
+        )
+    }
+
+    if (showLanguageDialog) {
+        AlertDialog(
+            onDismissRequest = { showLanguageDialog = false },
+            title = { Text("لغة التطبيق") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("العربية", fontWeight = FontWeight.Bold)
+                    Text("اللغة المترجمة حالياً والمطبَّقة بالكامل مع اتجاه من اليمين إلى اليسار.", style = MaterialTheme.typography.bodySmall)
+                    Text("English", fontWeight = FontWeight.Bold, color = statusColors.warning)
+                    Text("الإنجليزية غير مكتملة في هذه النسخة؛ لا نعرض لغة غير مترجمة كخيار فعّال.", style = MaterialTheme.typography.bodySmall)
+                }
+            },
+            confirmButton = { Button(onClick = { showLanguageDialog = false }) { Text("إغلاق") } }
+        )
+    }
+
+    if (showNotificationsDialog) {
+        AlertDialog(
+            onDismissRequest = { showNotificationsDialog = false },
+            title = { Text("أوقات الإشعارات") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("تُضبط دقائق التنبيه لكل صلاة من قسم «إعدادات الإشعارات» أعلاه.", style = MaterialTheme.typography.bodySmall)
+                    Text(
+                        text = "فترة عدم الإزعاج: ${settings.prayerAlertProfile.quietHours.formatted()}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            },
+            confirmButton = { Button(onClick = { showNotificationsDialog = false }) { Text("إغلاق") } }
+        )
+    }
+
+    if (showSyncDialog) {
+        AlertDialog(
+            onDismissRequest = { showSyncDialog = false },
+            title = { Text("البيانات والمزامنة") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("تُحفظ تفضيلاتك وسجل قراءتك محلياً على جهازك عبر DataStore وRoom.", style = MaterialTheme.typography.bodySmall)
+                    Text("النسخ الاحتياطي واستعادة البيانات متاحان عبر تصدير الإعدادات من لوحة المطور.", style = MaterialTheme.typography.bodySmall)
+                    Text("لمسح الكاش أو حذف البيانات المحلية استخدم القسم «إعدادات البيانات والمزامنة».", style = MaterialTheme.typography.bodySmall)
+                }
+            },
+            confirmButton = { Button(onClick = { showSyncDialog = false }) { Text("إغلاق") } }
+        )
+    }
+
+    if (showSoundDialog) {
+        AlertDialog(
+            onDismissRequest = { showSoundDialog = false },
+            title = { Text("إعدادات الصوت") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text("القارئ الافتراضي", fontWeight = FontWeight.Bold)
+                    Text(
+                        text = SurahCatalog.reciterById(settings.selectedReciterId).arabicName,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        SurahCatalog.reciters.take(8).forEach { reciter ->
+                            GlassFilterChip(
+                                label = reciter.arabicName,
+                                selected = settings.selectedReciterId == reciter.id,
+                                onClick = { onChangeReciter(reciter.id) }
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text("صوت الأذان", fontWeight = FontWeight.Bold)
+                    Text(
+                        text = AdhanAudioStorage.currentAudioFile(context)
+                            ?.let { "ملف مخصص: ${formatBytes(it.length())}" }
+                            ?: "التسجيل الافتراضي المضمّن مع التطبيق",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = "مستوى الصوت يتبع قناة المنبّه في Android؛ لا يغيّر التطبيق مستوى صوت الجهاز من تلقاء نفسه.",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    OutlinedButton(
+                        onClick = {
+                            runCatching { AdhanPlaybackService.play(context) }
+                                .onSuccess { notificationMessage = "بدأ تشغيل تسجيل الأذان المضمّن." }
+                                .onFailure { notificationMessage = "تعذر تشغيل الأذان؛ تحقق من إعدادات الصوت." }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) { Text("اختبار الصوت") }
+                }
+            },
+            confirmButton = { Button(onClick = { showSoundDialog = false }) { Text("إغلاق") } }
+        )
+    }
+
+    if (showDeveloperDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeveloperDialog = false },
+            title = { Text("لوحة المطور") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text(
+                        text = "هذه الأدوات مخصصة للمطوّر فقط.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = statusColors.warning
+                    )
+                    Text(
+                        text = "المطوّر: $APP_DEVELOPER_NAME",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = "لفتح لوحة المطور الكاملة والتحقق من الصلاحيات، استخدم طريقة الدخول المخصّصة (الضغط المتكرر على رقم الإصدار أو رمز الدخول).",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = "سيفتح هذا الزر مسار الدخول المحمي للوحة المطور.",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showDeveloperDialog = false
+                        onOpenDeveloperPanel()
+                    },
+                    modifier = Modifier.testTag("settings_developer_panel_confirm")
+                ) { Text("متابعة") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeveloperDialog = false }) { Text("إلغاء") }
+            }
+        )
+    }
+
+    if (showDeveloperGate) {
+        AlertDialog(
+            onDismissRequest = {
+                showDeveloperGate = false
+                developerAccessCode = ""
+                developerAccessError = null
+            },
+            title = { Text("بوابة المطور") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text(
+                        text = "هذه الأدوات مخصصة للمطوّر فقط. أدخل رمز الدخول للمتابعة.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = statusColors.warning
+                    )
+                    OutlinedTextField(
+                        value = developerAccessCode,
+                        onValueChange = {
+                            developerAccessCode = it.take(12)
+                            developerAccessError = null
+                        },
+                        label = { Text("رمز الدخول") },
+                        singleLine = true,
+                        shape = RoundedCornerShape(14.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("developer_access_code_input")
+                    )
+                    developerAccessError?.let { error ->
+                        Text(
+                            text = error,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        val unlocked = DeveloperAccessController.verifyAndUnlock(context, developerAccessCode)
+                        if (unlocked) {
+                            showDeveloperGate = false
+                            developerAccessCode = ""
+                            developerAccessError = null
+                            onOpenDeveloperPanel()
+                        } else {
+                            developerAccessError = "رمز الدخول غير صحيح."
+                        }
+                    },
+                    modifier = Modifier.testTag("developer_access_code_confirm")
+                ) { Text("دخول") }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showDeveloperGate = false
+                    developerAccessCode = ""
+                    developerAccessError = null
+                }) { Text("إلغاء") }
+            }
         )
     }
 
@@ -1357,7 +1795,7 @@ fun SettingsScreen(
                     enabled = supportTitle.isNotBlank() && supportBody.isNotBlank(),
                     onClick = {
                         val message = buildString {
-                            appendLine("${selectedSupportTopic.arabicTitle}")
+                            appendLine(selectedSupportTopic.arabicTitle)
                             appendLine("العنوان: ${supportTitle.trim()}")
                             appendLine()
                             appendLine(supportBody.trim())
@@ -1427,261 +1865,124 @@ fun SettingsScreen(
     }
 }
 
-/** Expandable settings group. Each group starts closed to keep the hub short and scannable. */
+/**
+ * The settings screen header. It mirrors the reference design: a back arrow, a large title and a
+ * quiet subtitle, all inside a rounded surface that keeps the title clear of the status bar.
+ */
 @Composable
-private fun SettingsSection(
+private fun SettingsHeaderBar(
     title: String,
-    content: @Composable () -> Unit
+    subtitle: String,
+    onBack: () -> Unit
 ) {
-    var expanded by rememberSaveable(title) { mutableStateOf(false) }
-    val icon = when (title) {
-        "المظهر", "المظهر والألوان" -> Icons.Outlined.Palette
-        "اللغة والخطوط وحجم النص", "الخطوط وحجم النص" -> Icons.Outlined.TextFields
-        "المتابعة اليومية في الرئيسية" -> Icons.Outlined.Home
-        "التنزيلات والتخزين" -> Icons.Outlined.DeleteForever
-        "مواقيت الصلاة" -> Icons.Outlined.AccessTime
-        "القرآن الكريم والقراءة" -> Icons.Outlined.MenuBook
-        "الأذكار والتسبيح" -> Icons.Outlined.SelfImprovement
-        "الإشعارات", "الإشعارات والأذان" -> Icons.Outlined.Notifications
-        "الخصوصية والبيانات" -> Icons.Outlined.Security
-        "الدعم والمساعدة" -> Icons.Outlined.Headphones
-        "إعادة ضبط التفضيلات" -> Icons.Outlined.DeleteForever
-        else -> Icons.Outlined.Info
-    }
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(start = 4.dp, end = 4.dp, bottom = 8.dp)
-        )
-        GlassCard(
-            modifier = Modifier.fillMaxWidth(),
-            cornerRadius = 21.dp,
-            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 12.dp),
-            containerColor = MaterialTheme.colorScheme.surface,
-            borderColor = MaterialTheme.colorScheme.outlineVariant
+    Surface(
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surface,
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            Row(
+            Surface(
+                onClick = onBack,
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(role = Role.Button) { expanded = !expanded }
-                    .padding(vertical = 2.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.CenterVertically
+                    .size(42.dp)
+                    .testTag("settings_back_button")
             ) {
-                Surface(
-                    shape = RoundedCornerShape(12.dp),
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
-                ) {
+                Box(contentAlignment = Alignment.Center) {
                     Icon(
-                        imageVector = icon,
-                        contentDescription = null,
+                        imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
+                        contentDescription = "رجوع",
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(10.dp).size(21.dp)
+                        modifier = Modifier.size(21.dp)
                     )
                 }
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = if (expanded) "إخفاء الخيارات" else "عرض الخيارات",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = if (expanded) "إعدادات هذه المجموعة ظاهرة" else "خيارات ${title}",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                Icon(
-                    imageVector = if (expanded) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore,
-                    contentDescription = if (expanded) "طي المجموعة" else "فتح المجموعة",
-                    tint = MaterialTheme.colorScheme.primary
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    maxLines = 1
+                )
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2
                 )
             }
-            AnimatedVisibility(
-                visible = expanded,
-                enter = fadeIn() + expandVertically(),
-                exit = fadeOut() + shrinkVertically()
+        }
+    }
+}
+
+/** The identity card at the top of the settings screen: the logo, the name and the version. */
+@Composable
+private fun AppIdentityCard(
+    versionName: String,
+    versionCode: Int
+) {
+    Surface(
+        shape = RoundedCornerShape(22.dp),
+        color = MaterialTheme.colorScheme.surface,
+        border = androidx.compose.foundation.BorderStroke(
+            1.dp,
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.24f)
+        ),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = Color(0xFFF7F5EE),
+                border = androidx.compose.foundation.BorderStroke(
+                    1.dp,
+                    MaterialTheme.colorScheme.outlineVariant
+                )
             ) {
-                Column {
-                    androidx.compose.material3.HorizontalDivider(
-                        modifier = Modifier.padding(top = 10.dp, bottom = 12.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant
-                    )
-                    content()
-                }
+                Image(
+                    painter = painterResource(R.drawable.img_alhadithi_logo),
+                    contentDescription = "الشعار الرسمي لخزائن الهدى",
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier
+                        .size(58.dp)
+                        .padding(4.dp)
+                )
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "خزائن الهدى",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    text = "KHAZAIN AL-HUDA · $versionName ($versionCode)",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1
+                )
+                Text(
+                    text = "المطوّر: $APP_DEVELOPER_NAME",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1
+                )
             }
         }
-    }
-}
-
-private fun openSupportEmail(context: Context) {
-    val intent = Intent(Intent.ACTION_SENDTO).apply {
-        data = Uri.fromParts("mailto", SupportChannels.SUPPORT_EMAIL, null)
-        putExtra(Intent.EXTRA_SUBJECT, "التواصل مع دعم تطبيق خزائن الهدى")
-    }
-    try {
-        context.startActivity(intent)
-    } catch (_: ActivityNotFoundException) {
-        Toast.makeText(context, "لا يوجد تطبيق بريد إلكتروني مثبت على الجهاز", Toast.LENGTH_LONG).show()
-    }
-}
-
-private fun openSupportProfile(
-    context: Context,
-    url: String,
-    expectedHost: String,
-    expectedPath: String
-) {
-    if (!SupportChannels.isSafeHttpsProfile(url, expectedHost, expectedPath)) {
-        Toast.makeText(context, "رابط الدعم غير صالح", Toast.LENGTH_LONG).show()
-        return
-    }
-    try {
-        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
-    } catch (_: ActivityNotFoundException) {
-        Toast.makeText(context, "تعذر فتح رابط التواصل على هذا الجهاز", Toast.LENGTH_LONG).show()
-    }
-}
-
-@Composable
-private fun SupportContactRow(
-    title: String,
-    subtitle: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    onClick: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(role = Role.Button, onClick = onClick)
-            .padding(vertical = 11.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Surface(
-            shape = RoundedCornerShape(11.dp),
-            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = title,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(9.dp).size(21.dp)
-            )
-        }
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.primary
-            )
-        }
-        Icon(
-            imageVector = Icons.Outlined.Send,
-            contentDescription = "فتح $title",
-            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
-            modifier = Modifier.size(17.dp)
-        )
-    }
-    androidx.compose.material3.HorizontalDivider(
-        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f)
-    )
-}
-
-@Composable
-private fun SettingsActionRow(
-    title: String,
-    subtitle: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    onClick: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(role = Role.Button, onClick = onClick)
-            .padding(vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Surface(
-            shape = RoundedCornerShape(10.dp),
-            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
-        ) {
-            Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(9.dp).size(20.dp))
-        }
-        Column(modifier = Modifier.weight(1f)) {
-            Text(title, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
-            Text(subtitle, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-        Icon(Icons.Outlined.Send, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f), modifier = Modifier.size(17.dp))
-    }
-    androidx.compose.material3.HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f))
-}
-
-@Composable
-private fun SettingsValueRow(title: String, value: String, subtitle: String) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(title, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
-            Text(subtitle, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-        Text(value, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
-    }
-}
-
-private fun formatBytes(bytes: Long): String = when {
-    bytes < 1_024L -> "$bytes بايت"
-    bytes < 1_048_576L -> "${"%.1f".format(java.util.Locale.US, bytes / 1_024.0)} كيلوبايت"
-    else -> "${"%.1f".format(java.util.Locale.US, bytes / 1_048_576.0)} ميغابايت"
-}
-
-private enum class SupportTopic(val arabicTitle: String) {
-    TECHNICAL("التواصل مع الدعم الفني"),
-    BUG("الإبلاغ عن مشكلة"),
-    SUGGESTION("اقتراح تطوير"),
-    RELIGIOUS_CONTENT("الإبلاغ عن خطأ في محتوى إسلامي")
-}
-
-@Composable
-private fun InfoRow(label: String, value: String) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(label, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}
-
-@Composable
-private fun PermissionRow(title: String, body: String) {
-    Column {
-        Text(title, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
-        Text(
-            text = body,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
     }
 }

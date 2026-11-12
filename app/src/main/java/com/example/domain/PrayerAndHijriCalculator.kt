@@ -100,8 +100,8 @@ data class DailyPrayerSchedule(
     val sunsetMinutes: Int = -1
 ) {
     fun formatted12h(minutesOfDay: Int): String {
-        if (minutesOfDay !in 0..1439) return "--:--"
-        val normalized = minutesOfDay
+        val normalized = normalizeMinutesOfDay(minutesOfDay)
+        if (normalized < 0) return "--:--"
         val hour24 = normalized / 60
         val min = normalized % 60
         val period = if (hour24 < 12) "ص" else "م"
@@ -114,12 +114,24 @@ data class DailyPrayerSchedule(
     }
 
     fun formatted24h(minutesOfDay: Int): String {
-        if (minutesOfDay !in 0..1439) return "--:--"
-        val normalized = minutesOfDay
+        val normalized = normalizeMinutesOfDay(minutesOfDay)
+        if (normalized < 0) return "--:--"
         val hour24 = normalized / 60
         val min = normalized % 60
         return String.format(Locale.US, "%02d:%02d", hour24, min)
     }
+}
+
+/**
+ * Normalises a minute-of-day value into the 0..1439 range.
+ *
+ * The API and the local calculator can both hand over a value that already crossed midnight
+ * (for example 1540 instead of 100). Rendering such a value as "--:--" would hide a real time
+ * from the user, so the value is wrapped around the day instead.
+ */
+internal fun normalizeMinutesOfDay(minutesOfDay: Int): Int {
+    if (minutesOfDay !in 0..2879) return -1
+    return if (minutesOfDay > 1439) minutesOfDay - 1440 else minutesOfDay
 }
 
 data class NextPrayerCountdown(

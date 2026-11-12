@@ -2,7 +2,6 @@ package com.example.ui.screens
 
 import android.content.Intent
 import android.net.Uri
-
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -40,6 +39,7 @@ import androidx.compose.material.icons.outlined.LocalLibrary
 import androidx.compose.material.icons.outlined.Mosque
 import androidx.compose.material.icons.outlined.NightsStay
 import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material.icons.outlined.Psychology
 import androidx.compose.material.icons.outlined.School
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.Spa
@@ -66,6 +66,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.R
@@ -85,9 +86,17 @@ import com.example.domain.PrayerAndHijriCalculator
 import com.example.domain.PrayerDailyProgress
 import com.example.domain.PrayerKey
 import com.example.domain.TimeFormat
+import com.example.domain.TimetableVerification
+import com.example.domain.VerificationStatus
 import com.example.ui.components.AlHadithiBrandTopBar
 import com.example.ui.components.EmeraldHeroCard
 import com.example.ui.components.GlassCard
+import com.example.ui.components.PrayerCountdownPanel
+import com.example.ui.components.PrayerSourceChip
+import com.example.ui.components.PrayerTimesCardHeader
+import com.example.ui.components.PrayerTimesStrip
+import com.example.ui.components.PrayerTimingMismatchWarning
+import com.example.ui.components.PrayerTrackingRow
 import com.example.ui.components.SectionHeaderRow
 import com.example.ui.components.SourceCitationBadge
 import com.example.ui.navigation.AppDestination
@@ -147,6 +156,7 @@ fun HomeScreen(
     tasbihGoal: Int,
     timeFormat: TimeFormat,
     prayerCalculationSummary: String,
+    verification: TimetableVerification,
     onOpenGovernorateSheet: () -> Unit,
     onNavigate: (AppDestination) -> Unit,
     onOpenSurah: (Int) -> Unit,
@@ -185,9 +195,12 @@ fun HomeScreen(
     }
     val nearestOccasion = sortedUpcomingOccasions.firstOrNull()
 
-    fun formatTime(minutesOfDay: Int): String = when (timeFormat) {
-        TimeFormat.TWELVE_HOUR -> schedule.formatted12h(minutesOfDay)
-        TimeFormat.TWENTY_FOUR_HOUR -> schedule.formatted24h(minutesOfDay)
+    // A single time formatter shared by every card so the dashboard never mixes 12h and 24h.
+    val formatTime: (Int) -> String = { minutesOfDay ->
+        when (timeFormat) {
+            TimeFormat.TWELVE_HOUR -> schedule.formatted12h(minutesOfDay)
+            TimeFormat.TWENTY_FOUR_HOUR -> schedule.formatted24h(minutesOfDay)
+        }
     }
 
     // 12 distinct, expressive, harmonious icons (zero duplicates!)
@@ -201,7 +214,7 @@ fun HomeScreen(
             QuickNavTile("الحديث والروايات", Icons.Outlined.FormatQuote, AppDestination.HADITH, "quick_hadith"),
             QuickNavTile("مواقيت الصلاة", Icons.Outlined.Schedule, AppDestination.PRAYER_TIMES, "quick_prayer"),
             QuickNavTile("اتجاه القبلة", Icons.Outlined.Explore, AppDestination.QIBLA, "quick_qibla"),
-            QuickNavTile("الأخلاقيات", Icons.Outlined.School, AppDestination.ETHICS, "quick_ethics"),
+            QuickNavTile("الأخلاقيات", Icons.Outlined.Psychology, AppDestination.ETHICS, "quick_ethics"),
             QuickNavTile("المناهج والدروس", Icons.Outlined.School, AppDestination.CURRICULA, "quick_curricula"),
             QuickNavTile("التقويم الهجري", Icons.Outlined.CalendarMonth, AppDestination.CALENDAR_OCCASIONS, "quick_calendar"),
             QuickNavTile("الخلفيات", Icons.Outlined.Wallpaper, AppDestination.WALLPAPERS, "quick_wallpapers"),
@@ -212,9 +225,10 @@ fun HomeScreen(
     // Main dashboard order is fixed to the product specification. Legacy preferences are retained.
     val sections: List<Pair<String, @Composable () -> Unit>> = remember(
         homeCards, hiddenHomeCards, dailyGoals, tasbihCount, tasbihGoal, timeFormat,
+        schedule,
         countdown.countdownHhMmSs, schedule.hijriDate.formattedArabic(),
         readingScale, lineSpacing, prayerCalculationSummary, nearestOccasion?.second,
-        prayerCompletionRecords, trackingDayKey, completedPrayerKeys
+        prayerCompletionRecords, trackingDayKey, completedPrayerKeys, verification
     ) {
         // Main dashboard follows the requested fixed hierarchy. Legacy customizable cards remain
         // in the stored settings for backward compatibility but are intentionally not rendered.
@@ -316,96 +330,55 @@ fun HomeScreen(
                     GlassCard(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
+                            .padding(horizontal = 16.dp)
+                            .testTag("prayer_times_card"),
                         cornerRadius = 24.dp,
-                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.74f),
+                        contentPadding = PaddingValues(horizontal = 15.dp, vertical = 14.dp),
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        borderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.24f),
                         onClick = { onNavigate(AppDestination.PRAYER_TIMES) }
                     ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column {
-                                Text("مواقيت الصلاة", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                                Text(governorate.arabicName + " · " + schedule.gregorianDateLabel, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.76f))
-                            }
-                            Icon(Icons.Outlined.Schedule, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(26.dp))
-                        }
-                        Spacer(modifier = Modifier.height(14.dp))
-                        val prayerItems = listOf(
-                            "الفجر" to schedule.fajrMinutes,
-                            "الظهر" to schedule.dhuhrMinutes,
-                            "العصر" to schedule.asrMinutes,
-                            "المغرب" to schedule.maghribMinutes,
-                            "العشاء" to schedule.ishaMinutes
+                        PrayerTimesCardHeader(
+                            governorate = governorate,
+                            schedule = schedule
                         )
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                            prayerItems.forEach { (name, minutes) ->
-                                val isNext = name == countdown.prayerArabicName
-                                Surface(
-                                    modifier = Modifier.weight(1f),
-                                    shape = RoundedCornerShape(13.dp),
-                                    color = if (isNext) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface.copy(alpha = 0.75f)
-                                ) {
-                                    Column(
-                                        modifier = Modifier.padding(vertical = 9.dp, horizontal = 2.dp),
-                                        horizontalAlignment = Alignment.CenterHorizontally
-                                    ) {
-                                        Text(name, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold, color = if (isNext) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant)
-                                        Spacer(modifier = Modifier.height(4.dp))
-                                        Text(
-                                            text = formatTime(minutes).replace(" ص", "").replace(" م", ""),
-                                            style = MaterialTheme.typography.labelMedium,
-                                            fontWeight = FontWeight.Bold,
-                                            color = if (isNext) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                        Spacer(modifier = Modifier.height(13.dp))
-                        Surface(
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(15.dp),
-                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                if (countdown.remainingSeconds > 0L) {
-                                    Column {
-                                        Text("المتبقي على ${countdown.prayerArabicName}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                        Text(countdown.prayerFormattedTime, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-                                    }
-                                    Text(
-                                        countdown.countdownHhMmSs,
-                                        style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily(Font(R.font.tajawal))),
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.primary
-                                    )
-                                } else {
-                                    Text(
-                                        countdown.countdownHhMmSs,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.error
-                                    )
-                                }
-                            }
-                        }
+                        Spacer(modifier = Modifier.height(14.dp))
+                        PrayerTimesStrip(
+                            schedule = schedule,
+                            countdown = countdown,
+                            formatPrayerTime = formatTime
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        PrayerCountdownPanel(countdown = countdown)
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = if (schedule.sourceType in setOf("ALADHAN_API", "ALADHAN_API_CACHE") && schedule.sourceUpdatedAtMillis > 0L) {
-                                "${schedule.sourceLabel} · تحديث السجل ${java.text.SimpleDateFormat("HH:mm", java.util.Locale("ar", "IQ")).apply { timeZone = java.util.TimeZone.getTimeZone("Asia/Baghdad") }.format(java.util.Date(schedule.sourceUpdatedAtMillis))}"
+                        PrayerSourceChip(
+                            sourceLabel = if (schedule.sourceType in setOf("ALADHAN_API", "ALADHAN_API_CACHE")) {
+                                schedule.sourceLabel
                             } else {
                                 "لا تتوفر نتيجة AlAdhan أو نسخة محلية لهذا التاريخ"
                             },
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.82f)
+                            updatedAtMillis = schedule.sourceUpdatedAtMillis,
+                            isVerifiedSource = schedule.sourceType in setOf("ALADHAN_API", "ALADHAN_API_CACHE")
                         )
-                        Text("اضغط لعرض الجدول والتفاصيل", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+                        if (verification.status == VerificationStatus.MISMATCH) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            PrayerTimingMismatchWarning(message = verification.message)
+                        }
+                        if (verification.status == VerificationStatus.UNVERIFIED &&
+                            schedule.sourceType != "UNAVAILABLE"
+                        ) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            PrayerTimingMismatchWarning(
+                                message = verification.message,
+                                isWarning = false
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = "اضغط لعرض الجدول والتفاصيل",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary
+                        )
                     }
                 })
 
@@ -421,7 +394,8 @@ fun HomeScreen(
                     GlassCard(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
+                            .padding(horizontal = 16.dp)
+                            .testTag("prayer_tracking_card"),
                         cornerRadius = 22.dp,
                         contentPadding = PaddingValues(horizontal = 15.dp, vertical = 13.dp)
                     ) {
@@ -430,16 +404,20 @@ fun HomeScreen(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Column {
+                            Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = "متابعة الصلوات",
                                     style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold
+                                    fontWeight = FontWeight.Bold,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                                 Text(
                                     text = schedule.gregorianDateLabel,
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                             }
                             Surface(
@@ -448,52 +426,25 @@ fun HomeScreen(
                             ) {
                                 Text(
                                     text = "$completedCount / 5 منجزة",
-                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                    modifier = Modifier
+                                        .padding(horizontal = 10.dp, vertical = 6.dp)
+                                        .testTag("prayer_tracking_counter"),
                                     style = MaterialTheme.typography.labelMedium,
                                     color = MaterialTheme.colorScheme.primary,
-                                    fontWeight = FontWeight.SemiBold
+                                    fontWeight = FontWeight.SemiBold,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                             }
                         }
                         Spacer(modifier = Modifier.height(8.dp))
                         PrayerDailyProgress.orderedPrayers.forEachIndexed { index, prayer ->
-                            val isDone = prayer in completedPrayerKeys
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 3.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        text = prayer.arabicName,
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        fontWeight = FontWeight.SemiBold
-                                    )
-                                    Text(
-                                        text = if (isDone) "تم تسجيل الأداء" else "وقت الصلاة",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                                Text(
-                                    text = formatTime(prayerTimes.getValue(prayer)),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                                IconButton(
-                                    onClick = { onSetPrayerCompletion(prayer, !isDone) },
-                                    modifier = Modifier.size(42.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = if (isDone) Icons.Outlined.CheckCircle else Icons.Outlined.RadioButtonUnchecked,
-                                        contentDescription = if (isDone) "إلغاء تسجيل ${prayer.arabicName}" else "تسجيل ${prayer.arabicName}",
-                                        tint = if (isDone) MaterialTheme.colorScheme.primary
-                                        else MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            }
+                            PrayerTrackingRow(
+                                prayer = prayer,
+                                timeText = formatTime(prayerTimes.getValue(prayer)),
+                                isCompleted = prayer in completedPrayerKeys,
+                                onToggle = { onSetPrayerCompletion(prayer, prayer !in completedPrayerKeys) }
+                            )
                             if (index < PrayerDailyProgress.orderedPrayers.lastIndex) {
                                 androidx.compose.material3.HorizontalDivider(
                                     color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.50f)
@@ -503,7 +454,9 @@ fun HomeScreen(
                         Text(
                             text = "توقيت المحافظة: ${governorate.arabicName} · ${schedule.sourceLabel}",
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 })

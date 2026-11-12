@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!--
+      Light-mode window background. This is the colour the platform paints before the first
+      Compose frame, and it must equal the light theme `background` so the transition from the
+      splash screen to the app is seamless and never shows a black band.
+    -->
+    <color name="kh_window_background">#F7F8F5</color>
+    <color name="kh_splash_background">#F7F8F5</color>
+
     <color name="purple_200">#FFBB86FC</color>
     <color name="purple_500">#FF6200EE</color>
     <color name="purple_700">#FF3700B3</color>

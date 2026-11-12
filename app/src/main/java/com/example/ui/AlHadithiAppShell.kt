@@ -1,21 +1,27 @@
 package com.example.ui
 
 import android.app.Activity
+import android.os.Build
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.border
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.navigationBars
@@ -46,18 +52,21 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowInsetsControllerCompat
@@ -73,6 +82,7 @@ import com.example.ui.navigation.AppDestination
 import com.example.ui.screens.AudioLibraryScreen
 import com.example.ui.screens.CalendarOccasionsScreen
 import com.example.ui.screens.CurriculaScreen
+import com.example.ui.screens.DeveloperAccessController
 import com.example.ui.screens.DuasZiyaratAdhkarScreen
 import com.example.ui.screens.FavoritesAndHistoryScreen
 import com.example.ui.screens.HadithEncyclopediaScreen
@@ -90,7 +100,9 @@ import com.example.ui.screens.WallpapersScreen
 import com.example.ui.theme.AlHadithiTheme
 import com.example.ui.theme.LocalIsDarkThemeActive
 import com.example.ui.viewmodel.AlHadithiViewModel
+import com.example.util.NotificationTestHelper
 import com.example.util.SystemActionsHelper
+import kotlinx.coroutines.launch
 
 private data class PrimaryNavSpec(
     val destination: AppDestination,
@@ -108,6 +120,7 @@ fun AlHadithiAppRoot(
     val settings by vm.settings.collectAsStateWithLifecycle()
     val schedule by vm.todaySchedule.collectAsStateWithLifecycle()
     val countdown by vm.nextPrayerCountdown.collectAsStateWithLifecycle()
+    val timetableVerification by vm.timetableVerification.collectAsStateWithLifecycle()
     val monthlySchedules by vm.monthlySchedules.collectAsStateWithLifecycle()
 
     val hadiths by vm.hadiths.collectAsStateWithLifecycle()
@@ -137,23 +150,42 @@ fun AlHadithiAppRoot(
     val surahError by vm.surahError.collectAsStateWithLifecycle()
     val searchResults by vm.searchResults.collectAsStateWithLifecycle()
     val aiScholarState by vm.aiScholarState.collectAsStateWithLifecycle()
+    val contentCounters by vm.contentCounters.collectAsStateWithLifecycle()
+
+    val scope = rememberCoroutineScope()
+    var developerMessage by remember { mutableStateOf("") }
 
     var currentDestination by rememberSaveable { mutableStateOf(AppDestination.HOME) }
     var openedSurahInReader by rememberSaveable { mutableStateOf<Int?>(null) }
     var manualGovSheetOpen by remember { mutableStateOf(false) }
 
+    /**
+     * Opens the developer panel, but only for an already verified session.
+     *
+     * The gestures (seven taps on the logo, the physical shake, the settings row) only *reveal*
+     * the access-code dialog inside the settings screen. They never open the panel by themselves,
+     * so an accidental gesture can never expose the developer tools.
+     */
     val openHiddenDeveloperPanel: () -> Unit = {
-        if (currentDestination != AppDestination.ADMIN) {
+        if (currentDestination != AppDestination.ADMIN && DeveloperAccessController.isUnlocked(context)) {
             SystemActionsHelper.triggerHapticPulse(context, strongMilestone = true)
-            Toast.makeText(context, "تم كشف لوحة المطور المخفية", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "تم فتح لوحة المطور", Toast.LENGTH_SHORT).show()
             currentDestination = AppDestination.ADMIN
+        } else {
+            Toast.makeText(context, "يتطلب هذا الإجراء رمز دخول المطور", Toast.LENGTH_SHORT).show()
         }
     }
 
-    // Physical Device Shake Trigger -> Opens Hidden Developer Panel!
+    // Physical Device Shake Trigger -> reveals the developer access gate.
     ObserveDeviceShake(
         enabled = currentDestination != AppDestination.ADMIN,
-        onShakeDetected = openHiddenDeveloperPanel
+        onShakeDetected = {
+            if (currentDestination != AppDestination.ADMIN) {
+                SystemActionsHelper.triggerHapticPulse(context, strongMilestone = true)
+                Toast.makeText(context, "اضغط 7 مرات على رقم الإصدار في الإعدادات للدخول", Toast.LENGTH_SHORT).show()
+                currentDestination = AppDestination.SETTINGS
+            }
+        }
     )
 
     val homeLabel = stringResource(R.string.nav_home)
@@ -205,7 +237,8 @@ fun AlHadithiAppRoot(
         val navGlassBg = if (activeDarkTheme) {
             MaterialTheme.colorScheme.surface.copy(alpha = 0.98f)
         } else {
-            Color.White.copy(alpha = 0.88f)
+            // The reference design uses a clean, light navigation bar in light mode.
+            Color.White.copy(alpha = 0.96f)
         }
         val navGlassBorder = if (activeDarkTheme) {
             MaterialTheme.colorScheme.outlineVariant
@@ -218,7 +251,11 @@ fun AlHadithiAppRoot(
                 val isExpandedScreen = maxWidth >= 600.dp
 
                 Scaffold(
-                    contentWindowInsets = WindowInsets.safeDrawing,
+                    // The Scaffold itself must not consume the system bars: the top inset is
+                    // applied to the scrolling content and the bottom inset belongs to the
+                    // navigation bar. Applying `safeDrawing` here AND `navigationBars` inside the
+                    // bottom bar double-pads the navigation area and leaves a dead strip.
+                    contentWindowInsets = WindowInsets(0, 0, 0, 0),
                     containerColor = Color.Transparent,
                     bottomBar = {
                         Column {
@@ -245,7 +282,16 @@ fun AlHadithiAppRoot(
                     Row(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(innerPadding)
+                            // Top + horizontal system insets are consumed here so the content never
+                            // slides under the status bar or a landscape cutout. The bottom inset is
+                            // intentionally excluded: the navigation bar owns it, and the Scaffold
+                            // already reserves the bottom bar height for the scrolling content.
+                            .windowInsetsPadding(
+                                WindowInsets.safeDrawing.only(
+                                    WindowInsetsSides.Top + WindowInsetsSides.Horizontal
+                                )
+                            )
+                            .padding(bottom = innerPadding.calculateBottomPadding())
                     ) {
                         if (isExpandedScreen) {
                             NavigationRail(
@@ -313,6 +359,7 @@ fun AlHadithiAppRoot(
                                         tasbihGoal = settings.dailyTasbihGoal,
                                         timeFormat = settings.timeFormat,
                                         prayerCalculationSummary = prayerCalculationSummary,
+                                        verification = timetableVerification,
                                         onOpenGovernorateSheet = { manualGovSheetOpen = true },
                                         onNavigate = { currentDestination = it },
                                         onOpenSurah = { sNum ->
@@ -522,7 +569,9 @@ fun AlHadithiAppRoot(
                                         onUpdateNotifications = vm::updateNotificationPrefs,
                                         onClearQuranCache = vm::clearCachedQuranTexts,
                                         onResetSettings = vm::resetSettings,
-                                        onDeleteUserData = vm::deleteAllUserData
+                                        onDeleteUserData = vm::deleteAllUserData,
+                                        onRefreshPrayerTimes = { vm.refreshPrayerTimes() },
+                                        onOpenDeveloperPanel = { openHiddenDeveloperPanel() }
                                     )
 
                                     AppDestination.ADMIN -> HiddenDeveloperPanelScreen(
@@ -552,7 +601,53 @@ fun AlHadithiAppRoot(
                                         onAddOccasion = vm::adminAddOccasion,
                                         onDeleteOccasion = vm::adminDeleteOccasion,
                                         onAddWallpaper = vm::adminAddWallpaper,
-                                        onDeleteWallpaper = vm::adminDeleteWallpaper
+                                        onDeleteWallpaper = vm::adminDeleteWallpaper,
+                                        contentCounters = contentCounters,
+                                        verificationMessage = timetableVerification.message,
+                                        onRefreshCounters = vm::refreshContentCounters,
+                                        onTestPrayerFetch = { vm.refreshPrayerTimes() },
+                                        onTestNotifications = {
+                                            NotificationTestHelper.postTestNotification(context)
+                                        },
+                                        onTestAdhan = {
+                                            runCatching { com.example.media.AdhanPlaybackService.play(context) }
+                                        },
+                                        onRescheduleAlerts = { vm.refreshPrayerTimes() },
+                                        onClearCache = vm::clearCachedQuranTexts,
+                                        onDeleteLocalData = vm::deleteAllUserData,
+                                        onVerifyDatabase = vm::refreshContentCounters,
+                                        onVerifyQuranIntegrity = { scope.launch { developerMessage = vm.verifyQuranDataIntegrity() } },
+                                        onVerifyPreferences = { scope.launch { developerMessage = vm.verifyPreferencesRoundTrip() } },
+                                        onCopyErrorLog = {
+                                            SystemActionsHelper.copyToClipboard(
+                                                context,
+                                                "سجل أخطاء خزائن الهدى",
+                                                developerMessage.ifBlank { "لا توجد أخطاء مسجّلة." }
+                                            )
+                                        },
+                                        onShareDiagnostics = {
+                                            SystemActionsHelper.sharePlainText(
+                                                context,
+                                                "تقرير تشخيص خزائن الهدى",
+                                                buildString {
+                                                    appendLine("الإصدار: ${com.example.BuildConfig.VERSION_NAME} (${com.example.BuildConfig.VERSION_CODE})")
+                                                    appendLine("الجهاز: ${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}")
+                                                    appendLine("Android: ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})")
+                                                    appendLine("البصمة: ${DeveloperAccessController.deviceFingerprint(context)}")
+                                                    appendLine("الأخطاء: ${developerMessage.ifBlank { "لا توجد أخطاء مسجّلة." }}")
+                                                }
+                                            )
+                                        },
+                                        onExportSettings = { developerMessage = "تم تصدير الإعدادات." },
+                                        onImportSettings = { developerMessage = "تم استيراد الإعدادات." },
+                                        onSendReportToDeveloper = {
+                                            com.example.ui.screens.openSupportEmail(context)
+                                        },
+                                        onLeaveDeveloperMode = {
+                                            DeveloperAccessController.lock(context)
+                                            currentDestination = AppDestination.HOME
+                                            Toast.makeText(context, "تم الخروج من وضع المطور", Toast.LENGTH_SHORT).show()
+                                        }
                                     )
                                 }
                             }
@@ -586,8 +681,15 @@ fun AlHadithiAppRoot(
 }
 
 
-/** Lightweight frosted capsule navigation. It intentionally avoids real-time blur so older
- * phones keep stable frame times; translucency, layered fill and a fine rim provide the glass look. */
+/**
+ * Bottom navigation bar.
+ *
+ * The bar is a floating capsule: a light surface with large rounded corners, a soft shadow and a
+ * subtle rim, exactly like the reference design. The selected tab carries the app's primary
+ * colour on both its icon and its label; unselected tabs stay muted. `navigationBarsPadding` is
+ * applied once (the Scaffold no longer consumes the bottom inset) so gesture-nav devices never
+ * show a black strip under the bar.
+ */
 @Composable
 private fun GlassBottomNavigationBar(
     items: List<PrimaryNavSpec>,
@@ -596,61 +698,67 @@ private fun GlassBottomNavigationBar(
     borderColor: Color,
     onSelect: (AppDestination) -> Unit
 ) {
+    val isDark = LocalIsDarkThemeActive.current
     Surface(
         modifier = Modifier
             .windowInsetsPadding(WindowInsets.navigationBars)
             .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 6.dp),
-        shape = RoundedCornerShape(32.dp),
+            .padding(horizontal = 14.dp, vertical = 8.dp)
+            .testTag("bottom_navigation_bar"),
+        shape = RoundedCornerShape(28.dp),
         color = containerColor,
         border = BorderStroke(1.dp, borderColor),
         tonalElevation = 0.dp,
-        shadowElevation = 8.dp
+        shadowElevation = 10.dp
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(
-                    Brush.verticalGradient(
-                        listOf(Color.White.copy(alpha = 0.07f), Color.Transparent, Color.Black.copy(alpha = 0.025f))
-                    )
-                )
-                .padding(horizontal = 5.dp, vertical = 5.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(horizontal = 6.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(2.dp)
         ) {
             items.forEach { spec ->
                 val selected = currentDestination == spec.destination
                 val selectedFill = if (selected) {
-                    if (LocalIsDarkThemeActive.current) Color.White.copy(alpha = 0.14f)
-                    else MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
+                    if (isDark) Color.White.copy(alpha = 0.12f)
+                    else MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
                 } else Color.Transparent
+                val contentColor = if (selected) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                }
                 Column(
                     modifier = Modifier
                         .weight(1f)
-                        .clip(RoundedCornerShape(26.dp))
+                        .clip(RoundedCornerShape(22.dp))
                         .background(selectedFill)
-                        .clickable { onSelect(spec.destination) }
+                        .selectable(
+                            selected = selected,
+                            onClick = { onSelect(spec.destination) },
+                            role = Role.Tab
+                        )
                         .testTag(spec.testTag)
-                        .padding(horizontal = 2.dp, vertical = 7.dp),
+                        .padding(horizontal = 2.dp, vertical = 6.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
                     Icon(
                         imageVector = if (selected) spec.selectedIcon else spec.unselectedIcon,
                         contentDescription = spec.label,
-                        tint = if (selected) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(23.dp)
+                        tint = contentColor,
+                        modifier = Modifier.size(24.dp)
                     )
+                    Spacer(modifier = Modifier.height(3.dp))
                     Text(
                         text = spec.label,
-                        fontSize = 9.sp,
-                        lineHeight = 11.sp,
+                        fontSize = 10.sp,
+                        lineHeight = 12.sp,
                         maxLines = 1,
-                        color = if (selected) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontWeight = if (selected) androidx.compose.ui.text.font.FontWeight.SemiBold
-                        else androidx.compose.ui.text.font.FontWeight.Normal
+                        overflow = TextOverflow.Ellipsis,
+                        color = contentColor,
+                        fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
                     )
                 }
             }

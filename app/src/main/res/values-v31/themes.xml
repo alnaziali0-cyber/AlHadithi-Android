@@ -1,8 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Khazain Al-Huda identity for the Android 12+ system splash screen. -->
-    <style name="Theme.MyApplication">
-        <item name="android:windowSplashScreenBackground">#F6F4ED</item>
+    <!--
+      Android 12+ splash screen. The background now points at a colour resource instead of a
+      hard-coded hex value so it follows the light/dark system mode, and the theme attributes it
+      replaces are re-declared so nothing from the base theme is lost.
+    -->
+    <style name="Theme.MyApplication" parent="android:Theme.DeviceDefault.NoActionBar">
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowBackground">@color/kh_window_background</item>
+        <item name="android:colorBackground">@color/kh_window_background</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
+        <item name="android:windowSplashScreenBackground">@color/kh_splash_background</item>
         <item name="android:windowSplashScreenAnimatedIcon">@drawable/alhadithi_launcher_mark</item>
-        <item name="android:windowSplashScreenIconBackgroundColor">#F6F4ED</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">@color/kh_splash_background</item>
     </style>
 </resources>

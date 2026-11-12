@@ -79,6 +79,7 @@ class HomeScreenUiTest {
                     tasbihGoal = 100,
                     timeFormat = TimeFormat.TWENTY_FOUR_HOUR,
                     prayerCalculationSummary = "الجعفرية · توقيت بغداد (UTC+3)",
+                    verification = com.example.domain.PrayerTimetableVerifier.verify(schedule),
                     onOpenGovernorateSheet = {},
                     onNavigate = {},
                     onOpenSurah = {},
@@ -118,8 +119,9 @@ class HomeScreenUiTest {
         composeRule.waitForIdle()
 
         composeRule.onNodeWithText("الصلاة القادمة · بغداد").assertExists()
-        composeRule.onNodeWithText("صلواتي اليوم").assertExists()
-        composeRule.onNodeWithText("0 من 5").assertExists()
+        composeRule.onNodeWithText("متابعة الصلوات").assertExists()
+        composeRule.onNodeWithText("0 / 5 منجزة").assertExists()
+        composeRule.onNodeWithText("مواقيت الصلاة").assertExists()
         composeRule.onNodeWithTag("home_screen_list")
             .performScrollToNode(hasTestTag("quick_ethics"))
         composeRule.onNodeWithTag("quick_quran").assertExists()

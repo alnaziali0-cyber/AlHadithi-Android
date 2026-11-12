@@ -36,7 +36,11 @@ private fun lightSchemeFor(choice: AccentChoice): androidx.compose.material3.Col
         surfaceVariant = SoftSageSurfaceVariant,
         onSurfaceVariant = MutedSlateText,
         outline = SubtleGlassBorderLight,
-        outlineVariant = Color(0xFFDCE3DE)
+        outlineVariant = Color(0xFFDCE3DE),
+        error = StatusErrorLight,
+        onError = Color.White,
+        errorContainer = StatusErrorContainerLight,
+        onErrorContainer = StatusErrorLight
     )
 }
 
@@ -55,14 +59,19 @@ private fun darkSchemeFor(choice: AccentChoice): androidx.compose.material3.Colo
         onTertiary = Color(0xFF211A0E),
         tertiaryContainer = Color(0xFF3C321F),
         onTertiaryContainer = Color(0xFFF3E6C7),
-        background = NightSanctuaryBg,
+        // "Soft black": a near-black with a green-teal hint rather than a dead #000000 slab.
+        background = AppSoftBlackBackground,
         onBackground = NightLightText,
         surface = NightGlassSurface,
         onSurface = NightLightText,
         surfaceVariant = NightSurfaceVariant,
         onSurfaceVariant = NightMutedText,
         outline = SubtleGlassBorderDark,
-        outlineVariant = Color(0xFF2B3530)
+        outlineVariant = Color(0xFF2B3530),
+        error = StatusErrorDark,
+        onError = Color(0xFF3A1A19),
+        errorContainer = StatusErrorContainerDark,
+        onErrorContainer = StatusErrorDark
     )
 }
 
@@ -89,6 +98,38 @@ val LocalIsDarkThemeActive = staticCompositionLocalOf { false }
 val LocalCardDensity = staticCompositionLocalOf { CardDensity.COMFORTABLE }
 val LocalLineSpacing = staticCompositionLocalOf { LineSpacingOption.NORMAL }
 val LocalReadingFontChoice = staticCompositionLocalOf { ReadingFontChoice.MUHAMMADI }
+
+/**
+ * Semantic status colours resolved for the active theme.
+ *
+ * Screens read these instead of hard-coding green/amber/red so the "completed", "warning" and
+ * "error" states stay identical everywhere and remain legible in light and dark mode.
+ */
+data class StatusColors(
+    val success: Color,
+    val onSuccessContainer: Color,
+    val successContainer: Color,
+    val warning: Color,
+    val onWarningContainer: Color,
+    val warningContainer: Color,
+    val error: Color,
+    val onErrorContainer: Color,
+    val errorContainer: Color
+)
+
+val LocalStatusColors = staticCompositionLocalOf {
+    StatusColors(
+        success = StatusSuccessLight,
+        onSuccessContainer = StatusSuccessLight,
+        successContainer = StatusSuccessContainerLight,
+        warning = StatusWarningLight,
+        onWarningContainer = StatusWarningLight,
+        warningContainer = StatusWarningContainerLight,
+        error = StatusErrorLight,
+        onErrorContainer = StatusErrorLight,
+        errorContainer = StatusErrorContainerLight
+    )
+}
 
 /**
  * Spacing tokens driven by the user's density preference so that a compact layout really is
@@ -152,7 +193,22 @@ fun AlHadithiTheme(
         LocalIsDarkThemeActive provides isDark,
         LocalCardDensity provides cardDensity,
         LocalLineSpacing provides lineSpacing,
-        LocalReadingFontChoice provides readingFontChoice
+        LocalReadingFontChoice provides readingFontChoice,
+        LocalStatusColors provides if (isDark) {
+            StatusColors(
+                success = StatusSuccessDark,
+                onSuccessContainer = StatusSuccessDark,
+                successContainer = StatusSuccessContainerDark,
+                warning = StatusWarningDark,
+                onWarningContainer = StatusWarningDark,
+                warningContainer = StatusWarningContainerDark,
+                error = StatusErrorDark,
+                onErrorContainer = StatusErrorDark,
+                errorContainer = StatusErrorContainerDark
+            )
+        } else {
+            LocalStatusColors.current
+        }
     ) {
         MaterialTheme(
             colorScheme = colorScheme,

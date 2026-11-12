@@ -29,7 +29,7 @@ services = json.loads((ROOT / "app/google-services.json").read_text(encoding="ut
 
 require(f'applicationId = "{APP_ID}"' in build, "applicationId preserved")
 require('namespace = "com.example"' in build, "Kotlin namespace preserved")
-require("versionCode = 24" in build and 'versionName = "1.0.22"' in build, "version is 1.0.22 (24)")
+require("versionCode = 25" in build and 'versionName = "1.0.23"' in build, "version is 1.0.23 (25)")
 require("minSdk = 24" in build and "targetSdk = 36" in build, "SDK constraints remain explicit")
 require("verifyReleaseSigningInputs" in build, "Release signing fail-fast guard exists")
 require("isDebuggable = false" in build, "Release debuggable is explicitly false")
@@ -73,20 +73,23 @@ for f in [
     require(f.is_file() and f.stat().st_size > 1000, f"brand asset exists: {f.relative_to(ROOT)}")
 
 settings = (ROOT / "app/src/main/java/com/example/ui/screens/SettingsScreen.kt").read_text(encoding="utf-8")
-require('SettingsSection(title = "اللغة والخطوط وحجم النص")' in settings, "language, font and text scale settings are grouped in one card")
+settings_support = (ROOT / "app/src/main/java/com/example/ui/screens/SettingsSupport.kt").read_text(encoding="utf-8")
+require('title = "إعدادات القراءة"' in settings and 'title = "إعدادات المظهر"' in settings, "appearance and reading settings are grouped in dedicated cards")
 require('onChangeDailyGoals(' in settings and 'DailyGoal.entries.forEach' in settings, "daily goals are adjustable from settings")
-require('cachedAyahCount' in settings and 'SettingsSection(title = "التنزيلات والتخزين")' in settings, "storage panel displays live local Quran cache count")
+require('title = "المتابعة اليومية في الرئيسية"' in settings, "daily goals card is preserved in the rebuilt settings")
+require('cachedAyahCount' in settings and 'title = "إعدادات البيانات والمزامنة"' in settings, "storage panel displays live local Quran cache count")
 require('onChangeHijriOffset' in settings, "Hijri date correction is adjustable from settings")
 require('showClearCacheDialog' in settings, "cache cleanup requires explicit confirmation")
 require('لا نعرض مفاتيح تشغيل شكلية' in settings, "unsupported daily content pushes are not presented as working controls")
+require('title = "إعدادات الإشعارات"' in settings, "notification settings have their own section")
 require('ActivityResultContracts.OpenDocument()' in settings and 'Intent.EXTRA_STREAM' in settings, "support reports can attach an image through Android document picker")
 support_channels = (ROOT / "app/src/main/java/com/example/domain/SupportChannels.kt").read_text(encoding="utf-8")
 require('SUPPORT_EMAIL = "alhadithiiraq@gmail.com"' in support_channels, "support email is configured")
 require('INSTAGRAM_URL = "https://www.instagram.com/alhadithi_iraq/"' in support_channels, "Instagram HTTPS profile is configured")
 require('TIKTOK_URL = "https://www.tiktok.com/@.al.hadithi"' in support_channels, "TikTok HTTPS profile is configured")
 require("isSafeHttpsProfile" in support_channels and "parsed.rawQuery == null" in support_channels, "external support links use strict HTTPS allow-list validation")
-require('SupportContactRow(' in settings and 'openSupportEmail(context)' in settings, "support contact rows are wired in Settings UI")
-require('Intent.ACTION_SENDTO' in settings and 'Intent.ACTION_VIEW' in settings, "email and social links use scoped Android intents")
+require('title = "الدعم والمساعدة"' in settings and 'openSupportEmail(context)' in settings, "support contact rows are wired in Settings UI")
+require('Intent.ACTION_SENDTO' in settings_support and 'Intent.ACTION_VIEW' in settings_support, "email and social links use scoped Android intents")
 dao = (ROOT / "app/src/main/java/com/example/data/local/AlHadithiDao.kt").read_text(encoding="utf-8")
 view_model = (ROOT / "app/src/main/java/com/example/ui/viewmodel/AlHadithiViewModel.kt").read_text(encoding="utf-8")
 shell = (ROOT / "app/src/main/java/com/example/ui/AlHadithiAppShell.kt").read_text(encoding="utf-8")
@@ -97,7 +100,7 @@ require("observeCachedAyahCount(): Flow<Int>" in dao, "Room exposes a live local
 require("dao.observeCachedAyahCount()" in view_model and "cachedAyahCount = cachedAyahCount" in shell, "cached Quran count reaches SettingsScreen through ViewModel")
 require("ThemeMode.SYSTEM -> darkTheme" in theme and "darkTheme = isSystemInDarkTheme()" in (ROOT / "app/src/main/java/com/example/ui/AlHadithiAppShell.kt").read_text(encoding="utf-8"), "system theme follows actual Android system mode")
 require("darkMode = LocalIsDarkThemeActive.current" in shell and "darkMode = settings.darkMode" not in shell, "Quran reader uses resolved theme state rather than legacy dark flag")
-require("LuminousCyanAccentPalette" in colors and "NightSanctuaryBg = Color(0xFF101312)" in colors and "NightGlassSurface = Color(0xFF1B211E)" in colors, "charcoal dark-mode design tokens exist")
+require("LuminousCyanAccentPalette" in colors and "AppSoftBlackBackground = Color(0xFF111715)" in colors and "NightGlassSurface = Color(0xFF1A211E)" in colors, "soft-black dark-mode design tokens exist")
 require("font reset preserves daily goals" in repo_tests and "resetting all preferences preserves user progress" in repo_tests, "preference reset regression tests are present")
 require("onChangeHijriOffset" in shell and "onChangeHijriOffset" in settings, "Hijri offset setting is connected from UI to ViewModel")
 require("onChangeHomeLayout" not in settings, "fixed home layout exposes no inert reorder callback")
@@ -151,7 +154,54 @@ require("PrayerAndHijriCalculator.calculateLocalPrayerSchedule(" not in main_kot
 require(raw_html.is_file() and "methodSettings=17.7,null,4" in raw_html.read_text(encoding="utf-8") and "window.onload = initPrayerTimes" in raw_html.read_text(encoding="utf-8"), "user-supplied HTML reference is retained outside APK assets")
 require("methodSettings" in prayer_repo and "AlAdhanPrayerTimesConfig.METHOD_SETTINGS" in prayer_repo, "repository enforces the unchanged supplied method parameters")
 require("مصدر المواقيت: خدمة AlAdhan" in settings_ui, "Settings identifies AlAdhan API and its local cache")
-require("طريقة الحساب" not in settings_ui and "أم القرى" not in settings_ui and "PrayerCalcMethod" not in settings_ui, "legacy prayer-calculation selectors are absent from Settings UI")
+require("PrayerCalcMethod" not in settings_ui and "setPrayerCalcMethod" not in settings_ui, "legacy prayer-calculation selectors are absent from Settings UI")
+
+# --- 1.0.23 regression checks: the black status-bar rectangle, the developer gate and the
+# --- rebuilt settings sections.
+themes = (ROOT / "app/src/main/res/values/themes.xml").read_text(encoding="utf-8")
+themes_night = (ROOT / "app/src/main/res/values-night/themes.xml").read_text(encoding="utf-8")
+main_activity = (ROOT / "app/src/main/java/com/example/MainActivity.kt").read_text(encoding="utf-8")
+require("android:windowBackground" in themes and "@color/kh_window_background" in themes,
+        "the window background is declared so no black band is painted behind the status bar")
+require("android:statusBarColor" in themes and "android:navigationBarColor" in themes
+        and "android:windowLayoutInDisplayCutoutMode" in themes,
+        "the system bars are transparent and the display cutout is handled")
+require("android:windowBackground" in themes_night and "@color/kh_window_background" in themes_night,
+        "the night window background follows the dark theme")
+require("WindowCompat.setDecorFitsSystemWindows(window, false)" in main_activity
+        and "enableEdgeToEdge()" in main_activity,
+        "the activity draws edge-to-edge behind the system bars")
+require("contentWindowInsets = WindowInsets(0, 0, 0, 0)" in shell
+        and "WindowInsetsSides.Top" in shell,
+        "the shell consumes the top inset once and leaves the navigation inset to the bar")
+require("AppSoftBlackBackground = Color(0xFF111715)" in colors,
+        "the dark theme uses a soft black instead of a dead pure black")
+require("LocalStatusColors" in theme and "StatusSuccessDark" in colors,
+        "the semantic status colours are resolved centrally per theme")
+require("DeveloperAccessController" in settings and "REQUIRED_TAPS" in settings,
+        "the developer panel is behind a deliberate access-code gate")
+require("verifyAndUnlock" in (ROOT / "app/src/main/java/com/example/ui/screens/DeveloperAccessController.kt").read_text(encoding="utf-8")
+        and "isUnlocked" in shell,
+        "the developer panel only opens for an unlocked session")
+require("onLeaveDeveloperMode" in (ROOT / "app/src/main/java/com/example/ui/screens/DeveloperDiagnosticsTab.kt").read_text(encoding="utf-8"),
+        "the developer panel offers a clear way to leave developer mode")
+require("title = \"إعدادات المظهر\"" in settings and "title = \"إعدادات القراءة\"" in settings
+        and "title = \"إعدادات مواقيت الصلاة\"" in settings and "title = \"إعدادات الصوت\"" in settings
+        and "title = \"إعدادات الإشعارات\"" in settings and "title = \"إعدادات البيانات والمزامنة\"" in settings
+        and "title = \"إعدادات اللغة\"" in settings and "title = \"حول التطبيق\"" in settings,
+        "the settings screen is organised into the eight required sections")
+require("APP_DEVELOPER_NAME" in settings and "علي اديب العنزي" in settings,
+        "the developer name is shown in the settings")
+require("SettingsActionTile" in settings and "SettingsSwitchTile" in settings
+        and "heightIn(min = SettingsRowMinHeight)" in (ROOT / "app/src/main/java/com/example/ui/components/SettingsComponents.kt").read_text(encoding="utf-8"),
+        "every settings option uses a shared, accessible row component")
+require("will compet" not in shell and "nav_tab_home" in shell and "bottom_navigation_bar" in shell,
+        "the bottom navigation keeps its tabs and exposes a test tag")
+require("PrayerTimesStrip" in (ROOT / "app/src/main/java/com/example/ui/screens/HomeScreen.kt").read_text(encoding="utf-8")
+        and "PrayerTrackingRow" in (ROOT / "app/src/main/java/com/example/ui/screens/HomeScreen.kt").read_text(encoding="utf-8"),
+        "the dashboard uses the shared prayer-times and prayer-tracking components")
+require("PrayerTimetableVerifier" in (ROOT / "app/src/main/java/com/example/domain/PrayerTimetableVerifier.kt").read_text(encoding="utf-8"),
+        "the timetable is verified against the reference configuration")
 require("setPrayerCalcMethod" not in prayer_vm and "updatePrayerOffsets" not in prayer_vm, "legacy prayer-method mutation APIs are disconnected")
 require("AppDestination.PRAYER_TIMES" in sections_ui and "مواقيت الصلاة" in sections_ui, "prayer times is a direct tile in All Sections")
 require("fun SectionDivider" in (ROOT / "app/src/main/java/com/example/ui/components/SectionDivider.kt").read_text(encoding="utf-8"), "shared segmented SectionDivider component exists")

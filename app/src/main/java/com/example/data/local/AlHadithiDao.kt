@@ -316,4 +316,30 @@ interface AlHadithiDao {
 
     @Query("DELETE FROM cached_ayahs")
     suspend fun deleteAllCachedAyahs()
+
+    /**
+     * Deletes the bundled encyclopedia content so it can be re-seeded from the packaged seed
+     * data. These tables only hold content that ships with the application, so the operation
+     * never touches anything the user created.
+     */
+    @Query("DELETE FROM hadiths")
+    suspend fun deleteAllHadiths()
+
+    @Query("DELETE FROM duas_ziyarat")
+    suspend fun deleteAllDuasZiyarat()
+
+    @Query("DELETE FROM adhkar")
+    suspend fun deleteAllAdhkar()
+
+    @Query("DELETE FROM library_books")
+    suspend fun deleteAllBooks()
+
+    @Query("DELETE FROM audio_tracks")
+    suspend fun deleteAllAudioTracks()
+
+    @Query("DELETE FROM islamic_occasions")
+    suspend fun deleteAllOccasions()
+
+    @Query("DELETE FROM wallpapers")
+    suspend fun deleteAllWallpapers()
 }
