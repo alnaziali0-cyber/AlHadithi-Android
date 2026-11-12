@@ -4,6 +4,7 @@ import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
@@ -24,16 +25,16 @@ import androidx.compose.material.icons.outlined.Bookmarks
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Explore
 import androidx.compose.material.icons.outlined.FormatQuote
-import androidx.compose.material.icons.outlined.Handshake
 import androidx.compose.material.icons.outlined.Headphones
+import androidx.compose.material.icons.outlined.LocalLibrary
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.OfflinePin
+import androidx.compose.material.icons.automirrored.outlined.MenuBook
+import androidx.compose.material.icons.outlined.VolunteerActivism
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.School
 import androidx.compose.material.icons.outlined.Spa
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material.icons.outlined.Verified
-import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material.icons.outlined.Wallpaper
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -63,123 +64,150 @@ import com.example.R
 import com.example.data.local.ContentSourceEntity
 import com.example.data.local.UserSettingsState
 import com.example.domain.IraqGovernorates
-import com.example.ui.components.DashedSectionDivider
 import com.example.ui.components.GlassCard
-import com.example.ui.components.GlassFilterChip
-import com.example.ui.components.HubSectionTitle
-import com.example.ui.components.PastelIconTile
-import com.example.ui.components.PastelPalette
-import com.example.ui.components.PastelTileColors
 import com.example.ui.components.SubScreenTopBar
+import com.example.ui.components.SectionDivider
 import com.example.ui.navigation.AppDestination
 import com.example.ui.theme.AppFontChoice
 import com.example.ui.theme.LocalIsDarkThemeActive
+import com.example.ui.theme.PastelGreenSurface
+import com.example.ui.theme.PastelBlueSurface
+import com.example.ui.theme.PastelPurpleSurface
+import com.example.ui.theme.PastelPeachSurface
+import com.example.ui.theme.PastelSandSurface
+import com.example.ui.theme.PastelSageSurface
 import kotlin.math.roundToInt
-import androidx.compose.material.icons.automirrored.outlined.MenuBook
-import androidx.compose.material.icons.outlined.LocalLibrary
-import androidx.compose.material.icons.outlined.Mosque
-import androidx.compose.material.icons.outlined.VolunteerActivism
 
 private data class HubMenuCard(
     val title: String,
-    val subtitle: String,
     val icon: ImageVector,
     val destination: AppDestination
 )
 
+private data class HubPastelTone(val background: Color, val foreground: Color)
+
+private val hubPastelTones = listOf(
+    HubPastelTone(PastelGreenSurface, Color(0xFF34745D)),
+    HubPastelTone(PastelPeachSurface, Color(0xFF9D634D)),
+    HubPastelTone(PastelSandSurface, Color(0xFF7F713A)),
+    HubPastelTone(PastelBlueSurface, Color(0xFF496B9A)),
+    HubPastelTone(PastelPurpleSurface, Color(0xFF65558F)),
+    HubPastelTone(PastelSageSurface, Color(0xFF55734E))
+)
+
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun MoreHubScreen(
     onNavigate: (AppDestination) -> Unit
 ) {
-    // لوحة الأقسام: مجموعات بألوان باستيل هادئة مع فاصل متقطّع بين المجموعات
-    // (كما في التصميم المرجعي).
-    val worship = listOf(
-        HubTile("القرآن الكريم", Icons.AutoMirrored.Outlined.MenuBook, PastelPalette.mint, AppDestination.QURAN),
-        HubTile("الأدعية", Icons.Outlined.VolunteerActivism, PastelPalette.blush, AppDestination.DUAS_ZIYARAT),
-        HubTile("الزيارات", Icons.Outlined.Mosque, PastelPalette.cream, AppDestination.DUAS_ZIYARAT),
-        HubTile("الأذكار", Icons.Outlined.AutoAwesome, PastelPalette.lavender, AppDestination.DUAS_ZIYARAT),
-        HubTile("المسبحة", Icons.Outlined.Spa, PastelPalette.periwinkle, AppDestination.TASBIH),
-        HubTile("مواقيت الصلاة", Icons.Outlined.Schedule, PastelPalette.peach, AppDestination.PRAYER_TIMES),
-        HubTile("اتجاه القبلة", Icons.Outlined.Explore, PastelPalette.sage, AppDestination.QIBLA)
-    )
-    val services = listOf(
-        HubTile("الصوتيات", Icons.Outlined.Headphones, PastelPalette.mint, AppDestination.AUDIO_LIBRARY),
-        HubTile("الأخلاقيات", Icons.Outlined.Handshake, PastelPalette.lavender, AppDestination.AKHLAQ),
-        HubTile("المكتبة والسيرة", Icons.Outlined.LocalLibrary, PastelPalette.cream, AppDestination.LIBRARY),
-        HubTile("الحديث والروايات", Icons.Outlined.FormatQuote, PastelPalette.blush, AppDestination.HADITH),
-        HubTile("المناهج والدروس", Icons.Outlined.School, PastelPalette.sage, AppDestination.CURRICULA),
-        HubTile("التقويم الهجري", Icons.Outlined.CalendarMonth, PastelPalette.sand, AppDestination.CALENDAR_OCCASIONS),
-        HubTile("البحث الشامل", Icons.Outlined.AutoAwesome, PastelPalette.periwinkle, AppDestination.SEARCH),
-        HubTile("المفضلة", Icons.Outlined.Bookmarks, PastelPalette.cream, AppDestination.FAVORITES),
-        HubTile("الإعدادات", Icons.Outlined.Tune, PastelPalette.peach, AppDestination.SETTINGS)
-    )
-    val occasions = listOf(
-        HubTile("إمساكية شهر رمضان", Icons.Outlined.CalendarMonth, PastelPalette.lavender, AppDestination.CALENDAR_OCCASIONS),
-        HubTile("بوابة الحج", Icons.Outlined.Mosque, PastelPalette.mint, AppDestination.CALENDAR_OCCASIONS),
-        HubTile("دليل زائر الأربعين", Icons.Outlined.Place, PastelPalette.periwinkle, AppDestination.LIBRARY),
-        HubTile("الخلفيات الإسلامية", Icons.Outlined.Wallpaper, PastelPalette.sand, AppDestination.WALLPAPERS)
-    )
+    // The existing destinations are preserved; only the presentation changes to a compact RTL grid.
+    val worshipItems = remember {
+        listOf(
+            HubMenuCard("القرآن الكريم", Icons.AutoMirrored.Outlined.MenuBook, AppDestination.QURAN),
+            HubMenuCard("الأدعية والزيارات", Icons.Outlined.VolunteerActivism, AppDestination.DUAS_ZIYARAT),
+            HubMenuCard("المسبحة", Icons.Outlined.Spa, AppDestination.TASBIH),
+            HubMenuCard("مواقيت الصلاة", Icons.Outlined.Schedule, AppDestination.PRAYER_TIMES),
+            HubMenuCard("اتجاه القبلة", Icons.Outlined.Explore, AppDestination.QIBLA)
+        )
+    }
+    val serviceItems = remember {
+        listOf(
+            HubMenuCard("الصوتيات", Icons.Outlined.Headphones, AppDestination.AUDIO_LIBRARY),
+            HubMenuCard("الحديث والروايات", Icons.Outlined.FormatQuote, AppDestination.HADITH),
+            HubMenuCard("المكتبة والسيرة", Icons.Outlined.LocalLibrary, AppDestination.LIBRARY),
+            HubMenuCard("الأخلاقيات", Icons.Outlined.Verified, AppDestination.ETHICS),
+            HubMenuCard("المناهج والدروس", Icons.Outlined.School, AppDestination.CURRICULA),
+            HubMenuCard("التقويم الهجري", Icons.Outlined.CalendarMonth, AppDestination.CALENDAR_OCCASIONS),
+            HubMenuCard("البحث الشامل", Icons.Outlined.AutoAwesome, AppDestination.SEARCH),
+            HubMenuCard("المفضلة", Icons.Outlined.Bookmarks, AppDestination.FAVORITES),
+            HubMenuCard("الخلفيات", Icons.Outlined.Wallpaper, AppDestination.WALLPAPERS),
+            HubMenuCard("الإعدادات", Icons.Outlined.Tune, AppDestination.SETTINGS)
+        )
+    }
 
     Column(modifier = Modifier.fillMaxSize()) {
         SubScreenTopBar(
             title = "جميع أقسام الحديثي",
-            subtitle = "الموسوعة الإسلامية الشاملة؛ معظم الأقسام متاحة دون اتصال"
+            subtitle = "الموسوعة الإسلامية الشاملة؛ الأقسام المحلية متاحة دون اتصال"
         )
-
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .testTag("more_hub_list"),
+            modifier = Modifier.fillMaxSize().testTag("more_hub_list"),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             item {
-                HubSectionTitle(title = "العبادات")
-                HubTileGrid(tiles = worship, onNavigate = onNavigate)
+                GlassCard(cornerRadius = 22.dp, contentPadding = PaddingValues(16.dp)) {
+                    Text("أقسام الحديثي", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                    Text(
+                        "بوابتك إلى القرآن والعبادات والمكتبة والخدمات الإسلامية في مكان واحد.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
-            item { DashedSectionDivider() }
             item {
-                HubSectionTitle(title = "الخدمات")
-                HubTileGrid(tiles = services, onNavigate = onNavigate)
+                HubSectionGrid(title = "العبادات", items = worshipItems, onNavigate = onNavigate)
             }
-            item { DashedSectionDivider() }
+            item { SectionDivider(modifier = Modifier.padding(vertical = 4.dp)) }
             item {
-                HubSectionTitle(title = "المناسبات")
-                HubTileGrid(tiles = occasions, onNavigate = onNavigate)
+                HubSectionGrid(title = "الخدمات", items = serviceItems, onNavigate = onNavigate)
             }
-            item { Spacer(modifier = Modifier.height(12.dp)) }
         }
     }
 }
 
-/** عنصر قسم في لوحة الأقسام. */
-private data class HubTile(
-    val label: String,
-    val icon: androidx.compose.ui.graphics.vector.ImageVector,
-    val colors: PastelTileColors,
-    val destination: AppDestination
-)
-
-/** شبكة بطاقات الأقسام: أربعة أعمدة مع تدفّق تلقائي للأسطر التالية. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun HubTileGrid(
-    tiles: List<HubTile>,
+private fun HubSectionGrid(
+    title: String,
+    items: List<HubMenuCard>,
     onNavigate: (AppDestination) -> Unit
 ) {
-    FlowRow(
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        tiles.forEach { tile ->
-            PastelIconTile(
-                label = tile.label,
-                icon = tile.icon,
-                colors = tile.colors,
-                onClick = { onNavigate(tile.destination) }
-            )
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onBackground,
+            fontWeight = FontWeight.Bold
+        )
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            items.forEachIndexed { index, card ->
+                val tone = hubPastelTones[index % hubPastelTones.size]
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth(0.235f)
+                        .clickable { onNavigate(card.destination) }
+                        .padding(vertical = 2.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Surface(
+                        shape = CircleShape,
+                        color = tone.background,
+                        modifier = Modifier.size(60.dp)
+                    ) {
+                        Icon(
+                            imageVector = card.icon,
+                            contentDescription = card.title,
+                            tint = tone.foreground,
+                            modifier = Modifier.padding(15.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(7.dp))
+                    Text(
+                        text = card.title,
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        fontWeight = FontWeight.Medium,
+                        minLines = 2,
+                        maxLines = 2,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    )
+                }
+            }
         }
     }
 }
-

@@ -7,8 +7,8 @@ import java.util.Calendar
 import java.util.TimeZone
 
 /**
- * Verifies the local astronomical prayer-time calculation used for the offline fallback and for
- * the 35-day alarm window, plus the Hijri conversion and its manual correction.
+ * Regression tests for legacy calculation helpers, Hijri conversion, and source-gated countdowns.
+ * Active prayer schedules are delivered by the AlAdhan API/cache repository.
  */
 class PrayerTimesCalculationTest {
 
@@ -79,48 +79,50 @@ class PrayerTimesCalculationTest {
     }
 
     @Test
-    fun `the single method uses the documented Jafari parameters`() {
-        val method = PrayerCalcMethod.JAFARI
-        assertEquals(16.0, method.fajrAngle, 0.0)
-        assertEquals(4.0, method.maghribAngle ?: -1.0, 0.0)
-        assertEquals(14.0, method.ishaAngle, 0.0)
-        assertTrue(method.jafariMidnight)
-    }
-
-    @Test
-    fun `the month list has one entry per day and matches the single day calculation`() {
-        val month = PrayerAndHijriCalculator.calculateMonthSchedules(
-            latitude = 33.3152,
-            longitude = 44.3661,
-            year = 2026,
-            month1Based = 3
-        )
-        assertEquals(31, month.size)
-        val single = PrayerAndHijriCalculator.calculateLocalPrayerSchedule(
+    fun `the Jafari method places maghrib after the Umm al-Qura method`() {
+        val jafari = PrayerAndHijriCalculator.calculateLocalPrayerSchedule(
             latitude = 33.3152,
             longitude = 44.3661,
             cal = calendar(2026, 3, 15),
             method = PrayerCalcMethod.JAFARI
         )
-        assertEquals(single.fajrMinutes, month[14].fajrMinutes)
-        assertEquals(single.ishaMinutes, month[14].ishaMinutes)
+        val ummAlQura = PrayerAndHijriCalculator.calculateLocalPrayerSchedule(
+            latitude = 33.3152,
+            longitude = 44.3661,
+            cal = calendar(2026, 3, 15),
+            method = PrayerCalcMethod.UMM_AL_QURA
+        )
+
+        // Jafari uses a four degree depression so maghrib comes later than the sunset based rule.
+        assertTrue(jafari.maghribMinutes > ummAlQura.maghribMinutes)
     }
 
     @Test
     fun `the countdown points at the next prayer and rolls over to fajr`() {
-        val schedule = PrayerAndHijriCalculator.calculateLocalPrayerSchedule(
+        val legacyCalculated = PrayerAndHijriCalculator.calculateLocalPrayerSchedule(
             latitude = 33.3152,
             longitude = 44.3661,
             cal = calendar(2026, 3, 15),
             method = PrayerCalcMethod.JAFARI
+        )
+        // The countdown accepts records delivered by the central AlAdhan API/cache service.
+        val schedule = legacyCalculated.copy(
+            dateKey = "20260315",
+            governorateId = "baghdad",
+            sourceType = "ALADHAN_API"
+        )
+        val nextDaySchedule = schedule.copy(
+            dateKey = "20260316",
+            fajrMinutes = 302,
+            sourceRecordId = "baghdad-20260316"
         )
         val cal = Calendar.getInstance(baghdad).apply {
             set(2026, 2, 15, 13, 0, 0)
             set(Calendar.MILLISECOND, 0)
         }
         val midday = PrayerAndHijriCalculator.computeNextPrayerCountdown(
-            schedule,
-            cal.timeInMillis
+            schedule = schedule,
+            nowMillis = cal.timeInMillis
         )
         assertEquals("العصر", midday.prayerArabicName)
 
@@ -130,6 +132,7 @@ class PrayerTimesCalculationTest {
         }
         val rollover = PrayerAndHijriCalculator.computeNextPrayerCountdown(
             schedule,
+            nextDaySchedule,
             lateNight.timeInMillis
         )
         assertEquals("الفجر", rollover.prayerArabicName)

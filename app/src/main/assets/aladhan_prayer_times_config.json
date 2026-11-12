@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 2,
+  "datasetId": "iraq_prayer_times",
+  "mode": "remote_api_with_exact_date_cache",
+  "timeZone": "Asia/Baghdad",
+  "source": {
+    "name": "AlAdhan Prayer Times API",
+    "publisher": "AlAdhan",
+    "endpoint": "https://api.aladhan.com/v1/timings/{timestamp}",
+    "documentation": "https://aladhan.com/prayer-times-api",
+    "calculationMethodsDocumentation": "https://aladhan.com/calculation-methods"
+  },
+  "locationPolicy": {
+    "provider": "saved_governorate_coordinates",
+    "description": "Use the coordinates belonging to the governorate selected and saved by the user in AL-HADITHI. Do not let IP geolocation, VPN, or ISP lookup silently replace that selection.",
+    "timeZone": "Asia/Baghdad"
+  },
+  "calculationParameters": {
+    "method": 99,
+    "methodSettings": "17.7,null,4",
+    "midnightMode": 1,
+    "tune": "0,0,0,0,0,1,0,0,0",
+    "documentedOrder": [
+      "FajrAngle",
+      "MaghribAngleOrMinutesAfterSunset",
+      "IshaAngleOrMinutesAfterMaghrib"
+    ],
+    "interpretation": {
+      "17.7": "Fajr angle",
+      "null": "No custom Maghrib angle/minute value supplied in the second slot",
+      "4": "Isha parameter in the third slot; it does not configure Maghrib",
+      "tuneSixthValue": "The sixth tune value is the Maghrib offset (+1 minute)"
+    }
+  },
+  "timingFields": [
+    "Fajr",
+    "Sunrise",
+    "Dhuhr",
+    "Asr",
+    "Sunset",
+    "Maghrib",
+    "Isha",
+    "Midnight"
+  ],
+  "cachePolicy": {
+    "storeExactDateByGovernorate": true,
+    "refreshWhenOlderThanHours": 6,
+    "offlineBehavior": "use_only_an_exact_date_record_previously_returned_by_AlAdhan",
+    "firstRunWithoutInternet": "unavailable_no_fallback_no_calculation"
+  },
+  "sourceIntegrity": {
+    "apiResultsAreNotAnOfficialIraqiAuthorityTimetable": true,
+    "notVerifiedAsIdenticalTo_HaqibatAlMumin": true,
+    "neverLabelAsOfficialOrGuaranteedMatch": true,
+    "userHtmlCommentAboutFourDegreesForMaghrib": "incorrect_parameter_slot_comment; original HTML retained unchanged"
+  },
+  "notes": "The request calculation parameters are preserved exactly as supplied by the user. The original HTML uses approximate IP geolocation; the native Android integration uses the already-selected Iraqi governorate coordinates so the saved province setting remains authoritative. The six-value HTML display omitted Asr and Isha; the native screen keeps all five obligatory prayers and also displays sunrise, sunset, and midnight."
+}

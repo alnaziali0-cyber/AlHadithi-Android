@@ -1,14 +1,12 @@
 package com.example.ui.screens
 
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.hasText
-import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.unit.LayoutDirection
 import com.example.data.local.DailyGoal
 import com.example.data.local.HomeCard
@@ -25,10 +23,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
-/**
- * UI level checks for the daily dashboard: the Arabic right-to-left layout, the empty states and
- * the optional "daily follow-up" card that only appears when the user picks a goal.
- */
+/** UI checks for the Arabic dashboard hierarchy and the daily five-prayer tracker. */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [36], qualifiers = "w411dp-h891dp")
 class HomeScreenUiTest {
@@ -57,6 +52,7 @@ class HomeScreenUiTest {
     )
 
     private fun setContent(
+        homeCards: List<HomeCard> = HomeCard.defaultOrder,
         hiddenHomeCards: Set<HomeCard> = emptySet(),
         dailyGoals: Set<DailyGoal> = emptySet()
     ) {
@@ -74,7 +70,10 @@ class HomeScreenUiTest {
                     lastSurahNumber = 1,
                     lastSurahName = "سورة الفاتحة",
                     lastAyahNumber = 1,
+                    homeCards = homeCards,
                     hiddenHomeCards = hiddenHomeCards,
+                    prayerCompletionRecords = emptyList(),
+                    onSetPrayerCompletion = { _, _ -> },
                     dailyGoals = dailyGoals,
                     tasbihCount = 5,
                     tasbihGoal = 100,
@@ -114,30 +113,26 @@ class HomeScreenUiTest {
     }
 
     @Test
-    fun `the daily tracking card stays hidden until the user picks a goal`() {
-        setContent(dailyGoals = emptySet())
+    fun `the primary sections include next prayer daily tracker and quick access`() {
+        setContent()
         composeRule.waitForIdle()
 
-        composeRule.onNodeWithText("متابعة اليوم").assertDoesNotExist()
-    }
-
-    @Test
-    fun `the daily tracking card appears once a goal is selected`() {
-        setContent(dailyGoals = setOf(DailyGoal.TASBIH))
-        composeRule.waitForIdle()
-
-        // The card may sit below the composed viewport of the lazy list, so scroll to it first.
+        composeRule.onNodeWithText("الصلاة القادمة · بغداد").assertExists()
+        composeRule.onNodeWithText("صلواتي اليوم").assertExists()
+        composeRule.onNodeWithText("0 من 5").assertExists()
         composeRule.onNodeWithTag("home_screen_list")
-            .performScrollToNode(hasText("متابعة اليوم"))
-        composeRule.onNodeWithText("متابعة اليوم").assertExists()
-        composeRule.onNodeWithText("التسبيح").assertExists()
+            .performScrollToNode(hasTestTag("quick_ethics"))
+        composeRule.onNodeWithTag("quick_quran").assertExists()
+        composeRule.onNodeWithTag("quick_ethics").assertExists()
     }
 
     @Test
-    fun `a hidden card is not rendered`() {
-        setContent(hiddenHomeCards = setOf(HomeCard.QUICK_ACCESS))
+    fun `daily hadith and dua are not displayed as home cards`() {
+        setContent()
         composeRule.waitForIdle()
 
-        composeRule.onNodeWithTag("quick_quran").assertDoesNotExist()
+        composeRule.onNodeWithText("حديث اليوم").assertDoesNotExist()
+        composeRule.onNodeWithText("دعاء اليوم").assertDoesNotExist()
     }
+
 }

@@ -14,11 +14,13 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
 
-    <!-- Optional runtime permissions (app works fully if declined) -->
+    <!-- Location is foreground-only and requested after an explicit user action. Fine + coarse
+         are requested together so Android 12+ can present its precise/approximate selector. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
+    <!-- No ACCESS_BACKGROUND_LOCATION: AL-HADITHI never tracks the device in the background. -->
     <!-- Location is optional: users may select a governorate instead of GPS. -->
     <uses-feature android:name="android.hardware.location" android:required="false" />
     <uses-feature android:name="android.hardware.location.gps" android:required="false" />
@@ -48,17 +50,6 @@
             <intent-filter>
                 <action android:name="androidx.media3.session.MediaSessionService" />
                 <action android:name="android.media.browse.MediaBrowserService" />
-            </intent-filter>
-        </service>
-
-        <!-- Firebase Cloud Messaging: receives real push notifications (daily hadith/dua,
-             Islamic occasions and application advertisements) even when the app is closed. -->
-        <service
-            android:name=".media.AlHadithiMessagingService"
-            android:enabled="true"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
 

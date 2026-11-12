@@ -2,7 +2,11 @@ package com.example.ui
 
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.border
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -12,6 +16,9 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -24,19 +31,14 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.VolunteerActivism
 import androidx.compose.material.icons.outlined.Apps
 import androidx.compose.material.icons.outlined.Headphones
-import androidx.compose.material.icons.outlined.Bookmarks
 import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.filled.Bookmarks
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.VolunteerActivism
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -47,20 +49,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.R
 import com.example.domain.IraqGovernorates
 import com.example.media.ObserveDeviceShake
-import com.example.ui.components.FloatingGlassNavBar
 import com.example.ui.components.GlassAmbientBackground
-import com.example.ui.components.GlassNavItem
 import com.example.ui.components.GovernorateSelectorSheet
 import com.example.ui.components.PersistentGlassMiniPlayer
 import com.example.ui.navigation.AppDestination
@@ -70,7 +72,6 @@ import com.example.ui.screens.CurriculaScreen
 import com.example.ui.screens.DuasZiyaratAdhkarScreen
 import com.example.ui.screens.FavoritesAndHistoryScreen
 import com.example.ui.screens.HadithEncyclopediaScreen
-import com.example.ui.screens.AkhlaqScreen
 import com.example.ui.screens.HiddenDeveloperPanelScreen
 import com.example.ui.screens.HomeScreen
 import com.example.ui.screens.LibraryAndBookReaderScreen
@@ -82,8 +83,8 @@ import com.example.ui.screens.SettingsScreen
 import com.example.ui.screens.TasbihScreen
 import com.example.ui.screens.UnifiedSearchAndScholarScreen
 import com.example.ui.screens.WallpapersScreen
-import com.example.domain.PrayerCalcMethod
 import com.example.ui.theme.AlHadithiTheme
+import com.example.ui.theme.LocalIsDarkThemeActive
 import com.example.ui.viewmodel.AlHadithiViewModel
 import com.example.util.SystemActionsHelper
 
@@ -111,6 +112,7 @@ fun AlHadithiAppRoot(
     val books by vm.books.collectAsStateWithLifecycle()
     val courses by vm.courses.collectAsStateWithLifecycle()
     val lessonProgress by vm.lessonProgress.collectAsStateWithLifecycle()
+    val todayPrayerCompletions by vm.todayPrayerCompletions.collectAsStateWithLifecycle()
     val quizAttempts by vm.quizAttempts.collectAsStateWithLifecycle()
     val audioTracks by vm.audioTracks.collectAsStateWithLifecycle()
     val occasions by vm.occasions.collectAsStateWithLifecycle()
@@ -119,20 +121,12 @@ fun AlHadithiAppRoot(
     val readingHistory by vm.readingHistory.collectAsStateWithLifecycle()
     val tasbihSessions by vm.tasbihSessions.collectAsStateWithLifecycle()
     val contentSources by vm.contentSources.collectAsStateWithLifecycle()
+    val cachedAyahCount by vm.cachedAyahCount.collectAsStateWithLifecycle()
     val dhikrCounters by vm.dhikrCounters.collectAsStateWithLifecycle()
 
     val activeAnnouncements by vm.activeAnnouncements.collectAsStateWithLifecycle()
     val allAnnouncements by vm.allAnnouncements.collectAsStateWithLifecycle()
     val developerAuthUser by vm.developerAuthUser.collectAsStateWithLifecycle()
-    val akhlaqCategories by vm.akhlaqCategories.collectAsStateWithLifecycle()
-    val akhlaqLessons by vm.akhlaqLessons.collectAsStateWithLifecycle()
-    val akhlaqProgress by vm.akhlaqProgress.collectAsStateWithLifecycle()
-    val akhlaqQuizzesByLesson by vm.akhlaqQuizzesByLesson.collectAsStateWithLifecycle()
-    val ads by vm.ads.collectAsStateWithLifecycle()
-    val registeredDevices by vm.registeredDevices.collectAsStateWithLifecycle()
-    val notificationLog by vm.notificationLog.collectAsStateWithLifecycle()
-    val adminAuditLog by vm.adminAuditLog.collectAsStateWithLifecycle()
-    val publishedAds by vm.publishedAds.collectAsStateWithLifecycle()
 
     val activeSurahAyahs by vm.activeSurahAyahs.collectAsStateWithLifecycle()
     val isLoadingSurah by vm.isLoadingSurah.collectAsStateWithLifecycle()
@@ -162,29 +156,29 @@ fun AlHadithiAppRoot(
     val quranLabel = stringResource(R.string.nav_quran)
     val duasLabel = stringResource(R.string.nav_duas)
     val moreLabel = stringResource(R.string.nav_more)
-    val favoritesLabel = stringResource(R.string.nav_favorites)
-    val settingsLabel = stringResource(R.string.nav_settings)
 
-    // شريط التنقل السفلي حسب التصميم المرجعي: أربعة أقسام مع مؤشر منزلق.
-    val navItems = remember(homeLabel, moreLabel, favoritesLabel, settingsLabel) {
+    val navItems = remember(homeLabel, quranLabel, duasLabel, moreLabel) {
         listOf(
             PrimaryNavSpec(AppDestination.HOME, homeLabel, Icons.Filled.Home, Icons.Outlined.Home, "nav_tab_home"),
-            PrimaryNavSpec(AppDestination.MORE_HUB, moreLabel, Icons.Filled.Apps, Icons.Outlined.Apps, "nav_tab_more"),
-            PrimaryNavSpec(AppDestination.FAVORITES, favoritesLabel, Icons.Filled.Bookmarks, Icons.Outlined.Bookmarks, "nav_tab_favorites"),
-            PrimaryNavSpec(AppDestination.SETTINGS, settingsLabel, Icons.Filled.Settings, Icons.Outlined.Settings, "nav_tab_settings")
+            PrimaryNavSpec(AppDestination.QURAN, quranLabel, Icons.AutoMirrored.Filled.MenuBook, Icons.AutoMirrored.Outlined.MenuBook, "nav_tab_quran"),
+            PrimaryNavSpec(AppDestination.AUDIO_LIBRARY, "الصوتيات", Icons.Filled.Headphones, Icons.Outlined.Headphones, "nav_tab_audio"),
+            PrimaryNavSpec(AppDestination.DUAS_ZIYARAT, duasLabel, Icons.Filled.VolunteerActivism, Icons.Outlined.VolunteerActivism, "nav_tab_duas"),
+            PrimaryNavSpec(AppDestination.MORE_HUB, moreLabel, Icons.Filled.Apps, Icons.Outlined.Apps, "nav_tab_more")
         )
     }
 
     val currentGovernorate = IraqGovernorates.byId(settings.governorateId)
 
-    // A short, human readable summary of how the displayed prayer times were produced.
-    val prayerCalculationSummary = remember(currentGovernorate.id) {
-        "${PrayerCalcMethod.JAFARI.arabicTitle} · توقيت بغداد (UTC+3)"
+    // Expose the actual source state; legacy calculation preferences no longer affect prayer data.
+    val prayerCalculationSummary = remember(schedule.sourceType, schedule.sourceLabel) {
+        if (schedule.sourceType in setOf("ALADHAN_API", "ALADHAN_API_CACHE")) schedule.sourceLabel
+        else "بيانات المواقيت غير متاحة لهذا التاريخ والمحافظة"
     }
 
     AlHadithiTheme(
         themeMode = settings.themeMode,
-        darkTheme = settings.darkMode,
+        // SYSTEM mode must resolve from Android's actual system theme, not the legacy dark flag.
+        darkTheme = isSystemInDarkTheme(),
         accentChoice = settings.accentChoice,
         fontChoice = settings.fontChoice,
         readingFontChoice = settings.readingFontChoice,
@@ -193,12 +187,13 @@ fun AlHadithiAppRoot(
         cardDensity = settings.cardDensity,
         lineSpacing = settings.lineSpacing,
         content = {
-        val navGlassBg = if (settings.darkMode) {
-            Color(0xFF102422).copy(alpha = 0.72f)
+        val activeDarkTheme = LocalIsDarkThemeActive.current
+        val navGlassBg = if (activeDarkTheme) {
+            Color(0xFF101D2B).copy(alpha = 0.92f)
         } else {
-            Color.White.copy(alpha = 0.70f)
+            Color.White.copy(alpha = 0.88f)
         }
-        val navGlassBorder = if (settings.darkMode) {
+        val navGlassBorder = if (activeDarkTheme) {
             Color.White.copy(alpha = 0.16f)
         } else {
             Color.White.copy(alpha = 0.85f)
@@ -217,24 +212,16 @@ fun AlHadithiAppRoot(
                                 onSpeedChanged = { vm.setPlaybackSpeed(it) }
                             )
                             if (!isExpandedScreen) {
-                                // شريط تنقل سفلي عائم بتأثير Liquid Glass مع مؤشر منزلق.
-                                FloatingGlassNavBar(
-                                    items = navItems.map { spec ->
-                                        GlassNavItem(
-                                            label = spec.label,
-                                            selectedIcon = spec.selectedIcon,
-                                            unselectedIcon = spec.unselectedIcon,
-                                            testTag = spec.testTag
-                                        )
-                                    },
-                                    selectedIndex = navItems.indexOfFirst { it.destination == currentDestination }
-                                        .coerceAtLeast(0),
-                                    onSelect = { index ->
-                                        val spec = navItems[index]
-                                        if (spec.destination == AppDestination.QURAN && currentDestination == AppDestination.QURAN) {
+                                GlassBottomNavigationBar(
+                                    items = navItems,
+                                    currentDestination = currentDestination,
+                                    containerColor = navGlassBg,
+                                    borderColor = navGlassBorder,
+                                    onSelect = { destination ->
+                                        if (destination == AppDestination.QURAN && currentDestination == AppDestination.QURAN) {
                                             openedSurahInReader = null
                                         }
-                                        currentDestination = spec.destination
+                                        currentDestination = destination
                                     }
                                 )
                             }
@@ -297,14 +284,16 @@ fun AlHadithiAppRoot(
                                         countdown = countdown,
                                         hijriOffsetDays = settings.hijriOffsetDays,
                                         announcements = activeAnnouncements,
-                                        publishedAds = publishedAds,
                                         hadiths = hadiths,
                                         duas = duasAndZiyarat,
                                         occasions = occasions,
                                         lastSurahNumber = settings.lastSurahNumber,
                                         lastSurahName = settings.lastSurahName,
                                         lastAyahNumber = settings.lastAyahNumber,
+                                        homeCards = settings.homeCards,
                                         hiddenHomeCards = settings.hiddenHomeCards,
+                                        prayerCompletionRecords = todayPrayerCompletions,
+                                        onSetPrayerCompletion = vm::setPrayerCompleted,
                                         dailyGoals = settings.dailyGoals,
                                         tasbihCount = settings.dailyTasbihCount,
                                         tasbihGoal = settings.dailyTasbihGoal,
@@ -330,10 +319,9 @@ fun AlHadithiAppRoot(
                                         lastSurahName = settings.lastSurahName,
                                         lastAyahNumber = settings.lastAyahNumber,
                                         selectedReciterId = settings.selectedReciterId,
-                                        darkMode = settings.darkMode,
+                                        darkMode = LocalIsDarkThemeActive.current,
                                         readingFontChoice = settings.readingFontChoice,
                                         quranBackground = settings.quranBackground,
-                                        readingLayout = settings.quranReadingLayout,
                                         autoScrollEnabled = settings.quranAutoScrollEnabled,
                                         autoScrollSpeed = settings.quranAutoScrollSpeed,
                                         onSelectSurahToRead = { sNum ->
@@ -347,7 +335,6 @@ fun AlHadithiAppRoot(
                                         onToggleDarkMode = vm::setDarkMode,
                                         onChangeReadingFont = vm::setReadingFontChoice,
                                         onChangeBackground = vm::setQuranBackground,
-                                        onChangeReadingLayout = vm::setQuranReadingLayout,
                                         onChangeAutoScroll = vm::setQuranAutoScroll,
                                         onSaveLastReadAyah = vm::saveLastReadAyah,
                                         onSaveFavorite = vm::toggleFavorite
@@ -380,22 +367,15 @@ fun AlHadithiAppRoot(
                                         schedule = schedule,
                                         countdown = countdown,
                                         monthlySchedules = monthlySchedules,
-                                        offsets = settings.prayerOffsets,
                                         notifyPrayers = settings.notifyPrayers,
-                                        coordinatesLatitude = settings.customLatitude ?: currentGovernorate.latitude,
-                                        coordinatesLongitude = settings.customLongitude ?: currentGovernorate.longitude,
-                                        isUsingDeviceLocation = settings.customLatitude != null && settings.customLongitude != null,
                                         timeFormat = settings.timeFormat,
                                         prayerAlertProfile = settings.prayerAlertProfile,
                                         onBack = { currentDestination = AppDestination.HOME },
                                         onOpenGovernorateSheet = { manualGovSheetOpen = true },
-                                        onUpdateOffsets = vm::updatePrayerOffsets,
                                         onToggleNotifyPrayers = { vm.updateNotificationPrefs(notifyPrayers = it) },
                                         onChangeTimeFormat = vm::setTimeFormat,
                                         onChangePrayerAlert = vm::setPrayerAlert,
                                         onChangeQuietHours = vm::setQuietHours,
-                                        onSetPrayerCoordinates = vm::setPrayerCoordinates,
-                                        onClearPrayerCoordinates = vm::clearPrayerCoordinates,
                                         onRefreshPrayerSchedule = { vm.refreshPrayerTimes() }
                                     )
 
@@ -440,6 +420,17 @@ fun AlHadithiAppRoot(
                                         courses = courses,
                                         lessonProgress = lessonProgress,
                                         quizAttempts = quizAttempts,
+                                        onBack = { currentDestination = AppDestination.HOME },
+                                        onMarkLessonCompleted = vm::markLessonCompleted,
+                                        onSaveQuizAttempt = vm::saveQuizAttempt,
+                                        onOpenAiScholar = { currentDestination = AppDestination.SEARCH }
+                                    )
+
+                                    AppDestination.ETHICS -> CurriculaScreen(
+                                        courses = courses,
+                                        lessonProgress = lessonProgress,
+                                        quizAttempts = quizAttempts,
+                                        initialCategory = "الأخلاقيات",
                                         onBack = { currentDestination = AppDestination.HOME },
                                         onMarkLessonCompleted = vm::markLessonCompleted,
                                         onSaveQuizAttempt = vm::saveQuizAttempt,
@@ -492,6 +483,7 @@ fun AlHadithiAppRoot(
                                     AppDestination.SETTINGS -> SettingsScreen(
                                         settings = settings,
                                         sources = contentSources,
+                                        cachedAyahCount = cachedAyahCount,
                                         onBack = { currentDestination = AppDestination.HOME },
                                         onOpenGovernorateSheet = { manualGovSheetOpen = true },
                                         onChangeThemeMode = vm::setThemeMode,
@@ -502,34 +494,21 @@ fun AlHadithiAppRoot(
                                         onChangeReadingFont = vm::setReadingFontChoice,
                                         onChangeReadingFontScale = vm::setReadingFontScale,
                                         onChangeLineSpacing = vm::setLineSpacing,
-                                        onChangeHiddenHomeCards = vm::setHiddenHomeCards,
                                         onChangeDailyGoals = vm::setDailyGoals,
                                         onChangeTimeFormat = vm::setTimeFormat,
+                                        onChangeHijriOffset = vm::setHijriOffsetDays,
                                         onChangePrayerAlert = vm::setPrayerAlert,
                                         onChangeQuietHours = vm::setQuietHours,
                                         onChangeQuranBackground = vm::setQuranBackground,
-                                        onChangeReadingLayout = vm::setQuranReadingLayout,
                                         onChangeAutoScroll = vm::setQuranAutoScroll,
                                         onChangeReciter = vm::setReciter,
                                         onChangePlaybackSpeed = vm::setPlaybackSpeed,
                                         onToggleHaptic = vm::setHapticTasbih,
                                         onChangeDailyTasbihGoal = vm::setDailyTasbihGoal,
                                         onUpdateNotifications = vm::updateNotificationPrefs,
-                                        onChangeDailyContentNotifications = vm::setDailyContentNotifications,
-                                        onChangeDailyContentType = vm::setDailyContentType,
-                                        onChangeDailyContentPrayers = vm::setDailyContentPrayers,
                                         onClearQuranCache = vm::clearCachedQuranTexts,
-                                        onResetDefaults = vm::resetAllSettings,
+                                        onResetSettings = vm::resetSettings,
                                         onDeleteUserData = vm::deleteAllUserData
-                                    )
-
-                                    AppDestination.AKHLAQ -> AkhlaqScreen(
-                                        categories = akhlaqCategories,
-                                        lessons = akhlaqLessons,
-                                        progress = akhlaqProgress,
-                                        quizzesForLesson = { lessonId -> akhlaqQuizzesByLesson[lessonId].orEmpty() },
-                                        onMarkCompleted = vm::markAkhlaqLessonCompleted,
-                                        onBack = { currentDestination = AppDestination.HOME }
                                     )
 
                                     AppDestination.ADMIN -> HiddenDeveloperPanelScreen(
@@ -541,22 +520,7 @@ fun AlHadithiAppRoot(
                                         books = books,
                                         audioTracks = audioTracks,
                                         occasions = occasions,
-                                        ads = ads,
-                                        registeredDevices = registeredDevices,
-                                        notificationLog = notificationLog,
-                                        adminAuditLog = adminAuditLog,
-                                        akhlaqCategories = akhlaqCategories,
-                                        akhlaqLessons = akhlaqLessons,
-                                        contentCounts = listOf(
-                                            "سور المصحف" to 114,
-                                            "أحاديث" to hadiths.size,
-                                            "أدعية" to duasAndZiyarat.size,
-                                            "أذكار" to adhkar.size,
-                                            "كتب" to books.size,
-                                            "تلاوات" to audioTracks.size,
-                                            "مناسبات" to occasions.size,
-                                            "إعلانات" to ads.size
-                                        ),
+                                        wallpapers = wallpapers,
                                         onBack = { currentDestination = AppDestination.HOME },
                                         onAddAnnouncement = vm::developerAddAnnouncement,
                                         onToggleAnnouncementActive = vm::developerToggleAnnouncementActive,
@@ -572,7 +536,9 @@ fun AlHadithiAppRoot(
                                         onAddAudio = vm::adminAddAudioTrack,
                                         onDeleteAudio = vm::adminDeleteAudioTrack,
                                         onAddOccasion = vm::adminAddOccasion,
-                                        onDeleteOccasion = vm::adminDeleteOccasion
+                                        onDeleteOccasion = vm::adminDeleteOccasion,
+                                        onAddWallpaper = vm::adminAddWallpaper,
+                                        onDeleteWallpaper = vm::adminDeleteWallpaper
                                     )
                                 }
                             }
@@ -586,15 +552,11 @@ fun AlHadithiAppRoot(
         if (!settings.hasSelectedGovernorateOnce || manualGovSheetOpen) {
             GovernorateSelectorSheet(
                 currentGovernorateId = settings.governorateId,
-                currentDistrictId = settings.selectedDistrictId,
                 hapticEnabled = settings.hapticTasbihEnabled,
                 notifyPrayersEnabled = settings.notifyPrayers,
                 onSelectGovernorate = { govId ->
                     vm.selectGovernorate(govId)
                     manualGovSheetOpen = false
-                },
-                onSelectDistrict = { districtId ->
-                    vm.selectDistrict(districtId)
                 },
                 onDetectedCoordinates = vm::selectNearestGovernorateFromCoordinates,
                 onToggleHaptic = vm::setHapticTasbih,
@@ -607,4 +569,77 @@ fun AlHadithiAppRoot(
         }
         }
     )
+}
+
+
+/** Lightweight frosted capsule navigation. It intentionally avoids real-time blur so older
+ * phones keep stable frame times; translucency, layered fill and a fine rim provide the glass look. */
+@Composable
+private fun GlassBottomNavigationBar(
+    items: List<PrimaryNavSpec>,
+    currentDestination: AppDestination,
+    containerColor: Color,
+    borderColor: Color,
+    onSelect: (AppDestination) -> Unit
+) {
+    Surface(
+        modifier = Modifier
+            .windowInsetsPadding(WindowInsets.navigationBars)
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 6.dp),
+        shape = RoundedCornerShape(32.dp),
+        color = containerColor,
+        border = BorderStroke(1.dp, borderColor),
+        tonalElevation = 0.dp,
+        shadowElevation = 8.dp
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    Brush.verticalGradient(
+                        listOf(Color.White.copy(alpha = 0.07f), Color.Transparent, Color.Black.copy(alpha = 0.025f))
+                    )
+                )
+                .padding(horizontal = 5.dp, vertical = 5.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            items.forEach { spec ->
+                val selected = currentDestination == spec.destination
+                val selectedFill = if (selected) {
+                    if (LocalIsDarkThemeActive.current) Color.White.copy(alpha = 0.14f)
+                    else MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
+                } else Color.Transparent
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(26.dp))
+                        .background(selectedFill)
+                        .clickable { onSelect(spec.destination) }
+                        .testTag(spec.testTag)
+                        .padding(horizontal = 2.dp, vertical = 7.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = if (selected) spec.selectedIcon else spec.unselectedIcon,
+                        contentDescription = spec.label,
+                        tint = if (selected) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(23.dp)
+                    )
+                    Text(
+                        text = spec.label,
+                        fontSize = 9.sp,
+                        lineHeight = 11.sp,
+                        maxLines = 1,
+                        color = if (selected) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontWeight = if (selected) androidx.compose.ui.text.font.FontWeight.SemiBold
+                        else androidx.compose.ui.text.font.FontWeight.Normal
+                    )
+                }
+            }
+        }
+    }
 }

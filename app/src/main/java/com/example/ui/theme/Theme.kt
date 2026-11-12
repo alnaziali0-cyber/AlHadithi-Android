@@ -36,7 +36,7 @@ private fun lightSchemeFor(choice: AccentChoice): androidx.compose.material3.Col
         surfaceVariant = SoftSageSurfaceVariant,
         onSurfaceVariant = MutedSlateText,
         outline = SubtleGlassBorderLight,
-        outlineVariant = Color(0x1F0F766E)
+        outlineVariant = Color(0xFFC8D4D0)
     )
 }
 
@@ -62,7 +62,7 @@ private fun darkSchemeFor(choice: AccentChoice): androidx.compose.material3.Colo
         surfaceVariant = NightSurfaceVariant,
         onSurfaceVariant = NightMutedText,
         outline = SubtleGlassBorderDark,
-        outlineVariant = Color(0x225EEAD4)
+        outlineVariant = Color(0xFF3A5550)
     )
 }
 
@@ -88,7 +88,7 @@ val LocalReadingFontScale = staticCompositionLocalOf { 1.10f }
 val LocalIsDarkThemeActive = staticCompositionLocalOf { false }
 val LocalCardDensity = staticCompositionLocalOf { CardDensity.COMFORTABLE }
 val LocalLineSpacing = staticCompositionLocalOf { LineSpacingOption.NORMAL }
-val LocalReadingFontChoice = staticCompositionLocalOf { ReadingFontChoice.AMIRI }
+val LocalReadingFontChoice = staticCompositionLocalOf { ReadingFontChoice.MUHAMMADI }
 
 /**
  * Spacing tokens driven by the user's density preference so that a compact layout really is
@@ -124,9 +124,9 @@ object DensityTokens {
 fun AlHadithiTheme(
     themeMode: ThemeMode = ThemeMode.SYSTEM,
     darkTheme: Boolean = isSystemInDarkTheme(),
-    accentChoice: AccentChoice = AccentChoice.EMERALD,
+    accentChoice: AccentChoice = AccentChoice.TURQUOISE,
     fontChoice: AppFontChoice = AppFontChoice.NASKH,
-    readingFontChoice: ReadingFontChoice = ReadingFontChoice.AMIRI,
+    readingFontChoice: ReadingFontChoice = ReadingFontChoice.MUHAMMADI,
     uiFontScale: Float = 1.0f,
     readingFontScale: Float = 1.10f,
     cardDensity: CardDensity = CardDensity.COMFORTABLE,
@@ -167,9 +167,9 @@ fun AlHadithiTheme(
 fun MyApplicationTheme(
     themeMode: ThemeMode = ThemeMode.SYSTEM,
     darkTheme: Boolean = isSystemInDarkTheme(),
-    accentChoice: AccentChoice = AccentChoice.EMERALD,
+    accentChoice: AccentChoice = AccentChoice.TURQUOISE,
     fontChoice: AppFontChoice = AppFontChoice.NASKH,
-    readingFontChoice: ReadingFontChoice = ReadingFontChoice.AMIRI,
+    readingFontChoice: ReadingFontChoice = ReadingFontChoice.MUHAMMADI,
     uiFontScale: Float = 1.0f,
     readingFontScale: Float = 1.10f,
     cardDensity: CardDensity = CardDensity.COMFORTABLE,

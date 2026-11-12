@@ -1,7 +1,6 @@
 package com.example.ui.components
 
 import android.Manifest
-import android.annotation.SuppressLint
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
@@ -48,20 +47,18 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.R
-import com.example.domain.IraqDistricts
 import com.example.domain.IraqGovernorates
 import com.example.util.SystemActionsHelper
-import com.google.android.gms.location.LocationServices
+import com.example.util.PreciseDeviceLocationAccess
+import com.example.util.rememberPreciseDeviceLocationAction
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun GovernorateSelectorSheet(
     currentGovernorateId: String,
-    currentDistrictId: String?,
     hapticEnabled: Boolean,
     notifyPrayersEnabled: Boolean,
     onSelectGovernorate: (String) -> Unit,
-    onSelectDistrict: (String?) -> Unit,
     onDetectedCoordinates: (Double, Double) -> Unit,
     onToggleHaptic: (Boolean) -> Unit,
     onToggleNotifyPrayers: (Boolean) -> Unit,
@@ -69,7 +66,6 @@ fun GovernorateSelectorSheet(
 ) {
     val context = LocalContext.current
     var pendingGovId by remember(currentGovernorateId) { mutableStateOf(currentGovernorateId) }
-    var pendingDistrictId by remember(currentDistrictId, currentGovernorateId) { mutableStateOf(currentDistrictId) }
     var statusNote by remember { mutableStateOf<String?>(null) }
 
     val notificationPermLauncher = rememberLauncherForActivityResult(
@@ -78,28 +74,15 @@ fun GovernorateSelectorSheet(
         onToggleNotifyPrayers(granted)
     }
 
-    @SuppressLint("MissingPermission")
-    val locationPermLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions()
-    ) { permissions ->
-        val granted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
-            permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
-        if (granted) {
-            LocationServices.getFusedLocationProviderClient(context).lastLocation
-                .addOnSuccessListener { loc ->
-                    if (loc != null) {
-                        val nearest = IraqGovernorates.nearestTo(loc.latitude, loc.longitude)
-                        pendingGovId = nearest.id
-                        onDetectedCoordinates(loc.latitude, loc.longitude)
-                        statusNote = "تم تحديد أقرب محافظة لموقعك: ${nearest.arabicName}"
-                    } else {
-                        statusNote = "تعذر قراءة إحداثيات GPS حالياً — يمكنك اختيار المحافظة يدوياً"
-                    }
-                }
-        } else {
-            statusNote = "لم يُمنح إذن الموقع — يعمل التطبيق كاملاً باختيار المحافظة يدوياً"
-        }
-    }
+    val requestGovernorateLocation = rememberPreciseDeviceLocationAction(
+        onLocation = { fix ->
+            val nearest = IraqGovernorates.nearestTo(fix.latitude, fix.longitude)
+            pendingGovId = nearest.id
+            onDetectedCoordinates(fix.latitude, fix.longitude)
+            statusNote = "تم تحديد أقرب محافظة: ${nearest.arabicName} · دقة ±${fix.accuracyMeters.toInt()} متر"
+        },
+        onStatus = { status -> statusNote = status }
+    )
 
     val isDark = com.example.ui.theme.LocalIsDarkThemeActive.current
     ModalBottomSheet(
@@ -143,6 +126,13 @@ fun GovernorateSelectorSheet(
                 }
             }
 
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "تظهر نافذة إذن الموقع مرة واحدة عند الضغط فقط. اختر «الموقع الدقيق» و«أثناء استخدام التطبيق»؛ يُستخدم لتحديد المحافظة والمواقيت والقبلة ولا يتتبع الحديثي موقعك في الخلفية.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
             Spacer(modifier = Modifier.height(14.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -155,14 +145,7 @@ fun GovernorateSelectorSheet(
                     fontWeight = FontWeight.Bold
                 )
                 OutlinedButton(
-                    onClick = {
-                        locationPermLauncher.launch(
-                            arrayOf(
-                                Manifest.permission.ACCESS_FINE_LOCATION,
-                                Manifest.permission.ACCESS_COARSE_LOCATION
-                            )
-                        )
-                    },
+                    onClick = requestGovernorateLocation,
                     shape = RoundedCornerShape(14.dp),
                     modifier = Modifier.testTag("use_gps_governorate_button")
                 ) {
@@ -172,7 +155,13 @@ fun GovernorateSelectorSheet(
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text(stringResource(R.string.use_my_location))
+                    Text(
+                        when {
+                            PreciseDeviceLocationAccess.hasPrecisePermission(context) -> "تحديث موقعي بدقة"
+                            PreciseDeviceLocationAccess.hasShownPermissionPrompt(context) -> "إعدادات إذن الموقع"
+                            else -> "استخدم موقعي بدقة"
+                        }
+                    )
                 }
             }
 
@@ -198,35 +187,6 @@ fun GovernorateSelectorSheet(
                         onClick = { pendingGovId = gov.id },
                         modifier = Modifier.testTag("gov_option_${gov.id}")
                     )
-                }
-            }
-
-            // اختيار المنطقة/المدينة داخل المحافظة — يحسّن دقة المواقيت.
-            val districts = IraqDistricts.of(pendingGovId)
-            if (districts.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(12.dp))
-                Text(
-                    text = "اختر منطقتك أو مدينتك (اختياري)",
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Spacer(modifier = Modifier.height(6.dp))
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    districts.forEach { district ->
-                        GlassFilterChip(
-                            label = district.arabicName,
-                            selected = pendingDistrictId == district.id,
-                            onClick = {
-                                pendingDistrictId = district.id
-                                onSelectDistrict(district.id)
-                            },
-                            modifier = Modifier.testTag("district_option_${district.id}")
-                        )
-                    }
                 }
             }
 

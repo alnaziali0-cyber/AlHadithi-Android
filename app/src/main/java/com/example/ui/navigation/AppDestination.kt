@@ -12,11 +12,11 @@ enum class AppDestination(val route: String) {
     AUDIO_LIBRARY("audio_library"),
     HADITH("hadith"),
     CURRICULA("curricula"),
+    ETHICS("ethics"),
     CALENDAR_OCCASIONS("calendar_occasions"),
     WALLPAPERS("wallpapers"),
     SEARCH("search"),
     FAVORITES("favorites"),
     SETTINGS("settings"),
-    AKHLAQ("akhlaq"),
     ADMIN("admin")
 }

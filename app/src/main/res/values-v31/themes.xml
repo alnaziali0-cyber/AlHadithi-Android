@@ -1,0 +1,8 @@
+<resources>
+    <!-- Android 12+ system splash screen follows the refreshed Al-Hadithi identity. -->
+    <style name="Theme.MyApplication">
+        <item name="android:windowSplashScreenBackground">#EAF3F0</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/alhadithi_launcher_mark</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">#EAF3F0</item>
+    </style>
+</resources>

@@ -90,6 +90,45 @@ object SystemActionsHelper {
         }
     }
 
+    fun saveImageFileToGallery(context: Context, filePath: String, displayName: String): Boolean {
+        return try {
+            val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            BitmapFactory.decodeFile(filePath, bounds)
+            if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return false
+            var sample = 1
+            while (bounds.outWidth / sample > 3072 || bounds.outHeight / sample > 3072) sample *= 2
+            val bitmap = BitmapFactory.decodeFile(
+                filePath,
+                BitmapFactory.Options().apply { inSampleSize = sample; inPreferredConfig = Bitmap.Config.RGB_565 }
+            ) ?: return false
+            val safeName = displayName.replace(Regex("[^\\p{L}\\p{N}_-]"), "_").take(60)
+            val filename = "AlHadithi_${safeName}_${System.currentTimeMillis()}.png"
+            val values = ContentValues().apply {
+                put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
+                put(MediaStore.MediaColumns.MIME_TYPE, "image/png")
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/AlHadithi")
+                }
+            }
+            val uri = context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values) ?: run {
+                bitmap.recycle()
+                return false
+            }
+            try {
+                context.contentResolver.openOutputStream(uri)?.use { output ->
+                    if (!bitmap.compress(Bitmap.CompressFormat.PNG, 100, output)) error("Image encoding failed")
+                } ?: error("Image output unavailable")
+            } finally {
+                bitmap.recycle()
+            }
+            Toast.makeText(context, "تم حفظ الخلفية في معرض الصور بنجاح", Toast.LENGTH_SHORT).show()
+            true
+        } catch (_: Exception) {
+            Toast.makeText(context, "تعذر حفظ الصورة على هذا الجهاز", Toast.LENGTH_SHORT).show()
+            false
+        }
+    }
+
     fun hasNotificationPermission(context: Context): Boolean {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             ContextCompat.checkSelfPermission(
@@ -101,19 +140,6 @@ object SystemActionsHelper {
         }
     }
 
-    fun hasLocationPermission(context: Context): Boolean {
-        val fine = hasPreciseLocationPermission(context)
-        val coarse = ContextCompat.checkSelfPermission(
-            context,
-            Manifest.permission.ACCESS_COARSE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
-        return fine || coarse
-    }
 
-    fun hasPreciseLocationPermission(context: Context): Boolean =
-        ContextCompat.checkSelfPermission(
-            context,
-            Manifest.permission.ACCESS_FINE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
 
 }

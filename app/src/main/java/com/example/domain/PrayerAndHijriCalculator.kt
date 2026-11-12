@@ -1,7 +1,6 @@
 package com.example.domain
 
 import java.util.Calendar
-import java.util.GregorianCalendar
 import java.util.Locale
 import java.util.TimeZone
 import kotlin.math.acos
@@ -14,21 +13,12 @@ import kotlin.math.roundToInt
 import kotlin.math.sin
 import kotlin.math.tan
 
-/**
- * الطريقة الوحيدة في التطبيق: الحساب الجعفري (الشيعي الإمامي).
- *
- * الفجر حين تنحدر الشمس 16° تحت الأفق، والمغرب بعد الغروب بانحدار 4°، والعشاء حين تنحدر 14°،
- * ومنتصف الليل الشرعي في منتصف المدة بين المغرب والفجر. تُحسب الأوقات محلياً لكل محافظة
- * بإحداثيات مركزها، فلا يوجد اختيار طريقة ولا أكثر من مصدر للوقت الواحد.
- *
- * apiCode = 0 يطابق طريقة رقم 0 في AlAdhan كمرجع فقط؛ لم يعد التطبيق يستدعي الخدمة لمواقيت الصلاة.
- */
 enum class PrayerCalcMethod(
     val apiCode: Int,
     val arabicTitle: String,
     val arabicSubtitle: String,
     val fajrAngle: Double,
-    val maghribAngle: Double?, // null means sunset (0.833°), non-null means sun depression angle
+    val maghribAngle: Double?, // null means sunset (0.833°), non-null means sun depression angle (e.g. 4.0° Jafari)
     val ishaAngle: Double,
     val ishaFixedMinutes: Int?,
     val jafariMidnight: Boolean
@@ -42,7 +32,42 @@ enum class PrayerCalcMethod(
         ishaAngle = 14.0,
         ishaFixedMinutes = null,
         jafariMidnight = true
-    )
+    ),
+    TEHRAN(
+        apiCode = 7,
+        arabicTitle = "معهد الجيوفيزياء — جامعة طهران",
+        arabicSubtitle = "الفجر 17.7° · المغرب 4.5° · العشاء 14° · منتصف الليل الشرعي",
+        fajrAngle = 17.7,
+        maghribAngle = 4.5,
+        ishaAngle = 14.0,
+        ishaFixedMinutes = null,
+        jafariMidnight = true
+    ),
+    MWL(
+        apiCode = 3,
+        arabicTitle = "رابطة العالم الإسلامي",
+        arabicSubtitle = "الفجر 18° · العشاء 17°",
+        fajrAngle = 18.0,
+        maghribAngle = null,
+        ishaAngle = 17.0,
+        ishaFixedMinutes = null,
+        jafariMidnight = false
+    ),
+    UMM_AL_QURA(
+        apiCode = 4,
+        arabicTitle = "أم القرى",
+        arabicSubtitle = "الفجر 18.5° · العشاء 90 دقيقة بعد المغرب",
+        fajrAngle = 18.5,
+        maghribAngle = null,
+        ishaAngle = 0.0,
+        ishaFixedMinutes = 90,
+        jafariMidnight = false
+    );
+
+    companion object {
+        fun fromCode(code: Int): PrayerCalcMethod =
+            entries.firstOrNull { it.apiCode == code } ?: JAFARI
+    }
 }
 
 data class PrayerMinuteOffsets(
@@ -53,11 +78,6 @@ data class PrayerMinuteOffsets(
     val maghrib: Int = 0,
     val isha: Int = 0
 ) {
-    /**
-     * AlAdhan tune string order: Imsak,Fajr,Sunrise,Dhuhr,Asr,Maghrib,Sunset,Isha,Midnight
-     */
-    fun toAlAdhanTuneParam(): String =
-        "0,$fajr,$sunrise,$dhuhr,$asr,$maghrib,0,$isha,0"
 }
 
 data class DailyPrayerSchedule(
@@ -70,10 +90,18 @@ data class DailyPrayerSchedule(
     val maghribMinutes: Int,
     val ishaMinutes: Int,
     val midnightMinutes: Int,
-    val sourceLabel: String
+    val sourceLabel: String,
+    val dateKey: String = "",
+    val governorateId: String = "",
+    val sourceType: String = "UNAVAILABLE",
+    val sourceUrl: String = "",
+    val sourceUpdatedAtMillis: Long = 0L,
+    val sourceRecordId: String = "",
+    val sunsetMinutes: Int = -1
 ) {
     fun formatted12h(minutesOfDay: Int): String {
-        val normalized = ((minutesOfDay % 1440) + 1440) % 1440
+        if (minutesOfDay !in 0..1439) return "--:--"
+        val normalized = minutesOfDay
         val hour24 = normalized / 60
         val min = normalized % 60
         val period = if (hour24 < 12) "ص" else "م"
@@ -86,7 +114,8 @@ data class DailyPrayerSchedule(
     }
 
     fun formatted24h(minutesOfDay: Int): String {
-        val normalized = ((minutesOfDay % 1440) + 1440) % 1440
+        if (minutesOfDay !in 0..1439) return "--:--"
+        val normalized = minutesOfDay
         val hour24 = normalized / 60
         val min = normalized % 60
         return String.format(Locale.US, "%02d:%02d", hour24, min)
@@ -155,7 +184,7 @@ object PrayerAndHijriCalculator {
         return "$weekday، $day $monthName $year م"
     }
 
-    fun currentWeekdayIndex(cal: Calendar = GregorianCalendar(baghdadTimeZone())): Int {
+    fun currentWeekdayIndex(cal: Calendar = Calendar.getInstance(baghdadTimeZone())): Int {
         // Returns 0 = Saturday .. 6 = Friday for Daily Duas
         return when (cal.get(Calendar.DAY_OF_WEEK)) {
             Calendar.SATURDAY -> 0
@@ -179,7 +208,7 @@ object PrayerAndHijriCalculator {
         dayOfMonth: Int,
         hijriOffsetDays: Int = 0
     ): HijriDateValue {
-        val cal = GregorianCalendar(baghdadTimeZone()).apply {
+        val cal = Calendar.getInstance(baghdadTimeZone()).apply {
             set(year, month1Based - 1, dayOfMonth, 12, 0, 0)
             set(Calendar.MILLISECOND, 0)
             add(Calendar.DAY_OF_YEAR, hijriOffsetDays)
@@ -213,7 +242,7 @@ object PrayerAndHijriCalculator {
         val jd = ((11 * hYear + 3) / 30) + 354 * hYear + 30 * hMonth -
             ((hMonth - 1) / 2) + hDay + 1948440 - 385
         val (gy, gm, gd) = julianDayToGregorian(jd)
-        return GregorianCalendar(baghdadTimeZone()).apply {
+        return Calendar.getInstance(baghdadTimeZone()).apply {
             set(gy, gm - 1, gd, 12, 0, 0)
             set(Calendar.MILLISECOND, 0)
             add(Calendar.DAY_OF_YEAR, -hijriOffsetDays)
@@ -230,7 +259,7 @@ object PrayerAndHijriCalculator {
         hijriOffsetDays: Int = 0,
         nowMillis: Long = System.currentTimeMillis()
     ): Pair<Int, String> {
-        val todayCal = GregorianCalendar(baghdadTimeZone()).apply {
+        val todayCal = Calendar.getInstance(baghdadTimeZone()).apply {
             timeInMillis = nowMillis
             set(Calendar.HOUR_OF_DAY, 12)
             set(Calendar.MINUTE, 0)
@@ -296,7 +325,7 @@ object PrayerAndHijriCalculator {
     fun calculateLocalPrayerSchedule(
         latitude: Double,
         longitude: Double,
-        cal: Calendar = GregorianCalendar(baghdadTimeZone()),
+        cal: Calendar = Calendar.getInstance(baghdadTimeZone()),
         method: PrayerCalcMethod = PrayerCalcMethod.JAFARI,
         offsets: PrayerMinuteOffsets = PrayerMinuteOffsets(),
         hijriOffsetDays: Int = 0,
@@ -382,55 +411,53 @@ object PrayerAndHijriCalculator {
         )
     }
 
-    /**
-     * كل أيام شهر ميلادي بالحساب المحلي نفسه المستخدم ليوم واحد. هذه القائمة هي المصدر
-     * الوحيد لجدول الشهر ولنافذة التنبيهات، فلا يختلف الجدول عن التنبيه.
-     */
-    fun calculateMonthSchedules(
-        latitude: Double,
-        longitude: Double,
-        year: Int,
-        month1Based: Int,
-        method: PrayerCalcMethod = PrayerCalcMethod.JAFARI,
-        offsets: PrayerMinuteOffsets = PrayerMinuteOffsets(),
-        hijriOffsetDays: Int = 0
-    ): List<DailyPrayerSchedule> {
-        val firstDay = GregorianCalendar(baghdadTimeZone()).apply {
-            set(year, month1Based - 1, 1, 12, 0, 0)
-            set(Calendar.MILLISECOND, 0)
-        }
-        val daysInMonth = firstDay.getActualMaximum(Calendar.DAY_OF_MONTH)
-        return (1..daysInMonth).map { day ->
-            val cal = GregorianCalendar(baghdadTimeZone()).apply {
-                set(year, month1Based - 1, day, 12, 0, 0)
-                set(Calendar.MILLISECOND, 0)
-            }
-            calculateLocalPrayerSchedule(
-                latitude = latitude,
-                longitude = longitude,
-                cal = cal,
-                method = method,
-                offsets = offsets,
-                hijriOffsetDays = hijriOffsetDays
-            )
-        }
-    }
-
     fun parseHhMmToMinutes(raw: String): Int? {
         val cleaned = raw.trim().take(5)
         val parts = cleaned.split(":")
         if (parts.size != 2) return null
         val h = parts[0].toIntOrNull() ?: return null
         val m = parts[1].toIntOrNull() ?: return null
-        if (h !in 0..23 || m !in 0..59) return null
-        return h * 60 + m
+        return (h * 60 + m).coerceIn(0, 1439)
+    }
+
+    /** Returns the following civil date in Asia/Baghdad for an ISO-basic YYYYMMDD key. */
+    fun nextGregorianDateKey(dateKey: String): String? {
+        if (!dateKey.matches(Regex("\\d{8}"))) return null
+        val year = dateKey.substring(0, 4).toIntOrNull() ?: return null
+        val month = dateKey.substring(4, 6).toIntOrNull() ?: return null
+        val day = dateKey.substring(6, 8).toIntOrNull() ?: return null
+        if (month !in 1..12 || day !in 1..31) return null
+        val calendar = Calendar.getInstance(baghdadTimeZone()).apply {
+            clear()
+            set(year, month - 1, day, 12, 0, 0)
+            if (get(Calendar.YEAR) != year || get(Calendar.MONTH) != month - 1 || get(Calendar.DAY_OF_MONTH) != day) return null
+            add(Calendar.DAY_OF_YEAR, 1)
+        }
+        return String.format(
+            Locale.US, "%04d%02d%02d",
+            calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH) + 1,
+            calendar.get(Calendar.DAY_OF_MONTH)
+        )
     }
 
     fun computeNextPrayerCountdown(
         schedule: DailyPrayerSchedule,
+        nextDaySchedule: DailyPrayerSchedule? = null,
         nowMillis: Long = System.currentTimeMillis()
     ): NextPrayerCountdown {
-        val cal = GregorianCalendar(baghdadTimeZone()).apply {
+        val requiredTimes = listOf(
+            schedule.fajrMinutes, schedule.dhuhrMinutes, schedule.asrMinutes,
+            schedule.maghribMinutes, schedule.ishaMinutes
+        )
+        if (schedule.sourceType !in setOf("ALADHAN_API", "ALADHAN_API_CACHE") || requiredTimes.any { it !in 0..1439 }) {
+            return NextPrayerCountdown(
+                prayerArabicName = "غير متاح",
+                prayerFormattedTime = "--:--",
+                countdownHhMmSs = "لا تتوفر أوقات من المصدر أو من النسخة المحلية",
+                remainingSeconds = 0L
+            )
+        }
+        val cal = Calendar.getInstance(baghdadTimeZone()).apply {
             timeInMillis = nowMillis
         }
         val nowSecondsOfDay = cal.get(Calendar.HOUR_OF_DAY) * 3600 +
@@ -439,7 +466,6 @@ object PrayerAndHijriCalculator {
 
         val orderedPrayers = listOf(
             "الفجر" to schedule.fajrMinutes,
-            "الشروق" to schedule.sunriseMinutes,
             "الظهر" to schedule.dhuhrMinutes,
             "العصر" to schedule.asrMinutes,
             "المغرب" to schedule.maghribMinutes,
@@ -454,10 +480,25 @@ object PrayerAndHijriCalculator {
                 (upcomingToday.second * 60 - nowSecondsOfDay).toLong()
             )
         } else {
-            val fajrSecNextDay = schedule.fajrMinutes * 60 + 86_400
+            val expectedNextDate = nextGregorianDateKey(schedule.dateKey)
+            val nextDayHasValidSource = nextDaySchedule != null &&
+                nextDaySchedule.sourceType in setOf("ALADHAN_API", "ALADHAN_API_CACHE") &&
+                nextDaySchedule.governorateId == schedule.governorateId &&
+                nextDaySchedule.dateKey == expectedNextDate &&
+                nextDaySchedule.fajrMinutes in 0..1439
+            if (!nextDayHasValidSource) {
+                return NextPrayerCountdown(
+                    prayerArabicName = "غير متاح",
+                    prayerFormattedTime = "--:--",
+                    countdownHhMmSs = "لا تتوفر بيانات اليوم التالي",
+                    remainingSeconds = 0L
+                )
+            }
+            val nextFajr = requireNotNull(nextDaySchedule).fajrMinutes
+            val fajrSecNextDay = nextFajr * 60 + 86_400
             Triple(
                 "الفجر",
-                schedule.fajrMinutes,
+                nextFajr,
                 (fajrSecNextDay - nowSecondsOfDay).toLong()
             )
         }

@@ -35,8 +35,6 @@ import androidx.compose.material.icons.outlined.MenuBook
 import androidx.compose.material.icons.outlined.PlayCircle
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Share
-import androidx.compose.material.icons.outlined.ViewAgenda
-import androidx.compose.material.icons.outlined.Notes
 import androidx.compose.material.icons.outlined.ZoomIn
 import androidx.compose.material.icons.outlined.ZoomOut
 import androidx.compose.material3.AlertDialog
@@ -63,7 +61,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -71,7 +68,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
@@ -82,13 +78,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.data.local.CachedAyahEntity
-import com.example.domain.QuranMetadata
 import com.example.domain.SurahCatalog
+import com.example.domain.shouldDisplaySeparateBasmala
 import com.example.domain.SurahMeta
 import com.example.domain.filterSurahs
 import com.example.media.AudioPlayerController
 import com.example.ui.components.GlassCard
-import com.example.ui.components.QuranAyahCard
 import com.example.ui.components.GlassFilterChip
 import com.example.ui.components.SourceCitationBadge
 import com.example.ui.components.SubScreenTopBar
@@ -96,7 +91,6 @@ import com.example.ui.theme.LocalIsDarkThemeActive
 import com.example.ui.theme.LocalLineSpacing
 import com.example.ui.theme.LocalReadingFontScale
 import com.example.ui.theme.QuranBackgroundStyle
-import com.example.ui.theme.QuranReadingLayout
 import com.example.ui.theme.ReadingFontChoice
 import com.example.ui.theme.quranAndHeritageStyle
 import com.example.ui.theme.readerBackdropFor
@@ -118,7 +112,6 @@ fun QuranIndexAndReaderScreen(
     darkMode: Boolean,
     readingFontChoice: ReadingFontChoice,
     quranBackground: QuranBackgroundStyle,
-    readingLayout: QuranReadingLayout,
     autoScrollEnabled: Boolean,
     autoScrollSpeed: Float,
     onSelectSurahToRead: (Int) -> Unit,
@@ -129,20 +122,10 @@ fun QuranIndexAndReaderScreen(
     onToggleDarkMode: (Boolean) -> Unit,
     onChangeReadingFont: (ReadingFontChoice) -> Unit,
     onChangeBackground: (QuranBackgroundStyle) -> Unit,
-    onChangeReadingLayout: (QuranReadingLayout) -> Unit,
     onChangeAutoScroll: (Boolean, Float) -> Unit,
     onSaveLastReadAyah: (Int, Int) -> Unit,
     onSaveFavorite: (String, String, String, String, String) -> Unit
 ) {
-    val quranContext = LocalContext.current
-    val quranMeta = remember { QuranMetadata.load(quranContext) }
-    // Position requested by the juz, hizb or page lists; cleared once the reader has scrolled to it.
-    var pendingAyah by remember { mutableStateOf<Int?>(null) }
-    fun openAt(sura: Int, aya: Int) {
-        pendingAyah = aya
-        onSelectSurahToRead(sura)
-    }
-
     if (activeSurahNumber != null) {
         SurahReaderView(
             surahNumber = activeSurahNumber,
@@ -153,7 +136,6 @@ fun QuranIndexAndReaderScreen(
             darkMode = darkMode,
             readingFontChoice = readingFontChoice,
             quranBackground = quranBackground,
-            readingLayout = readingLayout,
             autoScrollEnabled = autoScrollEnabled,
             autoScrollSpeed = autoScrollSpeed,
             onBack = onCloseReaderToIndex,
@@ -163,12 +145,9 @@ fun QuranIndexAndReaderScreen(
             onToggleDarkMode = onToggleDarkMode,
             onChangeReadingFont = onChangeReadingFont,
             onChangeBackground = onChangeBackground,
-            onChangeReadingLayout = onChangeReadingLayout,
             onChangeAutoScroll = onChangeAutoScroll,
             onSaveLastReadAyah = onSaveLastReadAyah,
-            onSaveFavorite = onSaveFavorite,
-            initialAyah = pendingAyah,
-            onInitialAyahHandled = { pendingAyah = null }
+            onSaveFavorite = onSaveFavorite
         )
         return
     }
@@ -191,7 +170,7 @@ fun QuranIndexAndReaderScreen(
     Column(modifier = Modifier.fillMaxSize()) {
         SubScreenTopBar(
             title = "القرآن الكريم والتفسير",
-            subtitle = "١١٤ سورة · الرسم العثماني · التلاوة والتفسير"
+            subtitle = "١١٤ سورة · إصدار تنزيل المبسّط · التلاوة والتفسير"
         )
 
         Surface(
@@ -201,13 +180,13 @@ fun QuranIndexAndReaderScreen(
         ) {
             Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
                 Text(
-                    text = "طريق الرواية المذكور في كتب القراءات: حفص عن عاصم، عن أبي عبد الرحمن السلمي، عن أمير المؤمنين علي بن أبي طالب (ع).",
+                    text = "النص المضمّن في هذا الإصدار: Tanzil Quran Text (Simple، الإصدار 1.1) بترخيص CC BY 3.0. يذكر هذا المصدر نوع النص الذي نعرضه، ولا يُعدّ وحده توثيقاً مستقلاً لطريق الرواية أو سلسلة الإسناد.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSecondaryContainer
                 )
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    text = "نص القرآن بالرسم العثماني مضمّن داخل التطبيق، فتعمل جميع السور دون اتصال بالإنترنت. النص معروض كما ورد دون تعديل أو إعادة صياغة.",
+                    text = "يحتوي التطبيق الآن على نص Tanzil Simple الكامل محلياً للسور الـ114. تُحفظ النصوص كما وردت في المصدر دون تعديل. عند تعذّر التحقق من الأصل المضمّن فقط، يمكن استخدام نسخة Al Quran Cloud العثمانية عبر الإنترنت ثم حفظ السورة محلياً.",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.85f)
                 )
@@ -302,7 +281,7 @@ fun QuranIndexAndReaderScreen(
             // View Mode Tabs
             item {
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    val tabs = listOf("السور (١١٤)", "الأجزاء (٣٠)", "الأحزاب (٦٠)", "آيات السجدة والعزائم", "الصفحات (٦٠٤)")
+                    val tabs = listOf("السور (١١٤)", "الأجزاء (٣٠)", "الأحزاب (٦٠)", "آيات السجدة والعزائم")
                     items(tabs.size) { idx ->
                         GlassFilterChip(
                             label = tabs[idx],
@@ -316,10 +295,12 @@ fun QuranIndexAndReaderScreen(
             when (tabIndex) {
                 1 -> {
                     items((1..30).toList()) { juzNum ->
-                        val juzStart = quranMeta.juzStart(juzNum)
+                        val firstSurahInJuz = SurahCatalog.allSurahs.firstOrNull { it.juzStart == juzNum }
+                            ?: SurahCatalog.allSurahs.lastOrNull { it.juzStart <= juzNum }
+                            ?: SurahCatalog.allSurahs.first()
                         GlassCard(
                             cornerRadius = 18.dp,
-                            onClick = { openAt(juzStart.sura, juzStart.aya) }
+                            onClick = { onSelectSurahToRead(firstSurahInJuz.number) }
                         ) {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -332,35 +313,7 @@ fun QuranIndexAndReaderScreen(
                                     fontWeight = FontWeight.Bold
                                 )
                                 Text(
-                                    text = "يبدأ من ${SurahCatalog.byNumber(juzStart.sura).arabicName} · آية ${juzStart.aya}",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
-                    }
-                }
-
-                4 -> {
-                    items((1..quranMeta.pageCount).toList()) { page ->
-                        val pageStart = quranMeta.pageStart(page)
-                        val pageSurah = SurahCatalog.byNumber(pageStart.sura)
-                        GlassCard(
-                            cornerRadius = 18.dp,
-                            onClick = { openAt(pageStart.sura, pageStart.aya) }
-                        ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = "صفحة $page",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Text(
-                                    text = "${pageSurah.arabicName} · آية ${pageStart.aya}",
+                                    text = "يبدأ عند ${firstSurahInJuz.arabicName}",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -371,11 +324,11 @@ fun QuranIndexAndReaderScreen(
 
                 2 -> {
                     items((1..60).toList()) { hizbNum ->
-                        val hizbStart = quranMeta.hizbStart(hizbNum)
-                        val hizbSurah = SurahCatalog.byNumber(hizbStart.sura)
+                        val surahForHizb = SurahCatalog.allSurahs.lastOrNull { it.hizbStart <= hizbNum }
+                            ?: SurahCatalog.allSurahs.first()
                         GlassCard(
                             cornerRadius = 18.dp,
-                            onClick = { openAt(hizbStart.sura, hizbStart.aya) }
+                            onClick = { onSelectSurahToRead(surahForHizb.number) }
                         ) {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -388,7 +341,7 @@ fun QuranIndexAndReaderScreen(
                                     fontWeight = FontWeight.Bold
                                 )
                                 Text(
-                                    text = "${hizbSurah.arabicName} · آية ${hizbStart.aya}",
+                                    text = surahForHizb.arabicName,
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.primary
                                 )
@@ -494,7 +447,6 @@ private fun SurahReaderView(
     darkMode: Boolean,
     readingFontChoice: ReadingFontChoice,
     quranBackground: QuranBackgroundStyle,
-    readingLayout: QuranReadingLayout,
     autoScrollEnabled: Boolean,
     autoScrollSpeed: Float,
     onBack: () -> Unit,
@@ -504,18 +456,13 @@ private fun SurahReaderView(
     onToggleDarkMode: (Boolean) -> Unit,
     onChangeReadingFont: (ReadingFontChoice) -> Unit,
     onChangeBackground: (QuranBackgroundStyle) -> Unit,
-    onChangeReadingLayout: (QuranReadingLayout) -> Unit,
     onChangeAutoScroll: (Boolean, Float) -> Unit,
     onSaveLastReadAyah: (Int, Int) -> Unit,
-    onSaveFavorite: (String, String, String, String, String) -> Unit,
-    initialAyah: Int? = null,
-    onInitialAyahHandled: () -> Unit = {}
+    onSaveFavorite: (String, String, String, String, String) -> Unit
 ) {
     BackHandler { onBack() }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val quranMeta = remember { QuranMetadata.load(context) }
-    val firstPage = remember(surahNumber) { quranMeta.pageOf(surahNumber, 1) }
     val playerState by AudioPlayerController.state.collectAsState()
     val meta = SurahCatalog.byNumber(surahNumber)
     val reciter = remember(reciterId) { SurahCatalog.reciterById(reciterId) }
@@ -528,12 +475,8 @@ private fun SurahReaderView(
     val fontScale = LocalReadingFontScale.current
     val lineSpacing = LocalLineSpacing.current
     val scrollState = rememberScrollState()
-    // Keyed by surah: each reader starts with fresh layout state, so no measurement is reused across surahs.
-    var quranTextLayout by remember(surahNumber) { mutableStateOf<TextLayoutResult?>(null) }
-    var quranTextTopPx by remember(surahNumber) { mutableIntStateOf(0) }
-    // Card layout: top of the card list, and of each ayah card inside that list.
-    var cardsTopPx by remember(surahNumber) { mutableIntStateOf(0) }
-    val cardTopsPx = remember(surahNumber) { mutableStateMapOf<Int, Int>() }
+    var quranTextLayout by remember { mutableStateOf<TextLayoutResult?>(null) }
+    var quranTextTopPx by remember { mutableIntStateOf(0) }
     val readerTopPaddingPx = with(LocalDensity.current) { 14.dp.roundToPx() }
     val isDarkReader = LocalIsDarkThemeActive.current
     val backdrop = remember(quranBackground, isDarkReader) { readerBackdropFor(quranBackground, isDarkReader) }
@@ -570,36 +513,8 @@ private fun SurahReaderView(
 
     LaunchedEffect(surahNumber) {
         scrollState.scrollTo(0)
-    }
-
-    // A juz, hizb or page entry opens the exact ayah. It waits until the visible layout (cards or continuous
-    // text) has been measured, scrolls once, then clears the request.
-    LaunchedEffect(
-        initialAyah, readingLayout, quranTextLayout, quranTextTopPx,
-        cardsTopPx, cardTopsPx.size, sortedAyahs.size
-    ) {
-        val target = initialAyah ?: return@LaunchedEffect
-        if (sortedAyahs.isEmpty()) return@LaunchedEffect // text not loaded yet: keep waiting
-        if (sortedAyahs.none { it.ayahNumberInSurah == target }) {
-            onInitialAyahHandled() // not an ayah of this surah: drop the request
-            return@LaunchedEffect
-        }
-        val targetPx: Int? = if (readingLayout == QuranReadingLayout.CARDS) {
-            cardTopsPx[target]?.let { readerTopPaddingPx + cardsTopPx + it }
-        } else {
-            val layout = quranTextLayout
-            val textOffset = quranContent.ayahStartOffsets[target]
-            if (layout == null || textOffset == null) {
-                null
-            } else {
-                readerTopPaddingPx + quranTextTopPx +
-                    layout.getLineTop(layout.getLineForOffset(textOffset)).toInt()
-            }
-        }
-        if (targetPx != null) {
-            scrollState.scrollTo(targetPx.coerceAtLeast(0))
-            onInitialAyahHandled()
-        }
+        quranTextLayout = null
+        quranTextTopPx = 0
     }
 
     LaunchedEffect(surahNumber, ayahs.size) {
@@ -611,36 +526,10 @@ private fun SurahReaderView(
     Column(modifier = Modifier.fillMaxSize()) {
         SubScreenTopBar(
             title = meta.arabicName,
-            subtitle = "${meta.revelationTypeArabic} · ${meta.ayahCount} آية · الجزء ${meta.juzStart} · صفحة $firstPage",
+            subtitle = "${meta.revelationTypeArabic} · ${meta.ayahCount} آية · الجزء ${meta.juzStart}",
             onBack = onBack,
             trailing = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    // التبديل بين عرض البطاقات (كما في الصورة المرجعية) والنص المتصل.
-                    IconButton(
-                        onClick = {
-                            onChangeReadingLayout(
-                                if (readingLayout == QuranReadingLayout.CARDS) {
-                                    QuranReadingLayout.CONTINUOUS
-                                } else {
-                                    QuranReadingLayout.CARDS
-                                }
-                            )
-                        },
-                        modifier = Modifier.testTag("quran_layout_toggle")
-                    ) {
-                        Icon(
-                            imageVector = if (readingLayout == QuranReadingLayout.CARDS) {
-                                Icons.Outlined.ViewAgenda
-                            } else {
-                                Icons.Outlined.Notes
-                            },
-                            contentDescription = if (readingLayout == QuranReadingLayout.CARDS) {
-                                "عرض النص متصلاً"
-                            } else {
-                                "عرض الآيات في بطاقات"
-                            }
-                        )
-                    }
                     IconButton(onClick = { onChangeFontScale(fontScale - 0.10f) }) {
                         Icon(Icons.Outlined.ZoomOut, contentDescription = "تصغير الخط")
                     }
@@ -767,7 +656,7 @@ private fun SurahReaderView(
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         CircularProgressIndicator()
                         Spacer(modifier = Modifier.height(10.dp))
-                        Text("جارٍ تحميل النص القرآني بالرسم العثماني…")
+                        Text("جارٍ تحميل النص القرآني…")
                     }
                 }
             }
@@ -795,8 +684,13 @@ private fun SurahReaderView(
                             .fillMaxWidth()
                             .padding(horizontal = 20.dp, vertical = 14.dp)
                     ) {
-                        // Basmala is kept as a heading, never inside a decorative card.
-                        if (surahNumber != 1 && surahNumber != 9) {
+                        // Some source editions include the basmala in ayah 1 (as Tanzil Simple does).
+                        // Show a separate heading only when the first source ayah does not already contain it.
+                        if (shouldDisplaySeparateBasmala(
+                                surahNumber,
+                                sortedAyahs.firstOrNull()?.uthmaniText
+                            )
+                        ) {
                             Text(
                                 text = "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ",
                                 style = quranAndHeritageStyle(
@@ -819,49 +713,6 @@ private fun SurahReaderView(
                             )
                             Spacer(modifier = Modifier.height(12.dp))
                             Button(onClick = onRetry) { Text("إعادة تحميل السورة") }
-                        } else if (readingLayout == QuranReadingLayout.CARDS) {
-                            // عرض البطاقات: يطابق الصورة المرجعية — بطاقة لكل آية.
-                            val cardContainer = if (isDarkReader) {
-                                Color(0xFF16211F).copy(alpha = 0.72f)
-                            } else {
-                                Color.White.copy(alpha = 0.94f)
-                            }
-                            val cardBorder = if (isDarkReader) {
-                                Color.White.copy(alpha = 0.12f)
-                            } else {
-                                MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)
-                            }
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .onGloballyPositioned { coordinates ->
-                                        cardsTopPx = coordinates.positionInParent().y.toInt()
-                                    },
-                                verticalArrangement = Arrangement.spacedBy(10.dp)
-                            ) {
-                                sortedAyahs.forEach { ayah ->
-                                    QuranAyahCard(
-                                        modifier = Modifier.onGloballyPositioned { coordinates ->
-                                            cardTopsPx[ayah.ayahNumberInSurah] = coordinates.positionInParent().y.toInt()
-                                        },
-                                        ayahNumber = ayah.ayahNumberInSurah,
-                                        ayahText = ayah.uthmaniText,
-                                        textStyle = quranAndHeritageStyle(
-                                            fontScale,
-                                            fontChoice = readingFontChoice,
-                                            lineSpacing = lineSpacing
-                                        ).copy(color = backdrop.onBackground),
-                                        containerColor = cardContainer,
-                                        borderColor = cardBorder,
-                                        numberColor = backdrop.markerColor,
-                                        textColor = backdrop.onBackground,
-                                        onClick = {
-                                            selectedAyahForTafsir = ayah
-                                            onSaveLastReadAyah(surahNumber, ayah.ayahNumberInSurah)
-                                        }
-                                    )
-                                }
-                            }
                         } else {
                             ClickableText(
                                 text = quranContent.annotatedText,
@@ -996,7 +847,7 @@ private fun SurahReaderView(
 
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
-                    text = "مصدر النص: خدمة Al Quran Cloud بالرسم العثماني، وهو مضمّن داخل التطبيق ويعمل دون إنترنت. النص لا يُعاد صياغته داخل التطبيق.",
+                    text = "مصدر النسخة المحلية: Tanzil Quran Text (Simple، الإصدار 1.1)، مع إظهار إشعار المصدر والترخيص داخل التطبيق. لا يُعاد تحرير نص الآية. قد يُستخدم Al Quran Cloud بالرسم العثماني كمسار احتياطي عند عدم صلاحية الأصل المحلي.",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

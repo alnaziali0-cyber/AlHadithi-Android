@@ -57,17 +57,63 @@ service cloud.firestore {
              data.updatedAt <= request.time;
     }
 
+    function isValidPrayerTime(value) {
+      return value is string && value.matches('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+    }
+
+    function isOfficialPrayerRecord(data, expectedId) {
+      return data.keys().hasAll([
+          'governorateId', 'dateKey', 'fajr', 'sunrise', 'dhuhr', 'asr',
+          'maghrib', 'isha', 'midnight', 'sourceUrl', 'sourceRecordId',
+          'updatedAt', 'verifiedAt', 'timeZoneId', 'sourceCode', 'status'
+        ]) &&
+        data.keys().hasOnly([
+          'governorateId', 'dateKey', 'fajr', 'sunrise', 'dhuhr', 'asr',
+          'maghrib', 'isha', 'midnight', 'sourceUrl', 'sourceRecordId',
+          'updatedAt', 'verifiedAt', 'timeZoneId', 'sourceCode', 'status'
+        ]) &&
+        data.governorateId in [
+          'baghdad', 'basra', 'najaf', 'karbala', 'babil', 'wasit',
+          'qadisiyah', 'muthanna', 'dhi_qar', 'maysan', 'diyala', 'anbar',
+          'saladin', 'nineveh', 'kirkuk', 'erbil', 'sulaymaniyah', 'duhok'
+        ] &&
+        data.dateKey is string && data.dateKey.matches('^[0-9]{8}$') &&
+        expectedId == data.governorateId + '_' + data.dateKey &&
+        isValidPrayerTime(data.fajr) && isValidPrayerTime(data.sunrise) &&
+        isValidPrayerTime(data.dhuhr) && isValidPrayerTime(data.asr) &&
+        isValidPrayerTime(data.maghrib) && isValidPrayerTime(data.isha) &&
+        isValidPrayerTime(data.midnight) &&
+        data.fajr < data.sunrise && data.sunrise < data.dhuhr &&
+        data.dhuhr < data.asr && data.asr < data.maghrib && data.maghrib < data.isha &&
+        (data.midnight > data.maghrib || data.midnight < data.fajr) &&
+        data.sourceUrl is string && (
+          data.sourceUrl.matches('^https://(www\\.)?imamhussain\\.org/.*$') ||
+          data.sourceUrl.matches('^https://(www\\.)?imamhussain\\.gov\\.iq/.*$')
+        ) &&
+        data.sourceRecordId is string && data.sourceRecordId.size() > 0 && data.sourceRecordId.size() <= 180 &&
+        data.updatedAt is timestamp && data.verifiedAt is timestamp &&
+        data.updatedAt <= data.verifiedAt &&
+        data.updatedAt <= request.time && data.verifiedAt <= request.time &&
+        data.timeZoneId == 'Asia/Baghdad' &&
+        data.sourceCode == 'imamhussain_official' && data.status == 'published';
+    }
+
+    match /prayer_times_daily/{recordId} {
+      // Prayer time records contain public timetable data only. Every record is validated
+      // again by PrayerTimesService before display; only the verified owner can write them.
+      allow get, list: if true;
+      // Only the verified owner account can import or correct official source records.
+      allow create, update: if isOwnerAdmin() && isOfficialPrayerRecord(incoming(), recordId);
+      allow delete: if isOwnerAdmin() && existing().sourceCode == 'imamhussain_official';
+    }
+
     match /admin_announcements/{announcementId} {
       allow get: if isOwnerAdmin() &&
                     isValidId(announcementId) &&
                     existing().userId == request.auth.uid;
 
-      // NOTE: `existing()` (resource) is null for list/query operations, so it must not be
-      // referenced here. Referencing it made every list query fail with PERMISSION_DENIED,
-      // which is why the developer panel could sign in successfully and still show no ads.
-      // Ownership is enforced by the query filter (whereEqualTo("userId", uid)) on the client
-      // plus the isOwnerAdmin() role check below.
-      allow list: if isOwnerAdmin();
+      allow list: if isOwnerAdmin() &&
+                     existing().userId == request.auth.uid;
 
       allow create: if isOwnerAdmin() &&
                        isValidId(announcementId) &&
@@ -113,101 +159,6 @@ service cloud.firestore {
       allow delete: if isOwnerAdmin() &&
                        isValidId(announcementId) &&
                        existing().userId == request.auth.uid;
-    }
-
-    // ── إعلانات التطبيق (Ads) ────────────────────────────────────────
-    // Every end user may read the ads that are currently published; only the
-    // verified owner account may create, edit, schedule, pause or delete them.
-    function isValidAd(data) {
-      return data.title is string &&
-             data.title.size() >= 2 && data.title.size() <= 140 &&
-             data.text is string &&
-             data.text.size() >= 2 && data.text.size() <= 2000 &&
-             (!('shortDesc' in data) || data.shortDesc == null ||
-               (data.shortDesc is string && data.shortDesc.size() <= 300)) &&
-             (!('link' in data) || data.link == null ||
-               (data.link is string && data.link.size() <= 500)) &&
-             (!('ctaLabel' in data) || data.ctaLabel == null ||
-               (data.ctaLabel is string && data.ctaLabel.size() <= 60)) &&
-             (!('imagePath' in data) || data.imagePath == null ||
-               (data.imagePath is string && data.imagePath.size() <= 500)) &&
-             data.status is string &&
-             data.status in ['draft', 'scheduled', 'active', 'paused', 'expired'] &&
-             data.target is string &&
-             data.target in ['all', 'users', 'guests', 'role'] &&
-             (!('targetRole' in data) || data.targetRole == null ||
-               (data.targetRole is string && data.targetRole.size() <= 40)) &&
-             (!('sendPush' in data) || data.sendPush is bool) &&
-             (!('startAt' in data) || data.startAt == null || data.startAt is timestamp) &&
-             (!('endAt' in data) || data.endAt == null || data.endAt is timestamp);
-    }
-
-
-    match /ads/{adId} {
-      // Authoring copy — only the verified owner may read or write it.
-      allow read: if isOwnerAdmin();
-      allow list: if isOwnerAdmin();
-      allow create: if isOwnerAdmin() && isValidId(adId) && isValidAd(incoming());
-      allow update: if isOwnerAdmin() && isValidId(adId) && isValidAd(incoming());
-      allow delete: if isOwnerAdmin() && isValidId(adId);
-    }
-
-    // Published snapshot of an ad. Only the owner writes it; every app user reads it.
-    // Keeping the live copy in its own collection means end-user queries never depend on
-    // a `resource.data` condition, which Firestore cannot always prove for a query.
-    match /published_ads/{adId} {
-      allow read: if true;
-      allow list: if true;
-      allow create, update, delete: if isOwnerAdmin() && isValidId(adId);
-    }
-
-    // ── أجهزة الإشعارات (Push device registry) ───────────────────────
-    // Each signed-in device registers and removes only its own subscription.
-    match /notification_devices/{deviceId} {
-      allow read: if isOwnerAdmin();
-      allow list: if isOwnerAdmin();
-      allow create: if isSignedIn() &&
-                       isValidId(deviceId) &&
-                       incoming().userId == request.auth.uid &&
-                       incoming().endpoint is string &&
-                       incoming().endpoint.size() >= 16 &&
-                       incoming().endpoint.size() <= 1000;
-      allow update: if isSignedIn() &&
-                       isValidId(deviceId) &&
-                       resource.data.userId == request.auth.uid &&
-                       incoming().userId == request.auth.uid;
-      allow delete: if isOwnerAdmin() ||
-                       (isSignedIn() && resource.data.userId == request.auth.uid);
-    }
-
-    // ── تفضيلات الإشعارات (per-user preferences) ─────────────────────
-    match /notification_prefs/{userId} {
-      allow read: if isOwnerAdmin() || (isSignedIn() && request.auth.uid == userId);
-      allow write: if isOwnerAdmin() || (isSignedIn() && request.auth.uid == userId);
-    }
-
-    // ── سجل عمليات الإرسال (delivery log) ────────────────────────────
-    match /notification_log/{logId} {
-      allow read: if isOwnerAdmin() ||
-                    (isSignedIn() && resource.data.userId == request.auth.uid);
-      allow list: if isOwnerAdmin();
-      allow create: if isSignedIn() &&
-                       isValidId(logId) &&
-                       incoming().userId == request.auth.uid &&
-                       incoming().kind is string &&
-                       incoming().kind.size() <= 40 &&
-                       incoming().status is string &&
-                       incoming().status.size() <= 40;
-      allow update: if isOwnerAdmin();
-      allow delete: if isOwnerAdmin();
-    }
-
-    // ── سجل عمليات المطور (audit trail) ──────────────────────────────
-    match /admin_audit_log/{logId} {
-      allow read: if isOwnerAdmin();
-      allow list: if isOwnerAdmin();
-      allow create: if isSignedIn() && isValidId(logId);
-      allow update, delete: if false;
     }
   }
 }

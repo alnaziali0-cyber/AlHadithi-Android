@@ -13,6 +13,7 @@ data class CachedAyahEntity(
     val surahNameArabic: String,
     val ayahNumberInSurah: Int,
     val globalAyahNumber: Int,
+    // Legacy Room column name retained for migration compatibility; stores the exact selected Arabic edition text.
     val uthmaniText: String,
     val juz: Int,
     val hizbQuarter: Int,
@@ -169,7 +170,8 @@ data class WallpaperEntity(
     val category: String,
     val drawableResName: String,
     val resolutionLabel: String,
-    val description: String
+    val description: String,
+    val localImagePath: String = ""
 )
 
 @Entity(
@@ -218,81 +220,52 @@ data class ContentSourceEntity(
     val editionNote: String
 )
 
+
 /**
- * حالة إنجاز صلاة واحدة في يوم واحد ("صلواتي اليوم").
- *
- * ownerKey يفصل بين مستخدمي الجهاز: "guest" للزائر و uid لمستخدم Firebase.
- * التخزين محلي بالكامل (Room) حتى لا تضيع السجلات عند إغلاق التطبيق.
+ * Daily prayer completion for the active local profile. The profile key leaves room for a future
+ * authenticated multi-device account without tying private progress to a developer account.
  */
 @Entity(
-    tableName = "prayer_daily_state",
-    primaryKeys = ["ownerKey", "prayerDate", "prayer"]
+    tableName = "prayer_daily_completions",
+    primaryKeys = ["profileKey", "dayKey", "prayerKey"],
+    indices = [Index("dayKey")]
 )
-data class PrayerDailyStateEntity(
-    val ownerKey: String,
-    val prayerDate: String,
-    val prayer: String,
-    val status: String = PRAYER_STATUS_PENDING,
-    val note: String? = null,
-    val updatedAt: Long = System.currentTimeMillis()
-)
-
-const val PRAYER_STATUS_PENDING = "pending"
-const val PRAYER_STATUS_DONE = "done"
-const val PRAYER_STATUS_ON_TIME = "on_time"
-const val PRAYER_STATUS_LATE = "late"
-const val PRAYER_STATUS_MISSED = "missed"
-
-/** ملخص إنجاز يوم كامل — يُستخدم في شاشة الإنجازات وحلقة المتابعة. */
-data class PrayerDaySummary(
-    val date: String,
-    val total: Int,
-    val done: Int
+data class PrayerCompletionEntity(
+    val profileKey: String = LOCAL_PRAYER_PROFILE_KEY,
+    val dayKey: String,
+    val prayerKey: String,
+    val isCompleted: Boolean,
+    val updatedAtMillis: Long
 )
 
-/** تصنيف من تصنيفات الأخلاقيات الخمسة عشر. */
-@Entity(tableName = "akhlaq_categories")
-data class AkhlaqCategoryEntity(
-    @PrimaryKey val id: String,
-    val title: String,
-    val icon: String = "book-open",
-    val sortOrder: Int = 0
-)
+const val LOCAL_PRAYER_PROFILE_KEY = "local-device-profile"
 
-/** درس أخلاقي مع أدلته وأمثلته ومواقفه. */
-@Entity(tableName = "akhlaq_lessons")
-data class AkhlaqLessonEntity(
-    @PrimaryKey val id: String,
-    val categoryId: String,
-    val title: String,
-    val intro: String = "",
-    val body: String = "",
-    val evidenceAyat: String = "[]",
-    val evidenceHadith: String? = null,
-    val examples: String = "[]",
-    val scenarios: String = "[]",
-    val applySteps: String = "[]",
-    val mistakes: String = "[]",
-    val summary: String = "",
-    val sortOrder: Int = 0
-)
 
-/** سؤال اختبار قصير مرتبط بدرس. */
-@Entity(tableName = "akhlaq_quizzes")
-data class AkhlaqQuizEntity(
-    @PrimaryKey val id: String,
-    val lessonId: String,
-    val question: String,
-    val options: String = "[]",
-    val answerIndex: Int = 0,
-    val explanation: String = "",
-    val sortOrder: Int = 0
+/** One normalized daily timetable record per Iraqi governorate and civil date. */
+@Entity(
+    tableName = "prayer_schedule_cache",
+    primaryKeys = ["governorateId", "dateKey"],
+    indices = [Index("dateKey"), Index("sourceType")]
 )
-
-/** تقدّم المستخدم في درس الأخلاقيات. */
-@Entity(tableName = "akhlaq_progress")
-data class AkhlaqProgressEntity(
-    @PrimaryKey val lessonId: String,
-    val completedAt: Long = System.currentTimeMillis(),
-    val score: Int = 0
+data class PrayerScheduleEntity(
+    val governorateId: String,
+    val dateKey: String,
+    val fajrMinutes: Int,
+    val sunriseMinutes: Int,
+    val dhuhrMinutes: Int,
+    val asrMinutes: Int,
+    val maghribMinutes: Int,
+    val ishaMinutes: Int,
+    val midnightMinutes: Int,
+    val hijriYear: Int,
+    val hijriMonth: Int,
+    val hijriDay: Int,
+    val gregorianDateLabel: String,
+    val sourceType: String,
+    val sourceLabel: String,
+    val sourceUrl: String = "",
+    val sourceRecordId: String = "",
+    val sourceUpdatedAtMillis: Long = 0L,
+    val cachedAtMillis: Long,
+    val timeZoneId: String = "Asia/Baghdad"
 )

@@ -300,6 +300,47 @@ object DeveloperGoogleAuthHelper {
         }
     }
 
+    /** Email/password auth is accepted only for the pre-provisioned, verified owner account.
+     * Passwords are never persisted, logged, or embedded in the application package.
+     */
+    fun signInWithEmailPassword(
+        email: String,
+        password: CharSequence,
+        scope: CoroutineScope,
+        onAuthorizedSuccess: (FirebaseUser) -> Unit,
+        onUnauthorizedAccount: () -> Unit,
+        onAuthError: (String) -> Unit
+    ) {
+        val cleanEmail = email.trim().lowercase(Locale.ROOT)
+        if (cleanEmail != AUTHORIZED_DEVELOPER_EMAIL || password.isEmpty()) {
+            onUnauthorizedAccount()
+            return
+        }
+        scope.launch {
+            try {
+                Firebase.auth.signInWithEmailAndPassword(cleanEmail, password.toString()).await()
+                val user = Firebase.auth.currentUser
+                if (isAuthorizedDeveloperUser(user)) {
+                    onAuthorizedSuccess(user!!)
+                } else {
+                    Firebase.auth.signOut()
+                    onUnauthorizedAccount()
+                }
+            } catch (cancel: CancellationException) {
+                throw cancel
+            } catch (error: Exception) {
+                Log.e(TAG, "Email/password sign-in failed (${error.javaClass.simpleName})")
+                onAuthError(
+                    when {
+                        error.message.orEmpty().contains("network", ignoreCase = true) -> "تعذر الاتصال بخدمة تسجيل الدخول. تحقق من الإنترنت."
+                        error.message.orEmpty().contains("invalid", ignoreCase = true) || error.message.orEmpty().contains("credential", ignoreCase = true) -> "بيانات الدخول غير صحيحة أو الحساب غير مفعّل."
+                        else -> "تعذر تسجيل الدخول. تحقق من تفعيل Email/Password في Firebase ومن توثيق البريد الإلكتروني."
+                    }
+                )
+            }
+        }
+    }
+
     fun onGoogleSignInClicked(
         context: Context,
         credentialManager: CredentialManager,

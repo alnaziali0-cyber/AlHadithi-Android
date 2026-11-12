@@ -5,6 +5,7 @@ import com.example.domain.PrayerAndHijriCalculator
 import com.example.domain.PrayerCalcMethod
 import com.example.domain.PrayerMinuteOffsets
 import com.example.domain.SurahCatalog
+import com.example.domain.shouldDisplaySeparateBasmala
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -14,7 +15,7 @@ class ExampleUnitTest {
 
     @Test
     fun iraqGovernorates_containsAll18AndAccurateBaghdadQibla() {
-        assertEquals(19, IraqGovernorates.all.size)
+        assertEquals(18, IraqGovernorates.all.size)
         val baghdad = IraqGovernorates.byId("baghdad")
         assertEquals("بغداد", baghdad.arabicName)
         // Baghdad Qibla bearing is ~200° from True North, distance ~1395-1398 km
@@ -78,26 +79,14 @@ class ExampleUnitTest {
         assertEquals(64, SurahCatalog.reciterById("minshawimujawwad").surahBitrate)
 
         reciters.forEach { reciter ->
-            assertTrue(reciter.surahBitrate in setOf(32, 40, 48, 64, 128, 192))
-            // كل قارئ يملك مصدراً صوتياً واحداً على الأقل.
-            assertTrue(
-                reciter.hasSurahAudio || reciter.hasAyahAudio ||
-                    reciter.audioUnit == "external" || reciter.audioUnit == "juz"
-            )
-            if (reciter.hasSurahAudio) {
-                for (surahNumber in 1..114) {
-                    val url = reciter.buildSurahStreamUrl(surahNumber)
-                    assertTrue(url != null && url.startsWith("https://"))
-                    assertTrue(url!!.endsWith("/$surahNumber.mp3"))
-                }
+            for (surahNumber in 1..114) {
+                val url = reciter.buildSurahStreamUrl(surahNumber)
+                assertTrue(url.startsWith("https://cdn.islamic.network/quran/audio-surah/${reciter.surahBitrate}/"))
+                assertTrue(url.endsWith("/$surahNumber.mp3"))
+                assertTrue(reciter.surahBitrate in setOf(32, 40, 48, 64, 128, 192))
+                val fallback = reciter.buildMp3QuranFallbackUrl(surahNumber)
+                assertTrue(fallback == null || fallback.startsWith("https://"))
             }
-            if (reciter.hasAyahAudio) {
-                val ayahUrl = reciter.buildAyahUrl(2, 255)
-                assertTrue(ayahUrl != null && ayahUrl.startsWith("https://"))
-                assertTrue(ayahUrl!!.endsWith("002255.mp3"))
-            }
-            val fallback = reciter.buildMp3QuranFallbackUrl(1)
-            assertTrue(fallback == null || fallback.startsWith("https://"))
             assertTrue(reciter.buildMp3QuranFallbackUrl(0) == null)
             assertTrue(reciter.buildMp3QuranFallbackUrl(115) == null)
         }
@@ -111,4 +100,15 @@ class ExampleUnitTest {
             .map { it.number }
         assertEquals(listOf(32, 41, 53, 96), wajibSajdahNumbers)
     }
+    @Test
+    fun quranReader_doesNotDuplicateBasmalaWhenSourceIncludesItInFirstAyah() {
+        assertTrue(!shouldDisplaySeparateBasmala(2, "بِسْمِ اللَّهِ الرَّحْمَـٰنِ الرَّحِيمِ الم"))
+        assertTrue(!shouldDisplaySeparateBasmala(9, "بَرَاءَةٌ مِّنَ اللَّهِ"))
+        assertTrue(!shouldDisplaySeparateBasmala(1, "بِسْمِ اللَّهِ"))
+        // Tanzil uses a slightly different tashkeel prefix on these two surahs.
+        assertTrue(!shouldDisplaySeparateBasmala(95, "بِّسْمِ اللَّهِ الرَّحْمَـٰنِ الرَّحِيمِ"))
+        assertTrue(!shouldDisplaySeparateBasmala(97, "بِّسْمِ اللَّهِ الرَّحْمَـٰنِ الرَّحِيمِ"))
+        assertTrue(shouldDisplaySeparateBasmala(2, "الم"))
+    }
+
 }
