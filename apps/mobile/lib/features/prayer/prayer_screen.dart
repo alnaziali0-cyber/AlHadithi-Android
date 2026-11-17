@@ -80,7 +80,7 @@ class PrayerScreen extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     DropdownButtonFormField<String>(
-                      initialValue: selectedExists ? selectedCity : null,
+                      value: selectedExists ? selectedCity : null,
                       decoration:
                           const InputDecoration(labelText: 'اختر المدينة'),
                       isExpanded: true,
@@ -130,7 +130,7 @@ class PrayerScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 14),
             DropdownButtonFormField<String>(
-              initialValue: method,
+              value: method,
               decoration: const InputDecoration(
                   labelText: 'طريقة الحساب المحلي للأيام المقبلة'),
               isExpanded: true,

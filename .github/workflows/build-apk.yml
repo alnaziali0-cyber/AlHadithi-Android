@@ -38,6 +38,15 @@ jobs:
           s = s.replace('android:label="iqshia"', 'android:label="خَزَائِنُ الهُدَى"')
           p.write_text(s)
           PY
+      - name: Pin Android NDK version
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('android/app/build.gradle.kts')
+          s = p.read_text()
+          s = s.replace('android {', 'android {\n    ndkVersion = "27.0.12077973"', 1)
+          p.write_text(s)
+          PY
       - name: Get dependencies
         run: flutter pub get
       - name: Build debug APK

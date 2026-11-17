@@ -79,7 +79,7 @@ class WallpaperEntry {
 }
 
 class WallpaperRepository {
-  const WallpaperRepository(this._dio, this._preferences, {AssetBundle? bundle})
+  WallpaperRepository(this._dio, this._preferences, {AssetBundle? bundle})
       : _bundle = bundle ?? rootBundle;
 
   final Dio _dio;
