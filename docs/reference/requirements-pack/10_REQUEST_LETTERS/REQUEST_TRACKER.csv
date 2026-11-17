@@ -1,0 +1,5 @@
+organization,contact_person,contact_email,date_sent,requested_materials,permission_scope,status,follow_up_date,document_path,notes
+العتبة الحسينية,,,,أذان؛ قرآن؛ مجالس؛ شعارات؛ صور؛ بث,تشغيل؛ تنزيل؛ offline؛ إعادة بث؛ تجاري,pending,,,,
+العتبة العباسية/شبكة الكفيل,,,,مواد صوتية؛ صور؛ شعارات,تشغيل؛ تنزيل؛ offline؛ تجاري,pending,,,,
+العتبة العلوية,,,,إذاعة؛ أدعية؛ زيارات؛ صور؛ مواقيت,تشغيل؛ تنزيل؛ بث,pending,,,,
+مركز البحوث والدراسات الفلكية,,,,معاملات مواقيت؛ جداول مدن؛ ترخيص API/استخدام,حساب؛ عرض؛ إعادة استخدام البيانات,pending,,,,

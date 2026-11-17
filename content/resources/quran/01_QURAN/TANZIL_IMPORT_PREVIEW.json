@@ -1,0 +1,23 @@
+{
+  "source": "Tanzil Project",
+  "source_url": "https://tanzil.net/",
+  "license_url": "https://tanzil.net/docs/text_license",
+  "publisher_version": "not stated by the fetched file; confirm before release",
+  "source_file": "01_QURAN/tanzil_uthmani_verbatim.txt",
+  "source_sha256": "bf4f57b968d03f4131c070b1e285da9be0e0a108a21c910e872801ca273312c8",
+  "metadata_file": "02_QURAN_METADATA/quran-data.xml",
+  "output_file": "01_QURAN/tanzil_uthmani_structured_import.tsv",
+  "output_sha256": "6ac6cdf5122b814de7bc54599734860063e2e7a7c14d580bda8d428f9b7862a8",
+  "surah_count": 114,
+  "ayah_count": 6236,
+  "juz_count": 30,
+  "hizb_count": 60,
+  "page_count": 604,
+  "sajdah_mark_count": 15,
+  "text_field_unchanged": true,
+  "status": "staged_for_validation_and_scholarly_review_not_imported",
+  "database_modified": false,
+  "reader_enabled": false,
+  "scholarly_review": "required_not_completed",
+  "license_notice": "01_QURAN/TANZIL_NOTICE.txt"
+}

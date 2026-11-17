@@ -1,293 +1,128 @@
-# خزائن الهدى | KHAZAIN AL-HUDA
+# خَزَائِنُ الهُدَى | KHAZAIN AL-HUDA
 
-> **الإصدار 1.0.22 (Build 24):** توحيد الهوية الرسمية بخزائن الهدى، تحديث أصول الشعار، اعتماد Alan Sans Light لنصوص الواجهة، تحسين الوضع الداكن الفحمي، وإعادة تنظيم مركز الإعدادات مع الحفاظ على قاعدة البيانات وخدمات المحتوى والمواقيت. راجع `KHAZAIN_AL_HUDA_UPDATE_REPORT_1.0.22_AR.md`.
+Cross-platform Flutter client + FastAPI/PostgreSQL backend + private developer console.
 
-> **تحديث الإصدار 1.0.21 (Build 23):** تم دمج إعدادات AlAdhan الواردة حرفياً في الكود المرسل داخل مستودع مركزي، مع إحداثيات المحافظة المحفوظة وكاش محلي مطابق لكل تاريخ ومحافظة. لا تُستخدم خوارزمية احتياطية. حُفظ HTML المرسل دون تعديل كمرجع داخل `references/prayer_times_supplied.html`، بينما تعمل الواجهات الأصلية عبر Kotlin/Compose. لا يُدّعى تطابق AlAdhan مع حقيبة المؤمن أو كونه جدولاً رسمياً عراقياً. راجع `UPDATE_REPORT_1.0.21_AR.md` للتفاصيل والقيود ونتائج الفحوص.
+> **Release status: engineering build / not yet store-ready.** The home screen shows the approximate Hijri month/year above the prayer-times card, followed by horizontally scrolling translucent section shortcuts and a Hijri-event card. The app includes an offline Hafs Qur'an text asset with source notice and SHA-256 validation; the reader keeps the Amiri Quran font separate from selectable UI fonts. Native Android/iOS shells and physical-device verification are still required. No adhan MP3 or home-screen audio player is bundled, and no unlicensed books or recordings are seeded.
 
-## 1.0.19 — قنوات التواصل والدعم
 
-أضيفت قنوات البريد وInstagram وTikTok إلى مجموعة الدعم والمساعدة. التفاصيل في `SUPPORT_CONTACTS_1.0.19_AR.md`.
+## Implemented in this snapshot
 
-# خزائن الهدى | KHAZAIN AL-HUDA
+| Area | Current state |
+|---|---|
+| Flutter app shell | Arabic RTL, animated glass navigation for the existing prayer-times home, Qur'an, Qibla, tasbih and settings destinations, selectable bundled Arabic UI fonts with Noto Naskh as default, supplied shrine background and separate logo source asset, compact glass-style prayer-time card with approximate Hijri month/year, horizontal glass section shortcuts, local Hafs Qur'an reader, prayer view, local tasbih, grouped settings, radio status, catalog sections, cached catalog fallback and paginated book-page reader |
+| Iraq prayer core | 19 governorates plus 20 city-center records from the supplied requirements pack, city-level API calculation, selectable calculation presets explicitly marked not authority-verified, transparent approximate-coordinate provenance and API cache |
+| Backend | FastAPI, PostgreSQL schema/migrations, governorate/prayer/Quran/radio APIs, paginated source-gated public catalogs for books, hadith, duas, visits, events, ethics lessons and licensed audio, health, CMS endpoints, scheduled publication worker |
+| Admin console | Owner-only server-side login, Argon2id, password rotation, opaque sessions, CSRF, origin checks, login throttling, audit events, JSON CMS for books, hadith sources/records/gradings, duas, visits, events, ethics lessons and audio; related book-page import, plus radio/media/service views |
+| Media | 15 MiB cap, allow-listed file signatures, random storage keys, SHA-256 metadata |
+| Quran text | Offline Hafs text is bundled unchanged from Tanzil Quran Text 1.1 (Simple/Imla'ei), mirrored by `risan/quran-json` at a pinned commit, with source/license notice, 6,236-ayah structural checks and pinned SHA-256. The old Quran.ws Uthmani JSON is archived but is not in the active Flutter asset list. Amiri Quran remains independent of UI fonts. Server-side Quran API ingestion is separately gated on a reviewed Tanzil import |
+| Radio | Official source link; direct playback remains disabled until an administrator verifies an HTTPS stream and records explicit reuse-permission evidence |
 
-> **إصدار المصدر 1.0.19 — 10 نوفمبر 2026:** إضافة البريد الرسمي وقناتي Instagram وTikTok داخل مجموعة الدعم مع أيقونات وروابط HTTPS محققة. راجع `SUPPORT_CONTACTS_1.0.19_AR.md`.
+## Not implemented / not release-ready
 
-> **الإصدار السابق 1.0.18 — 10 نوفمبر 2026:** إعادة هندسة صفحة الإعدادات إلى مجموعات قابلة للطي بهوية Midnight Navy/Teal/Cyan/Gold، وتجميع اللغة والخطوط والمعاينات وأحجام النص، وربط أهداف المتابعة اليومية وتصحيح التاريخ الهجري، وإضافة عرض فعلي لكاش القرآن وتنظيفه بتأكيد. تم توضيح الميزات غير المهيأة وعدم عرض أزرار شكلية. لم يُنتج APK لأن تنزيل Gradle 9.3.1 فشل عبر DNS، ولا يتوفر Android SDK أو ADB أو keystore.
+Printed-page mushaf layout, tafsir and full-text Quran search, additional reciter catalogs, populated scholarly books/hadith/dua corpus, verified majlis catalogs, full-length background/lock-screen adhan playback, FCM/APNs push delivery, optional user registration/recovery/synchronization, full field-specific editorial forms, multi-reviewer approval workflows and granular editorial roles, CMS for Quran/quiz/user/notification domains, a moon-sighting-authoritative Hijri calendar, analytics, generated native splash/launcher icons, privacy/terms pages and native Android/iOS platform folders. The Flutter application title is `خَزَائِنُ الهُدَى`, but the installed Android launcher label still must be set in the generated `AndroidManifest.xml`; native platform files are absent in this source snapshot. Local prayer alerts are implemented in Dart but remain subject to native platform configuration and physical-device verification. See `docs/reports/ROUND20_AUDIT_AND_REPAIRS_AR.md` and the release checklist. `docs/reports/VALIDATION_REPORT.md` is a historical Round 7 report.
 
-> **المصحف المحلي:** يتضمن التطبيق Tanzil Simple v1.1: 114 سورة و6,236 آية، مع تطابق حرفي كامل مع ملف المصدر. هذه طبعة Simple وليست الرسم العثماني؛ راجع `QURAN_DATA_IMPORT_AR.md` وملفات الترخيص.
+## Repository layout
 
-> **ملاحظة تاريخية — 1.0.13:** في ذلك الإصدار لم يكن ملف المصحف مضمنًا؛ تم تجاوز هذه الحالة في 1.0.14 بإضافة Tanzil Simple محلياً.
-
-تطبيق أندرويد ديني وثقافي باللغة العربية، مبني باستخدام Kotlin وJetpack Compose.
-
-## تطوير الإصدار 1.0.8 — قارئ السورة المتصل
-
-أصبحت صفحة كل سورة تعرض الآيات في تدفق نصي واحد متصل، دون بطاقات أو مستطيلات منفصلة بين الآيات. تظهر أرقام الآيات بعلاماتها ضمن النص. الضغط على آية يفتح لوحة تفاصيل فيها التفسير والحفظ والنسخ والمشاركة. زر الانتقال إلى آية يحسب موضع السطر داخل التدفق النصي. السورة الطويلة تبقى قابلة للتمرير عمودياً ولا تُضغط لتناسب شاشة واحدة. أضيفت اختبارات وحدات لهذا المسار، لكن تنفيذ Gradle وبناء APK يتطلبان بيئة Android SDK وGradle مكتملة.
-
-## تطوير الإصدار 1.0.9 — اللوحة اليومية ومركز الضبط الكامل
-
-هذا الإصدار يطوّر «خزائن الهدى» بوصفه رفيقاً إيمانياً يومياً متكاملاً: نظام تصميم عربي كامل (فاتح/داكن/حسب النظام
-مع لون تمييز وخط قراءة مستقل وتباعد أسطر)، لوحة رئيسية قابلة للتخصيص بالكامل، تنبيهات صلاة تُضبط لكل
-صلاة على حدة مع فترة منع إزعاج، قارئ القرآن بخلفيات متعدّدة وتمرير تلقائي، تشغيل التلاوة في الخلفية
-مع التحكم من إشعار النظام، وشاشة إعدادات وخصوصية شاملة.
-
-راجع `AUDIT_AND_PLAN_AR.md` لتقرير التدقيق الكامل وخطة التنفيذ والقيود الموثّقة.
-
-## حالة الإصدار الحالي 1.0.22
-
-- مواقيت الصلاة: مستودع مركزي AlAdhan مع معاملات method=99 وmethodSettings=17.7,null,4 وmidnightMode=1 وtune=0,0,0,0,0,1,0,0,0؛ تخزين محلي للنتيجة الدقيقة لكل محافظة/تاريخ بعد أول اتصال. هذا ليس جدولاً رسمياً عراقياً ولا يوجد إثبات تطابق مع حقيبة المؤمن. تفاصيل التكامل في `UPDATE_REPORT_1.0.21_AR.md`.
-- رقم الإصدار الحالي `versionName=1.0.22` و`versionCode=24`.
-- بريد الدعم: `alhadithiiraq@gmail.com`، Instagram: `@alhadithi_iraq`، TikTok: `@.al.hadithi`. تظهر القنوات في إعدادات الدعم والمساعدة، مع Intent منفصل للبريد وروابط HTTPS محققة للحسابات.
-- روابط المساعدة لا تحتاج Backend؛ إرسال البلاغات والمقترحات عبر النماذج الحالية ما زال يعتمد مشاركة Android ما لم تتم تهيئة خدمة استقبال خلفية.
-
-## حالة الإصدار السابق 1.0.18
-
-- يتضمن المشروع نص Tanzil Simple v1.1 كاملاً كأصل Android محلي، محفوظاً كما ورد في المصدر: 114 سورة و6,236 آية.
-- أضيفت ملفات المصدر الأصلية في `scripts/source/` وأداة إعادة بناء واختبارات تحقق قابلة للتشغيل محلياً.
-- هذا الإصدار Simple وليس Uthmani؛ لا تخلط تسمية الخط القرآني المستخدم للعرض مع نوع الرسم النصي الذي جرى تضمينه.
-- إذن الموقع الموحد في `PreciseDeviceLocationAccess.kt`؛ يجمع الشاشات الثلاث في نافذة أذونات واحدة ولا يعيد الطلب تلقائياً بعد الرفض.
-- لا يعتمد التطبيق على `lastLocation`؛ يقبل قراءة GPS حالية بدقة معلنة لا تتجاوز 100 متر وعمر لا يتجاوز 120 ثانية.
-- علامة طلب الإذن مستثناة من النسخ الاحتياطي كي لا تنتقل إلى جهاز جديد.
-- راجع `ENGINEERING_AUDIT_1.0.16_AR.md` و`LOCATION_PERMISSION_FIX_AR.md` و`PRAYER_TIMES_FIRESTORE_SCHEMA_AR.md` و`QURAN_DATA_IMPORT_AR.md` للتفاصيل والقيود الحالية.
-
-## حالة مواقيت الصلاة في 1.0.15
-
-- كل قراءة حية للجدول من الرئيسية وصفحة المواقيت وتحديث التنبيهات تمر عبر `PrayerTimesService`.
-- تستخدم الخدمة `Asia/Baghdad`، وتخزن 35 يوماً في Room، وتتحقق من سجلات Firestore الرسمية قبل اعتمادها.
-- لا يتضمن التسليم ملفاً رسمياً للعتبة الحسينية أو API عامة موثقة. لا توجد بيانات رسمية مزروعة داخل المجموعة؛ وتظهر الحسابات الجعفرية المحلية بوسم واضح حتى لا تختلط بالمصدر الرسمي.
-- يجب نشر `firestore.rules` و`firestore.indexes.json` من بيئة Firebase موثوقة قبل تفعيل السجلات الرسمية.
-- بيانات الإذاعة تُعرض داخل WebView من موقع المحطة الرسمي؛ لم يتم اعتماد رابط HLS/MP3 مستقل.
-- الخلفيات المضافة من لوحة المطور محفوظة محلياً على جهاز المطور فقط حتى تُضاف خدمة رفع Firebase Storage وقواعدها.
-- تسجيل الدخول لا يتضمن كلمة مرور ثابتة في الكود؛ يتطلب حساب Firebase مهيأ ومتحقق البريد. قيمة البريد في العميل وقواعد Firestore ليست سراً، ويُفضّل الانتقال لاحقاً إلى Custom Claims أو UID allowlist.
-
-## إصلاح التغليف والتثبيت الموروث في 1.0.18
-
-- `applicationId` محفوظ كما كان: `com.aistudio.alhadithi.iqshia`، و`namespace` محفوظ: `com.example`.
-- `minSdk=24` و`targetSdk=36` دون تغييرات عشوائية، و`versionCode=20` و`versionName=1.0.18`.
-- لا توجد إعدادات ABI splits؛ لا توجد مكتبات `jniLibs` خاصة بالمشروع. يظل إخراج ملف APK واحد هو السلوك المقصود.
-- Release لن ينتج ملفاً غير موقّع بصمت: مهمة `verifyReleaseSigningInputs` توقف التغليف حتى يوفّر المالك keystore الحالي عبر متغيرات بيئة، ولا يُنشأ مفتاح جديد.
-- أضيف `tools/validate-apk.sh` للتحقق من التوقيع والمحاذاة وManifest وهوية الحزمة ورفض split/testOnly/debuggable APK، و`tools/diagnose-install.sh` لمقارنة شهادة التوقيع عند الإمكان وتنفيذ `adb install -r` دون حذف التطبيق أو بياناته.
-- لم يُعثر على APK سابق أو keystore في ملفات المشروع، ولا يتوفر ADB/Android SDK في بيئة التحرير. لذلك لا يمكن تأكيد رمز App not installed السابق ولا مقارنة شهادة النسخة المثبتة.
-- البريد المصرح به مذكور كمعرّف حساب فقط؛ كلمة المرور غير موجودة في الكود. شاشة المطور تملأ البريد افتراضياً، ولا تفتح اختيار Google تلقائياً. يتطلب الدخول تفعيل Email/Password وإنشاء حساب المالك وتوثيق بريده في Firebase.
-- تمت إعادة ترتيب واجهة الإعدادات بصرياً، وجمع خيارات الخطوط، وإزالة شعار قسم حول التطبيق. اللغة العربية هي اللغة المترجمة فعلياً؛ لم تتم إضافة اختيار لغة غير مكتملة الترجمة.
-
-راجع `ENGINEERING_AUDIT_1.0.17_AR.md` و`INSTALL_DIAGNOSTICS_AR.md` قبل بناء إصدار التوزيع.
-
-## التقنية والبنية
-
-- Android Native: Kotlin + Jetpack Compose + Material 3.
-- التنقل: Navigation Compose.
-- البيانات المحلية: Room وDataStore.
-- الشبكات: Retrofit وOkHttp.
-- الخدمات السحابية: Firebase Authentication وCloud Firestore وFirebase AI.
-- الصوتيات: AndroidX Media3 ExoPlayer مع بث HTTPS وتنزيل محلي مُتحقق منه.
-
-المجلدات الأساسية داخل `app/src/main/java/com/example`:
-
-| المسار | المسؤولية |
-| --- | --- |
-| `data/local` | Room entities وDAO وبيانات البداية |
-| `data/remote` | واجهات API ومستودعات Firebase والشبكة |
-| `domain` | كتالوج السور والحسابات والنماذج المستقلة |
-| `media` | مشغل الصوت وحساسات القبلة والاهتزاز |
-| `ui/navigation` | تعريف وجهات التطبيق |
-| `ui/screens` | شاشات التطبيق |
-| `ui/components` | مكونات Compose المشتركة |
-| `ui/viewmodel` | حالة الشاشات وربط طبقات البيانات |
-| `util` | وظائف النظام والإعدادات المساعدة |
-
-## فتح المشروع وتشغيله
-
-1. افتح مجلد المشروع في Android Studio وثبّت Android SDK Platform 36.1 وأدوات البناء المطلوبة عند ظهور الطلب.
-2. استخدم JDK 21.
-3. **أصبح سكربت Gradle Wrapper (`gradlew`) وملف `gradle-wrapper.jar` متوفرين داخل المستودع**، لذا يمكن البناء مباشرة:
-
-   ```bash
-   ./gradlew :app:testDebugUnitTest
-   ./gradlew :app:assembleDebug
-   ```
-
-   إن احتجت إعادة توليدهما:
-
-   ```bash
-   gradle wrapper --gradle-version 9.3.1 --distribution-type bin
-   ```
-
-4. حدّد مسار SDK المحلي في `local.properties` (غير مضمّن في Git):
-
-   ```properties
-   sdk.dir=/path/to/Android/sdk
-   ```
-
-5. افتح APK الناتج من `app/build/outputs/apk/debug/` على جهاز اختبار، وجرّب تشغيل التلاوات والتنزيل والعمل دون اتصال.
-
-### ملاحظات على بيئة البناء
-
-- المشروع يستخدم `androidx.media3:media3-session` لتشغيل التلاوة في الخلفية، وهي تبعية من عائلة
-  Media3 نفسها المستخدمة أصلاً.
-- إن كانت الذاكرة محدودة (أقل من 4 غيغابايت) اضبط `org.gradle.jvmargs=-Xmx1280m` وعطّل
-  `org.gradle.parallel` في `gradle.properties` لتفادي انهيار بيئة البناء.
-
-## الصوتيات — الإصدار 1.0.2
-
-- يستخدم المشغل AndroidX Media3 ExoPlayer 1.11.1 لتشغيل ملفات MP3 والبث التدريجي، بدلاً من MediaPlayer القديم.
-- تشغيل القرآن يبني رابط السورة مباشرة من كتالوج Al Quran Cloud؛ أما الأدعية والقصائد فتعتمد على روابط السجل الصوتي الحالية ويجب اختبار كل رابط قبل النشر.
-- يمكن تنزيل مقطع مكتبة الصوتيات أو السورة المفتوحة من شاشة قارئ القرآن. يظهر تقدم التنزيل عند توفر Content-Length، ويمكن إلغاء التنزيل أو حذف النسخة المحلية.
-- يبدأ التشغيل من نسخة المستخدم المحفوظة إذا كانت سليمة، ثم ينتقل للبث عند عدم وجود نسخة محلية صالحة.
-- يتم رفض الروابط غير HTTPS للتنزيل، واستجابات HTML/JSON، والملفات التي لا تحتوي إطار MPEG صالحاً، والملفات الأكبر من 150 MiB.
-- يعتمد حفظ النسخة على ملف مؤقت والتحقق منه قبل استبدال نسخة موجودة؛ كما تُستعاد نسخة احتياطية بعد انقطاع التطبيق أثناء الاستبدال.
-- لا يعتبر التطبيق اسم مورد `res/raw` وحده دليلاً على وجود صوت صالح؛ يتحقق المشغل الآن من حجم الملف ورأس إطار MPEG فعلي (بعد تخطي ID3 إن وجد) قبل إظهار حالة «بدون إنترنت» أو تشغيل الملف.
-- ملفات MP3 المحلية المرفقة في الأرشيف الأصلي كانت جميعها صفراً بايتاً؛ لذلك لا تُعرض كتسجيلات أوفلاين. يجب استبدالها بتسجيلات فعلية مرخصة قبل ادعاء توفرها دون اتصال.
-- التنزيلات محدودة الحجم، وتُرفض استجابات HTML/JSON والملفات غير الصالحة، ولا يُعتمد الملف المؤقت قبل التحقق منه.
-
-## تلاوات القرآن الكريم
-
-- يحتوي كتالوج القارئ على 13 خياراً، مع روابط سور من 1 إلى 114 لكل قارئ.
-- أضيفت خيارات موثقة مثل عبد الرحمن السديس، سعود الشريم، أحمد العجمي، محمد أيوب، علي الحذيفي، محمد جبريل، ومحمود خليل الحصري المعلّم، إضافة إلى روايتي المنشاوي وعبد الباسط المجودة.
-- تم تصحيح معرّف إصدار عبد الباسط المرتل إلى `ar.abdulbasit`، وعدم إرسال رابط احتياطي لقارئ مختلف عند عدم توفر مصدر مطابق.
-- يستخدم بناء روابط السور صيغة CDN المعلنة من Al Quran Cloud: `audio-surah/{bitrate}/{edition}/{surah}.mp3`، ويحدد معدل البت لكل قارئ بدلاً من افتراض 128 kbps للجميع. راجع توثيق الخدمة وملف editions المتاح قبل نشر التطبيق: https://alquran.cloud/cdn.
-- التلاوة عبر الإنترنت لا تعني أن التسجيلات مخزنة داخل APK؛ أزيلت ملفات `res/raw` العشرة الفارغة من الموارد حتى لا تظهر كتسجيلات محلية صالحة. التلاوات تبث من المصدر الخارجي، ثم تحفظ على الجهاز فقط بعد طلب المستخدم تنزيلها. راجع شروط Al Quran Cloud بشأن إعادة التوزيع والاستخدام التجاري: https://alquran.cloud/terms-and-conditions.
-
-## قيود مشغل الصوت
-
-- المشغل في هذا الإصدار مملوك على مستوى عملية التطبيق ويعمل أثناء استخدام التطبيق. لم يتم بعد ربطه بخدمة `MediaSessionService` للإشعار والتحكم من شاشة القفل واستمرار التشغيل المضمون بعد انتقال التطبيق للخلفية أو إنهاء الواجهة. توصي وثائق Android بضم اللاعب إلى جلسة وخدمة أمامية لهذا الاستخدام: https://developer.android.com/media/implement/playback-app.
-- نمط روابط Al Quran Cloud موثق في https://alquran.cloud/cdn، لكن لا يمكن من بيئة التحرير اختبار استجابة كل تسجيل فعلياً عبر الشبكة. روابط الأدعية والقصائد الخارجية تتطلب تحققاً مستقلاً من المصدر والترخيص.
-
-## القرآن الكريم — حالة الإصدار 1.0.8
-
-- جرى حذف ملف `quran_uthmani_full.json` الفارغ (0 بايت) بدلاً من إبقائه كأنه مصدر صالح. لا توجد في هذا الأرشيف حالياً مجموعة بيانات محلية كاملة من 114 سورة و6,236 آية.
-- عند فتح سورة، يجلب التطبيق النص العثماني من خدمة Al Quran Cloud ثم يحفظ السورة في قاعدة Room كي تبقى متاحة محلياً بعد تنزيلها. السور التي لم تُحمّل بعد تحتاج إلى الإنترنت.
-- تحوّل البحث الشبكي إلى نسخة الرسم العثماني بدلاً من `quran-simple-clean` لتقليل اختلاف كتابة الآيات بين شاشة القراءة ونتيجة البحث.
-- هذه الخطوة لا تثبت وحدها أن النص المقدم من Al Quran Cloud مطابق حرفياً لحزمة KFGQPC/QPC Hafs الرسمية؛ لا تضع التطبيق بعدُ وسم «نص KFGQPC Hafs مدقق حرفياً».
-- طريق القراءة الذي يذكره بعض مراجع القراءات: حفص عن عاصم، عن أبي عبد الرحمن السلمي، عن أمير المؤمنين علي بن أبي طالب (ع). أُضيف هذا البيان إلى واجهة فهرس القرآن دون تغيير نص الآيات يدوياً.
-
-لإكمال الوضع دون اتصال وتوثيق الرسم المحدد، يجب جلب ملف نص رسمي مرخّص من مجمع الملك فهد، يضم السور كاملة، ثم التحقق من 114 سورة و6,236 آية وتسلسلها ومقارنة النصوص آية بآية قبل تضمينها. لا يُقبل ملف تجميعي مجهول المصدر ولا تعديلات بشرية على نص الآيات.
-
-لإكمال وضع عدم الاتصال، يجب توفير نسخة مرخصة وموثقة من نص المصحف العثماني تحتوي 114 سورة و6,236 آية، وتحويلها إلى المخطط الذي يقرأه `QuranApiService.kt`:
-
-```json
-[
-  {
-    "s": 1,
-    "a": [[1, 1, 1, 1, 0, "نص الآية"]]
-  }
-]
+```text
+apps/mobile/        Flutter client (Android/iOS generated by Flutter SDK)
+apps/admin/         RTL developer dashboard (served by the API at /admin)
+services/api/       FastAPI, SQLAlchemy, PostgreSQL schema, admin API and tests
+content/imports/    place licensed/approved source snapshots here; do not commit restricted data
+infra/              Caddy reverse-proxy configuration
+docs/               architecture, content provenance, operations and release gates
 ```
 
-ترتيب عناصر كل آية: رقمها داخل السورة، رقمها العالمي، رقم الجزء، ربع الحزب، علامة السجدة (0 أو 1)، ثم النص. هذا المثال توضيحي للمخطط فقط وليس محتوى مصحف صالحاً.
+## Quick start: API development
 
-مصدر نص يجب توثيقه عند إضافته: Tanzil Project (راجع شروط الاستخدام والإسناد على https://tanzil.net). يجب التحقق من العدد والتسلسل ومصدر النص قبل تضمينه في إصدار الإنتاج.
+Requirements: Python 3.12+, PostgreSQL 16+ (SQLite can be used for local tests only).
 
+```bash
+cd services/api
+python -m venv .venv
+# macOS/Linux
+source .venv/bin/activate
+# Windows PowerShell: .venv\\Scripts\\Activate.ps1
+pip install -r requirements.txt
+cp .env.example .env
+# Set APP_SECRET and ADMIN_BOOTSTRAP_PASSWORD locally; do not commit .env.
+alembic upgrade head
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
 
-## الخطوط العربية — الإصدار 1.0.8
+Development API health: `http://127.0.0.1:8000/health`  
+Developer dashboard: `http://127.0.0.1:8000/admin`  
+Interactive API docs are enabled only outside production at `/docs`.
 
-- أضيف Noto Naskh Arabic بوزني Regular وBold مع رخصة SIL Open Font License 1.1، وأصبح الخط الافتراضي للواجهة.
-- بقي Amiri خطاً مستقلاً للآيات والنصوص التراثية، وتتوفر Tajawal وNoto Kufi Arabic في محدد الخطوط.
-- خط الرقعة المطلوب (Aref Ruqaa أو بديل مرخّص ومثبت المصدر) غير مضمّن في هذا الإصدار؛ لم أسمِّ خطاً آخر رقعةً ولم أستبدل به شكلاً غير مطابق.
-- نص المصحف يجب أن يستخدم الخط القرآني الذي صُمم له فقط، لا خط الرقعة أو خط واجهة عام.
+The first bootstrap owner is created from `ADMIN_BOOTSTRAP_USERNAME` and `ADMIN_BOOTSTRAP_PASSWORD` only when the `admin_users` table has no active records. The first successful login is forced to rotate the password. There is no public admin registration endpoint.
 
-## قاعدة البيانات والتهيئة الأولية
+## Quick start: Flutter
 
-يملأ `AlHadithiDatabase.ensureSeeded` كل جدول مستقلًا عند فراغه. هذا يقلل احتمال بقاء أقسام ناقصة إذا انقطع إعداد قاعدة البيانات في منتصف العملية. لا تستخدم بيانات البداية لإعادة استبدال بيانات المستخدم الموجودة. أزيل الترحيل الهدّام التلقائي حتى لا تُحذف قاعدة بيانات المستخدم عند غياب Migration. قبل رفع رقم مخطط Room مستقبلاً، أضف Migration صريحة؛ وإذا كان هناك إصدار سابق منشور بمخطط أقدم من النسخة الحالية، فيلزم توفير ملف مخططه لبناء Migration آمنة.
+Requirements: Flutter stable with Dart 3.6 or newer, Android SDK for APK builds, and macOS + Xcode for iOS builds.
 
-## فحوصات الجودة
+```bash
+cd apps/mobile
+flutter pub get
+flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000
+```
 
-- اختبارات الوحدة في `app/src/test`.
-- اختبارات Robolectric في `app/src/test`.
-- اختبارات Firestore Emulator في `app/src/test`، وتتطلب إعداد Firebase Emulator.
-- لا يُعد المشروع جاهزاً للنشر قبل استعادة ملف المصحف الكامل، والتحقق من روابط الصوت وحقوق استخدامها، وتشغيل Build + Unit Tests + اختبارات الجهاز على Android Studio.
+`10.0.2.2` is the Android emulator host bridge. For a physical device use the reachable HTTPS API origin. For iOS simulator use the appropriate host address; production builds must use HTTPS. The current environment used to prepare this repository did not contain Flutter or Xcode, so APK/IPA builds were not run.
 
-## ملاحظات قبل النشر
+Generate native platform shells using the installed Flutter SDK if absent:
 
-- راجع قواعد Firestore واختبرها على Emulator قبل الإنتاج.
-- لا تضع مفاتيح خاصة أو كلمات مرور توقيع داخل المستودع.
-- استخدم إعدادات توقيع Release منفصلة، ولا تشارك ملف keystore.
-- أضف Room migrations صريحة لكل تغيير مستقبلي في المخطط؛ تجنب أي ترحيل هدّام لنسخ الإنتاج.
+```bash
+cd apps/mobile
+flutter create --platforms=android,ios --org org.khazainalhuda --project-name khazain_al_huda .
+```
 
-## مواقيت الصلاة وإشعارات الأذان — الإصدار 1.0.3
+Then inspect the generated Android package ID and iOS bundle ID, set Android `android:label` (or its `@string/app_name`) and iOS `CFBundleDisplayName` to exactly `خَزَائِنُ الهُدَى`, add platform signing configuration, privacy strings and release icons, and run the native builds described in `docs/RELEASE_CHECKLIST.md`.
 
-- أضيف طلب أذونات الموقع وقت الحاجة من شاشة مواقيت الصلاة، باستخدام `ACCESS_COARSE_LOCATION` و`ACCESS_FINE_LOCATION`؛ إذا اختار المستخدم الموقع التقريبي يعمل التطبيق به، ويمكنه طلب ترقية الإذن إلى الموقع الدقيق لاحقاً. لا يُطلب إذن موقع بالخلفية.
-- تُحفظ إحداثيات الجهاز في DataStore محلياً، وتُستخدم بدلاً من مركز المحافظة في حساب المواقيت. زر «المحافظة» يمسح الإحداثيات المحفوظة ويعود للحساب على مركز المحافظة.
-- الطريقة الافتراضية هي الجعفرية برمز AlAdhan `0`. تعرض الشاشة طرق الحساب والضبط اليدوي للدقائق، لتتم مطابقة وقت المسجد أو المرجع المحلي المعتمد دون تثبيت وقت واحد لجميع المناطق.
-- أضيف طلب إذن `POST_NOTIFICATIONS` على Android 13+، وإعداد وصول خاص `SCHEDULE_EXACT_ALARM` على Android 12+ للتنبيهات الدقيقة. إذا لم يمنح المستخدم الوصول للتنبيهات الدقيقة، يستخدم التطبيق جدولة غير دقيقة ويعرض تحذيراً بأن وقت الإشعار قد يتأخر.
-- ينشئ `PrayerNotificationScheduler` تنبيهات للفجر والظهر والعصر والمغرب والعشاء لمدة 35 يوماً. يأخذ مواقيت الشهر الحالي من AlAdhan عند توفرها، ويستخدم الحساب الفلكي المحلي المختار لبقية الأيام أو عند انقطاع الشبكة.
-- تخزن إعدادات الجدولة والإحداثيات ومواقيت الشهر الحالي في SharedPreferences خاصة بالتطبيق، وتُعاد جدولة التنبيهات بعد إعادة تشغيل الهاتف أو تغيير الوقت/المنطقة الزمنية أو تحديث التطبيق، مع تحديث يومي عند 00:05 بتوقيت بغداد.
-- لا يطلق التطبيق تسجيل أذان كامل في هذا الإصدار؛ الإشعار يستخدم صوت إشعار النظام واهتزازه. الصوت الأذاني الكامل يتطلب ملفاً مرخصاً وخياراً منفصلاً للمستخدم.
-- مثال معايرة: إذا كان المرجع المحلي المعتمد للفجر 04:59 والتطبيق يعرض 05:08، يكون الفرق −9 دقائق؛ أدخل هذا الفرق في ضبط الفجر بعد التحقق من أن التاريخ والموقع وطريقة الحساب متطابقة.
-- مواقيت الصلاة قد تختلف بين طريقة الحساب والمرجع المحلي. لا يمكن ضمان وقت واحد لكل المستخدمين من دون إحداثياتهم الفعلية واتباع تقويم الجهة المحلية التي يعتمدونها.
+## Tests and integrity checks
 
-## أذونات Android
+Run the available local checks from the repository root:
 
-- `ACCESS_COARSE_LOCATION` و`ACCESS_FINE_LOCATION`: طلب وقت تحديد موقع المستخدم، ويعمل التطبيق أيضاً بإحداثيات المحافظة عند رفض الإذن.
-- `POST_NOTIFICATIONS`: يطلب على Android 13 فما بعد قبل عرض تنبيهات الصلاة.
-- `SCHEDULE_EXACT_ALARM`: وصول خاص يفعّله المستخدم من شاشة إعدادات Android؛ لا يُفترض أنه ممنوح تلقائياً.
-- `RECEIVE_BOOT_COMPLETED`: لإعادة جدولة التذكيرات بعد إعادة تشغيل الجهاز.
+```bash
+bash scripts/run_local_checks.sh
+```
 
-## تحقق الإصدار 1.0.3
+This audits JSON/Quran hashes/ZIP CRCs/Flutter asset paths/audio metadata/Alembic chain, compiles Python, checks admin JavaScript syntax, and runs API tests. If Flutter SDK is installed, it also runs `flutter test`. Migration schema parity can be verified from `services/api` with a fresh SQLite `DATABASE_URL` using `alembic upgrade head` and `alembic check`.
 
-- فُحص ملف AndroidManifest.xml وتحليل XML بنجاح.
-- تم التحقق من وجود أذونات الموقع والإشعارات والمنبهات الدقيقة ومستقبلات التنبيه والإقلاع.
-- نجح تجميع ملفات حاسبة المواقيت المستقلة باستخدام Kotlin compiler.
-- أضيفت اختبارات وحدة للتحقق من تطبيق تعديل الدقائق وحساب المواقيت حسب الإحداثيات ورمز الطريقة الجعفرية.
-- لم يُنفذ Android Gradle Build أو اختبار على جهاز حقيقي في بيئة التحرير، لعدم وجود Android SDK أو Gradle wrapper التنفيذي في الأرشيف. يجب تشغيل `:app:testDebugUnitTest` و`:app:assembleDebug` وتجربة المنبهات على جهاز Android قبل إصدار APK نهائي.
+To run only API tests:
 
+```bash
+pytest -q
+```
 
-## مكتبة القرّاء متعددة المصادر (1.0.4)
+Tests cover the solar-time engine, input/method validation, 19-governorate seeding, Quran import structural rejection, admin bootstrap password rotation, CSRF protection, public publication visibility and catalog publication/provenance gates (including separate hadith gradings and licensed book-page access). They do **not** replace local religious authority comparison, actual iOS/Android device tests or penetration testing.
 
-أضيف فهرس المكتبة المرفق إلى `app/src/main/assets/quran_multi_reciter/` مع ملفات القرّاء والسور ومصادر التنزيل وبيان الحقوق. أضيفت خيارات شهريار پرهيزگار وحامد شاكرنژاد وكريم منصوري إلى شريط القرّاء.
+## Deploy API, PostgreSQL, HTTPS and publisher worker
 
-- حامد شاكرنژاد: تشغيل مباشر للأجزاء الثلاثين؛ اختيار سورة يشغّل الجزء الذي تبدأ فيه السورة، ويمكن تنزيل ذلك الجزء من شاشة القراءة.
-- شهريار پرهيزگار وكريم منصوري: فتح صفحة المصدر الخارجية لأن الفهرس لا يحتوي روابط MP3 مباشرة موثقة لهما.
-- لا توجد ملفات MP3 مضمّنة في APK؛ لا تضمّن أو تعِد توزيع تسجيلات قبل الحصول على إذن صاحب التسجيل/الناشر.
-- إدراج قارئ في الفهرس لا يعني التحقق من انتمائه المذهبي؛ بيانات التصنيف تحفظ كما وردت في الفهرس مع توضيح غير المحسوم.
+```bash
+cp .env.example .env
+# Fill all secrets and the real public domain in .env.
+docker compose up -d --build
+```
 
+Caddy provisions TLS automatically for the configured domain. PostgreSQL and the media volume are private and persistent. The `publisher` worker transitions scheduled CMS items to published/archived. Backups, database restore drills, log shipping and uptime monitoring must be configured in the target hosting account; see `docs/OPERATIONS.md`.
 
-## تطوير الإصدار 1.0.7
+## Important source and service constraints
 
-أضيف Noto Naskh Arabic كخط واجهة افتراضي، ووُحّد البحث على الرسم العثماني، وصُححت أوصاف عدم الاتصال. أُضيف بيان طريق حفص عن عاصم عن أبي عبد الرحمن السلمي عن أمير المؤمنين علي (ع). لم يُضمّن بعد خط الرقعة Aref Ruqaa ولا النص الرسمي الكامل KFGQPC/QPC Hafs؛ راجع `FONTS_QURAN_UPDATE_1.0.7_AR.md` للقيود الدقيقة. هذا أرشيف مصدر، وليس APK تثبيت.
-
-## تطوير الإصدار 1.0.5
-
-يتضمن هذا الإصدار معالجة تسجيل Google عبر Credential Manager، وإخفاء تفاصيل هوية المطور من واجهة الإدارة، وتحسين تباين بطاقات الوضع النهاري، واستخدام شعار شفاف، واستيراد ملف أذان مرخّص وتشغيله محلياً، وتحديث جدول الصلاة من الشبكة يومياً مع دعم المنبهات الدقيقة.
-
-راجع `INTEGRATION_REPORT_AR.md` لنتائج التحقق والقيود، و`CONFIGURATION_AND_RELEASE_CHECKLIST_AR.md` لإعداد Firebase OAuth واختبارات ما قبل النشر. لم يتم اعتماد APK نهائي ضمن بيئة التحرير لغياب Gradle wrapper التنفيذي وAndroid SDK.
-
-
-## تحديث الإصدار 1.0.13
-
-- `QuranCacheIntegrity` يتحقق من اكتمال الكاش وتسلسل أرقام الآيات، ولا يسمح بكاش ناقص كقراءة مكتملة.
-- المصحف المضمّن يتقدم على السور المحفوظة سابقاً متى توفرت حزمة كاملة مصدقة.
-- أداة Tanzil تدعم تخطيطي quarters/hizbs وتطابق علامات السجود مع metadata.
-- أضيفت اختبارات Python وJUnit جديدة؛ راجع `ENGINEERING_AUDIT_1.0.13_AR.md`.
-- لا يزال `quran_uthmani_full.json` غير مضمّن، ولم يتم بناء APK في بيئة التحرير.
-
-## تحديث الإصدار 1.0.12
-
-- راجع `QURAN_DATA_IMPORT_AR.md` لأداة تجهيز المصحف الكامل والتحقق من المصدر والترخيص.
-- كتالوج الإذاعة الرسمية وترددات FM موجود في `domain/ImamHussainRadioCatalog.kt`.
-- لا يوجد في هذا الإصدار ملف `quran_uthmani_full.json` مكتمل؛ القارئ يستخدم المصدر الشبكي والتخزين المحلي لكل سورة حتى استيراد ملف Tanzil الرسمي.
-- مصدر مواقيت الصلاة ما زال AlAdhan مع حساب احتياطي محلي، وليس API العتبة الحسينية.
-- أضيف Room migration من v3 إلى v4 لتصحيح عناوين بعض الكتب المختارة التي كانت توحي بنسخ كاملة؛ لا تضاف نصوص كاملة جديدة في هذا الإصدار.
+- Governorate coordinates in the dropdown are approximate administrative-center coordinates. The mobile location flow now uses Geolocator's actual service/permission checks and requests foreground location only after the user chooses automatic location. It requests high navigation accuracy and rejects fixes worse than 500 m for automatic governorate selection. Native Android/iOS permission declarations must still be added when the platform folders are generated.
+- Jafari prayer calculations use named, documented angle presets, expose their definitions and label the method. This is not a universal religious ruling; compare against an approved Najaf/Qom/local authority timetable before production use.
+- The mobile Quran section reads the bundled Tanzil Hafs Simple/Imla'ei text snapshot offline and checks its SHA-256 and structure. Its byte-identical upstream mirror is `risan/quran-json` at commit `6523a9ad3b73bb7e8cb3a9cdf0ea774b8bab3123`. The archived `quran-hafs-rasm_uthmani.json` from Quran.ws is not part of the active reader. The Quran API endpoint intentionally remains unavailable until a separately reviewed Tanzil Uthmani import is approved by an authorized scholarly reviewer.
+- The audio library currently contains a metadata catalog of external source pages, not bundled MP3 recordings. The Quran reader can stream Alafasy recitation and offers a user-initiated surah download through the provider CDN under its stated personal/educational terms; commercial redistribution has not been cleared. The radio screen links to the official station website and plays no guessed URL. Direct radio playback requires an HTTPS stream URL, an official source URL, an administrator verification, and a saved permission-evidence record in the CMS.
+- Local-device favorites and book reading-position resume are implemented. Account registration, cross-device account synchronization and account recovery are not yet enabled.
+- Local prayer alerts are scheduled for the next 12 days after the user explicitly enables notifications and grants OS permission. The five scheduled prayers are Fajr, Dhuhr, Asr, Maghrib and Isha; sunrise/sunset are reference events and never receive alerts. Asr now uses the Standard shadow-factor-1 calculation described by PrayTimes for Jafari, which still needs comparison with the local marja timetable. Twelve days × five prayers = at most 60 pending alerts, below iOS's 64-notification limit. Android exact-alarm permission is requested separately where supported; inexact scheduling is the fallback. Native Android/iOS manifests are absent and must be generated/configured. Alerts use the device's default notification sound; the app package does not include an adhan audio file or manual home-screen audio player. Opening the app refreshes the schedule; a background daily refresh is not guaranteed.
 
 
-## Prayer timetable data source
+## Requirements pack integration (Round 6)
 
-The app now routes prayer times, countdowns and reminder scheduling through `PrayerTimesService`. Official Shrine records are accepted only when they satisfy the documented Firestore schema and source validation. The official Shrine timetable file/API was not included in the current handoff; until it is supplied and published, the app visibly labels its Jafari/local calculation as a non-official fallback. See `PRAYER_TIMES_FIRESTORE_SCHEMA_AR.md`.
+The supplied `KHAZAIN_AL_HUDA_requirements_pack.zip` was preserved under `docs/reference/requirements-pack/`. Its source records and twenty approximate city records are now integrated into the backend and mobile settings/prayer flows. See `docs/reports/ROUND6_REQUIREMENTS_INTEGRATION.md` for the exact inventory, API paths, verification state and items still requiring external permission. The pack contained no actual audio, logos, stream URL, approved prayer profile or Quran text. The current project later added a bundled, hash-verified Quran text dataset and an external audio-source catalog; it still contains no bundled MP3 recordings or verified direct radio stream.
 
-## 1.0.16 — إصلاح الموقع الدقيق وطلب الإذن مرة واحدة
-- نقطة موحدة لطلب الموقع في اختيار المحافظة ومواقيت الصلاة والقبلة.
-- طلب Fine + Coarse معاً في نافذة واحدة، مع اختيار المستخدم للدقة.
-- لا يتم تكرار طلب Runtime بعد الرفض؛ الانتقال لاحقاً إلى إعدادات التطبيق.
-- قراءة GPS حديثة عالية الدقة بدلاً من آخر إحداثية مخزنة، ورفض قراءة أقدم من 120 ثانية أو بدقة معلنة أكبر من 100 متر.
-- لا يوجد إذن موقع خلفي ولا تتبع مستمر، واستُثنيت علامة طلب الإذن من النسخ الاحتياطي كي لا تنتقل لحساب/جهاز جديد.
+## Current mobile presentation and behavior
 
-## مركز الإعدادات في 1.0.18
-
-- واجهة الإعدادات مجمعة في أقسام قابلة للطي وتستخدم ColorScheme مركزي من `Color.kt` للوضع الداكن/الفاتح ومجموعات Accent.
-- إعدادات الخطوط تعرض الموارد الحقيقية المضمنة فقط مع المعاينة والتحكم المركزي في حجم النص وتباعد القراءة. العربية هي اللغة المترجمة الوحيدة حالياً.
-- إشعارات الصلاة والإعدادات الفردية وفترة عدم الإزعاج محفوظة عبر DataStore، وتُستهلك من مجدول الإشعارات الحالي. إشعارات الحديث والدعاء اليومي ليست مهيأة ولا تعرض كعناصر تبديل.
-- أهداف المتابعة اليومية تُحفظ عبر DataStore وتؤثر في بطاقة المتابعة على الرئيسية. التاريخ الهجري قابل للتصحيح يدوياً من -2 إلى +2 أيام.
-- قسم التخزين يعرض عدد الآيات المخزنة من Room وحالة ملف الأذان المخصص فقط؛ لا يوجد مدير تنزيلات شامل في هذه النسخة. تنظيف الكاش لا يمسح سجل القراءة أو المفضلة أو الأذان.
-- الدعم والبلاغات تُجهز رسالة عبر Android Share Sheet فقط؛ لا يوجد backend للدعم أو رابط/بريد منشور مؤكد. لم تتم إضافة روابط غير موثقة.
-- `UserPreferencesRepository` هو مصدر تفضيلات المستخدم، والتغييرات تُطبّق على الثيم والجدولة والمحتوى عبر الـ ViewModel. إعادة ضبط التفضيلات منفصلة عن حذف بيانات المستخدم.
-- راجع `ENGINEERING_AUDIT_1.0.18_AR.md` و`SETTINGS_REENGINEERING_1.0.18_AR.md` و`QA_REPORT.md`.
+- Home screen: no logo is re-added to the home header and no adhan player is shown; it has the support shortcut, approximate Hijri month/year above the compact translucent prayer-times card, a horizontally scrolling row of small glass-style section shortcuts below it, then a translucent Hijri event/occasion card. The bottom glass bar links to the implemented home, Qur'an, Qibla, tasbih and settings screens; no charity screen exists in this snapshot, so no placeholder charity tab is shown. The supplied logo is kept as a separate identity asset; the background artwork is the user-provided image.
+- Support: WhatsApp contact is `07866580209` (international link `+964 786 658 0209`); the support sheet also exposes the social links configured in the app.
+- UI type: Noto Naskh Arabic UI is the default; settings can select Noto Naskh, Alan Sans, Geeza or beIN Arabic and adjust text size. The local Quran reader keeps `AmiriQuran` independently of the selected UI font. Quran source and terms are recorded in `apps/mobile/assets/data/QURAN_SOURCE_NOTICE_AR.md`.
+- Tasbih: regular mode counts Allahu Akbar, Subhan Allah and Alhamdulillah in that order, 33 each, and stops after 99; unlimited mode lets the user choose or enter a phrase. Counts are stored locally.
+- Hidden developer gate: four hardware-back presses within five seconds from Home open the login screen. The requested credentials are verified against a salted digest, not stored as a plain-text password. This local gate is a convenience barrier only, not strong authentication for sensitive server operations.
+- Hijri occasions are approximate calendar indications, not a religious ruling. The event references and differences between Fatima al-Zahra's two well-known martyrdom chronologies are documented in `docs/EVENTS_PROVENANCE_AR.md`; verify all dates with a local Ja'fari authority before presenting a definitive calendar.

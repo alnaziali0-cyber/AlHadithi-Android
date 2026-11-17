@@ -1,5 +1,0 @@
-Tanzil Quran Metadata (quran-data.xml)
-Copyright: (C) 2008-2009 Tanzil.info
-License: Creative Commons Attribution (CC BY) as declared in source metadata.
-Source: https://tanzil.net/
-The metadata provides surah structure, juz, hizb quarters, manzils, rukus, pages, and sajdah positions.

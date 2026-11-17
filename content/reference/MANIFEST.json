@@ -1,0 +1,28 @@
+{
+  "project": "Khazain Al-Huda",
+  "requirements_pack": "KHAZAIN_AL_HUDA_requirements_pack.zip",
+  "integrated_on": "2026-11-13",
+  "city_records": 20,
+  "unique_governorates": 19,
+  "source_records": 17,
+  "coordinate_records_verified": 0,
+  "rights_granted_by_catalog": 0,
+  "files": {
+    "source_catalog.json": {
+      "sha256": "0acd5cafdbfdfb2ec9bcaabd30d99b7fe1cc1ce117f8f93f9aefad2ac4569b1f",
+      "bytes": 16325
+    },
+    "source_catalog.csv": {
+      "sha256": "b91aac3c4906fc576c8ccea8483659668b8a5f858611a5792174658cc80ba2a3",
+      "bytes": 13636
+    },
+    "iraq_cities.seed.json": {
+      "sha256": "079c3a33d14dfcb834dbba7652bf277960fb4ca62de76bb0d478d949032e0870",
+      "bytes": 7364
+    },
+    "iraq_cities.seed.csv": {
+      "sha256": "350f54c5e72d0ce81e8f1babaa48248da486ae5df7eb72ab25708302a40b3ce4",
+      "bytes": 2599
+    }
+  }
+}

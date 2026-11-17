@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<full-backup-content>
-    <!-- The one-time location-prompt marker is device-specific and must not migrate to a new phone. -->
-    <exclude domain="sharedpref" path="alhadithi_location_permission_v1.xml" />
-</full-backup-content>

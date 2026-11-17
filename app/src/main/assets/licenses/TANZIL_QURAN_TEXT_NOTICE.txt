@@ -1,5 +1,0 @@
-This older notice described the optional Tanzil Uthmani XML import path.
-The corpus bundled in Al-Hadithi 1.0.14 is Tanzil Quran Text (Simple, Version 1.1), not Uthmani.
-See TANZIL_QURAN_SIMPLE_NOTICE.txt for the exact source copyright and license notice,
-and TANZIL_QURAN_METADATA_NOTICE.txt for metadata attribution.
-The Simple ayah strings are preserved verbatim; only separate structural indices are added.

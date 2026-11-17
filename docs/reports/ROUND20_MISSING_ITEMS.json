@@ -1,0 +1,88 @@
+{
+  "project": "Khazain Al-Huda",
+  "round": 20,
+  "review_date": "2026-11-16",
+  "status": "not_store_ready",
+  "verified_present": [
+    "Flutter source code and declared assets",
+    "Offline Hafs Simple/Imla'ei Quran text bundle with SHA-256 manifest",
+    "76 QuranEnc translation ZIP archives (archive CRC verified)",
+    "FastAPI backend, admin CMS, source/rights-gated content models",
+    "6 Alembic migrations including radio reuse-permission evidence",
+    "23 external audio/radio source references across 3 catalog groups",
+    "Python backend test suite (32 passed)",
+    "Offline asset audit and CI workflow"
+  ],
+  "missing_or_blocked": [
+    {
+      "id": "android_native_platform",
+      "status": "missing",
+      "path": "apps/mobile/android/",
+      "required_action": "Generate with Flutter SDK; configure applicationId, label, permissions, notifications/audio plugins, signing, and test on Android devices."
+    },
+    {
+      "id": "ios_native_platform",
+      "status": "missing",
+      "path": "apps/mobile/ios/",
+      "required_action": "Generate with Flutter SDK on a suitable development environment; configure bundle identifier, Info.plist usage descriptions, entitlements, signing and test on iOS devices."
+    },
+    {
+      "id": "flutter_validation",
+      "status": "not_run_in_current_environment",
+      "required_action": "Run flutter pub get, flutter analyze and flutter test after Flutter/Dart SDK installation; resolve any reported issues."
+    },
+    {
+      "id": "mobile_release_builds",
+      "status": "not_built",
+      "required_action": "Build and sign APK/AAB on Android toolchain and IPA on macOS/Xcode; test install, permissions, notifications, audio and offline flows."
+    },
+    {
+      "id": "local_audio_assets",
+      "status": "missing",
+      "count": 0,
+      "formats_checked": ["mp3", "m4a", "aac", "ogg", "wav", "flac", "opus"],
+      "required_action": "Obtain and verify individual recording permissions for Quran recitations, adhan, duas, ziyarat, latmiyat, majalis, noha and mawalid before downloading or packaging them."
+    },
+    {
+      "id": "direct_radio_streams",
+      "status": "not_configured_or_not_rights_verified",
+      "required_action": "For each station, provide a tested official HTTPS stream URL and written/reproducible permission evidence covering in-app broadcast and any caching/rehosting. Re-verify after migration 0006."
+    },
+    {
+      "id": "tafsir_and_islamic_book_corpus",
+      "status": "not_populated_as_verified_catalog",
+      "required_action": "Import only individually licensed editions; attach bibliographic details, rights scope, source hashes and editorial review."
+    },
+    {
+      "id": "hadith_dua_ziyarat_corpus",
+      "status": "not_populated_as_reviewed_corpus",
+      "required_action": "Populate with primary-source references, edition details, variants and independent scholarly review; keep hadith grading records separate."
+    },
+    {
+      "id": "server_quran_database",
+      "status": "not_ready_pending_reviewed_import",
+      "required_action": "Review the separate Tanzil Uthmani source snapshot, map structural fields, run importer dry-run, and record qualified reviewer approval against the exact SHA-256."
+    },
+    {
+      "id": "prayer_authority_approval",
+      "status": "not_verified",
+      "required_action": "Compare calculation parameters and city timetables with the selected local Ja'fari authority and record official source/edition/date."
+    },
+    {
+      "id": "push_delivery_and_background_adhan",
+      "status": "not_configured",
+      "required_action": "Configure native notification services and FCM/APNs where required; obtain a licensed full adhan recording and implement/test a platform-compliant background audio service."
+    },
+    {
+      "id": "production_secrets_and_operations",
+      "status": "not_provided_in_source_archive",
+      "required_action": "Set secrets in a secure host, provision PostgreSQL and HTTPS domain, configure backups/restore, monitoring, logs and privacy/legal pages."
+    }
+  ],
+  "notes": [
+    "The 23 audio catalog entries are references/metadata, not locally downloaded recordings.",
+    "The 24 README_PLACEHOLDER files are inherited reference-pack templates, not application assets.",
+    "A public playback URL or a free listening page does not prove redistribution permission.",
+    "Machine integrity checks do not replace qualified religious-content review."
+  ]
+}

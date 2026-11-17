@@ -1,0 +1,14 @@
+category,source,official_url,what_it_provides,status,rights_note
+Quran text,Tanzil,https://tanzil.net/download/,Uthmani Quran text in downloadable formats,download_script_included,Verbatim only; do not alter; preserve notice and attribution
+Quran metadata,Tanzil,https://tanzil.net/docs/Quran_Metadata,Surah/juz/hizb/ruku/page/sajdah metadata,download_script_included,Attribute Tanzil Project and link source
+Quran font and text,QuranEnc,https://quranenc.com/ar/home/api,Hafs v20 font and matching Quran_text.csv,download_script_included,Keep version and publisher attribution; check current publisher terms
+Quran translations,QuranEnc,https://quranenc.com/ar/home/api,SQLite translation databases and API,download_script_included,No additions/deletions/modifications; cite publisher and version; retain embedded version info
+Quran text/tafsir/audio API,Quran Foundation,https://api-docs.quran.com/,Chapters/verses/translations/tafsir/recitations/audio via authenticated API,api_integration_only,Do not redistribute raw content; use Content Sync for supported offline content; backend secret only
+Text corpus,OpenITI,https://openiti.org/documentation/,Digital Islamicate texts with metadata,review_before_use,CC BY-NC-SA 4.0; not automatically suitable for commercial app
+Quran recitations,MP3Quran,https://mp3quran.net/ar/api,Reciter and recitation metadata/audio URLs,permission_review,Audio redistribution rights not assumed
+Quran audio,QuranicAudio,https://quranicaudio.com/,Quran recitation catalog,permission_review,Streaming/download availability is not redistribution permission
+Quranic library,QUL,https://qul.tarteel.ai/resources,Textual resources and recitations metadata,resource_by_resource_review,Verify each resource's license and distribution status
+Hadith,HadeethEnc,https://hadeethenc.com/,Hadith content and translations,terms_review,Review terms and attribution for each dataset
+Books,Shamela,https://shamela.ws/,Islamic books and texts,edition_rights_review,Check edition, publisher, and digitization rights
+Dua and audio,Rawda,https://rawda.app/,Shia audio/content discovery,permission_review,Obtain permission from rights holder before bundling
+Shia audio,Shiafy,https://shiafy.com/,Shia audio/content discovery,permission_review,Obtain permission from rights holder before bundling

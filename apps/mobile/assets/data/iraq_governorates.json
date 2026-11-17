@@ -1,0 +1,266 @@
+[
+  {
+    "id": "baghdad",
+    "name_ar": "بغداد",
+    "name_en": "Baghdad",
+    "latitude": 33.3152,
+    "longitude": 44.3661,
+    "timezone": "Asia/Baghdad",
+    "coordinates_quality": "approximate_governorate_center",
+    "aliases": [
+      "بغداد",
+      "Baghdad"
+    ]
+  },
+  {
+    "id": "basra",
+    "name_ar": "البصرة",
+    "name_en": "Basra",
+    "latitude": 30.5085,
+    "longitude": 47.7804,
+    "timezone": "Asia/Baghdad",
+    "coordinates_quality": "approximate_governorate_center",
+    "aliases": [
+      "البصرة",
+      "Basra",
+      "Al Basrah",
+      "Basrah"
+    ]
+  },
+  {
+    "id": "nineveh",
+    "name_ar": "نينوى",
+    "name_en": "Nineveh",
+    "latitude": 36.335,
+    "longitude": 43.1189,
+    "timezone": "Asia/Baghdad",
+    "coordinates_quality": "approximate_governorate_center",
+    "aliases": [
+      "نينوى",
+      "Nineveh",
+      "Ninawa"
+    ]
+  },
+  {
+    "id": "erbil",
+    "name_ar": "أربيل",
+    "name_en": "Erbil",
+    "latitude": 36.1901,
+    "longitude": 44.0091,
+    "timezone": "Asia/Baghdad",
+    "coordinates_quality": "approximate_governorate_center",
+    "aliases": [
+      "أربيل",
+      "اربیل",
+      "Erbil",
+      "Arbil"
+    ]
+  },
+  {
+    "id": "sulaymaniyah",
+    "name_ar": "السليمانية",
+    "name_en": "Sulaymaniyah",
+    "latitude": 35.5613,
+    "longitude": 45.4309,
+    "timezone": "Asia/Baghdad",
+    "coordinates_quality": "approximate_governorate_center",
+    "aliases": [
+      "السليمانية",
+      "Sulaymaniyah",
+      "As Sulaymaniyah"
+    ]
+  },
+  {
+    "id": "duhok",
+    "name_ar": "دهوك",
+    "name_en": "Duhok",
+    "latitude": 36.8671,
+    "longitude": 42.9507,
+    "timezone": "Asia/Baghdad",
+    "coordinates_quality": "approximate_governorate_center",
+    "aliases": [
+      "دهوك",
+      "Duhok",
+      "Dahuk"
+    ]
+  },
+  {
+    "id": "halabja",
+    "name_ar": "حلبجة",
+    "name_en": "Halabja",
+    "latitude": 35.1778,
+    "longitude": 45.9861,
+    "timezone": "Asia/Baghdad",
+    "coordinates_quality": "approximate_governorate_center",
+    "aliases": [
+      "حلبجة",
+      "Halabja"
+    ]
+  },
+  {
+    "id": "kirkuk",
+    "name_ar": "كركوك",
+    "name_en": "Kirkuk",
+    "latitude": 35.4681,
+    "longitude": 44.3922,
+    "timezone": "Asia/Baghdad",
+    "coordinates_quality": "approximate_governorate_center",
+    "aliases": [
+      "كركوك",
+      "Kirkuk"
+    ]
+  },
+  {
+    "id": "diyala",
+    "name_ar": "ديالى",
+    "name_en": "Diyala",
+    "latitude": 33.7466,
+    "longitude": 44.6434,
+    "timezone": "Asia/Baghdad",
+    "coordinates_quality": "approximate_governorate_center",
+    "aliases": [
+      "ديالى",
+      "Diyala"
+    ]
+  },
+  {
+    "id": "saladin",
+    "name_ar": "صلاح الدين",
+    "name_en": "Saladin",
+    "latitude": 34.6071,
+    "longitude": 43.6782,
+    "timezone": "Asia/Baghdad",
+    "coordinates_quality": "approximate_governorate_center",
+    "aliases": [
+      "صلاح الدين",
+      "Saladin",
+      "Salah ad Din",
+      "Salahuddin"
+    ]
+  },
+  {
+    "id": "anbar",
+    "name_ar": "الأنبار",
+    "name_en": "Al-Anbar",
+    "latitude": 33.4206,
+    "longitude": 43.3078,
+    "timezone": "Asia/Baghdad",
+    "coordinates_quality": "approximate_governorate_center",
+    "aliases": [
+      "الأنبار",
+      "الانبار",
+      "Anbar",
+      "Al Anbar"
+    ]
+  },
+  {
+    "id": "babil",
+    "name_ar": "بابل",
+    "name_en": "Babil",
+    "latitude": 32.48,
+    "longitude": 44.43,
+    "timezone": "Asia/Baghdad",
+    "coordinates_quality": "approximate_governorate_center",
+    "aliases": [
+      "بابل",
+      "Babil",
+      "Babylon"
+    ]
+  },
+  {
+    "id": "karbala",
+    "name_ar": "كربلاء",
+    "name_en": "Karbala",
+    "latitude": 32.616,
+    "longitude": 44.0249,
+    "timezone": "Asia/Baghdad",
+    "coordinates_quality": "approximate_governorate_center",
+    "aliases": [
+      "كربلاء",
+      "Karbala"
+    ]
+  },
+  {
+    "id": "najaf",
+    "name_ar": "النجف",
+    "name_en": "Najaf",
+    "latitude": 32.0003,
+    "longitude": 44.3354,
+    "timezone": "Asia/Baghdad",
+    "coordinates_quality": "approximate_governorate_center",
+    "aliases": [
+      "النجف",
+      "Najaf",
+      "An Najaf"
+    ]
+  },
+  {
+    "id": "qadisiyyah",
+    "name_ar": "القادسية",
+    "name_en": "Al-Qadisiyyah",
+    "latitude": 31.9892,
+    "longitude": 44.9256,
+    "timezone": "Asia/Baghdad",
+    "coordinates_quality": "approximate_governorate_center",
+    "aliases": [
+      "القادسية",
+      "Qadisiyyah",
+      "Al Qadisiyah"
+    ]
+  },
+  {
+    "id": "muthanna",
+    "name_ar": "المثنى",
+    "name_en": "Al-Muthanna",
+    "latitude": 31.3186,
+    "longitude": 45.2806,
+    "timezone": "Asia/Baghdad",
+    "coordinates_quality": "approximate_governorate_center",
+    "aliases": [
+      "المثنى",
+      "Muthanna",
+      "Al Muthanna"
+    ]
+  },
+  {
+    "id": "dhi_qar",
+    "name_ar": "ذي قار",
+    "name_en": "Dhi Qar",
+    "latitude": 31.0579,
+    "longitude": 46.2573,
+    "timezone": "Asia/Baghdad",
+    "coordinates_quality": "approximate_governorate_center",
+    "aliases": [
+      "ذي قار",
+      "Dhi Qar",
+      "Thi Qar"
+    ]
+  },
+  {
+    "id": "maysan",
+    "name_ar": "ميسان",
+    "name_en": "Maysan",
+    "latitude": 31.8358,
+    "longitude": 47.1448,
+    "timezone": "Asia/Baghdad",
+    "coordinates_quality": "approximate_governorate_center",
+    "aliases": [
+      "ميسان",
+      "Maysan",
+      "Missan"
+    ]
+  },
+  {
+    "id": "wasit",
+    "name_ar": "واسط",
+    "name_en": "Wasit",
+    "latitude": 32.5128,
+    "longitude": 45.8182,
+    "timezone": "Asia/Baghdad",
+    "coordinates_quality": "approximate_governorate_center",
+    "aliases": [
+      "واسط",
+      "Wasit"
+    ]
+  }
+]

@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "items": [
+    {
+      "id": "karbala-shrine-night",
+      "title": "مرقد الإمام الحسين عليه السلام ليلاً",
+      "asset_path": "assets/images/wallpapers/karbala-shrine-night.jpg",
+      "creator": "Bahr Alwatifi",
+      "license": "CC BY-SA 4.0",
+      "sha256": "0a770423b324c859275d5f825cc14f675a4c0e77f9a7ef52560d2091f4b7d301",
+      "default_published": true
+    },
+    {
+      "id": "najaf-imam-ali-shrine",
+      "title": "مرقد الإمام علي عليه السلام",
+      "asset_path": "assets/images/wallpapers/najaf-imam-ali-shrine.jpg",
+      "creator": "khosh1341",
+      "license": "CC BY 3.0",
+      "sha256": "503ada65e0e88010e4e66ba14ce95f987dce73556db5264db16df57388a65735",
+      "default_published": true
+    }
+  ]
+}

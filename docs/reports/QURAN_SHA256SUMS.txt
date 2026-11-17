@@ -1,0 +1,16 @@
+SHA-256 checksums — Khazain Al-Huda Quran bundle
+Format: <sha256>  <path relative to project root>
+
+e3a8645cc83b56fab524dc47a59f33d4c370bd1e70dc4d016b3bf6e426b2ea4a  apps/mobile/assets/data/quran/quran.json
+c56582b86e4b20fca6fcd3f31a2fc1e173a874517ab3e912f3194308b8877616  apps/mobile/assets/data/quran/surahs.json
+703246a73a0a3d57f721b02e3edad9a2ee6831b79f49ffb9513ddfe99a65b801  apps/mobile/assets/data/quran/ayahs.json
+6e8efbe894e7cf45d989a0daa1ad76c114d35a981cb239e31eb78632c47e5165  apps/mobile/assets/data/quran/juz.json
+28bbb6a2deee37d5d34ba865104b95f8d1b70674f461374d6eb88dde097238fb  apps/mobile/assets/data/quran/hizb.json
+9b2961188b73c337643691dfbef0c605179b0dbb12ea13f1ea8cd062bd026ccc  apps/mobile/assets/data/quran/sajdah.json
+6a67da4456e4be7ce4e23898aa819b01653cb8b6ae769fd9a9aa5f23175fe607  apps/mobile/assets/data/quran/bookmarks.json
+efcd28e0679d853caa7db1e3d87dc2a228ade3b98668e5523480b79356ca2530  apps/mobile/assets/data/quran/quran_sources.json
+266060415c77a430eb5c0732492836bec9b0f182f966a1ae413e45e91a498d4e  apps/mobile/assets/data/quran/quran_attribution.json
+7adf0322475b23a0e7c45d6004acbb154b8c4def0fb2f2f11d0e0a8b9a54843a  apps/mobile/assets/data/quran/QURAN_SOURCE_NOTICE_AR.md
+7abe19ec9bb73b36141b999b861d24ad855e808bafe0f81e84cce28556f6c297  apps/mobile/assets/data/quran/licenses/QURAN_JSON_CC-BY-SA-4.0.txt
+5d07bf69083c371239d4fc5e65e239524818215e927e20abf7b9629ba9d2475c  apps/mobile/assets/fonts/AmiriQuran.ttf
+0905cc4de013e352507a555cc42475faa33d997f7d8d29dff596b1631834d33b  apps/mobile/assets/fonts/AMIRI_OFL_LICENSE.txt

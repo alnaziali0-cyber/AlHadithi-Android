@@ -1,0 +1,127 @@
+{
+  "version": 1,
+  "count": 15,
+  "items": [
+    {
+      "number": 1,
+      "position": {
+        "surah": 7,
+        "ayah": 206
+      },
+      "source_type": "recommended"
+    },
+    {
+      "number": 2,
+      "position": {
+        "surah": 13,
+        "ayah": 15
+      },
+      "source_type": "recommended"
+    },
+    {
+      "number": 3,
+      "position": {
+        "surah": 16,
+        "ayah": 50
+      },
+      "source_type": "recommended"
+    },
+    {
+      "number": 4,
+      "position": {
+        "surah": 17,
+        "ayah": 109
+      },
+      "source_type": "recommended"
+    },
+    {
+      "number": 5,
+      "position": {
+        "surah": 19,
+        "ayah": 58
+      },
+      "source_type": "recommended"
+    },
+    {
+      "number": 6,
+      "position": {
+        "surah": 22,
+        "ayah": 18
+      },
+      "source_type": "recommended"
+    },
+    {
+      "number": 7,
+      "position": {
+        "surah": 22,
+        "ayah": 77
+      },
+      "source_type": "recommended"
+    },
+    {
+      "number": 8,
+      "position": {
+        "surah": 25,
+        "ayah": 60
+      },
+      "source_type": "recommended"
+    },
+    {
+      "number": 9,
+      "position": {
+        "surah": 27,
+        "ayah": 26
+      },
+      "source_type": "recommended"
+    },
+    {
+      "number": 10,
+      "position": {
+        "surah": 32,
+        "ayah": 15
+      },
+      "source_type": "obligatory"
+    },
+    {
+      "number": 11,
+      "position": {
+        "surah": 38,
+        "ayah": 24
+      },
+      "source_type": "recommended"
+    },
+    {
+      "number": 12,
+      "position": {
+        "surah": 41,
+        "ayah": 38
+      },
+      "source_type": "obligatory"
+    },
+    {
+      "number": 13,
+      "position": {
+        "surah": 53,
+        "ayah": 62
+      },
+      "source_type": "obligatory"
+    },
+    {
+      "number": 14,
+      "position": {
+        "surah": 84,
+        "ayah": 21
+      },
+      "source_type": "recommended"
+    },
+    {
+      "number": 15,
+      "position": {
+        "surah": 96,
+        "ayah": 19
+      },
+      "source_type": "obligatory"
+    }
+  ],
+  "note": "Source classifications are metadata, not a jurisprudential ruling."
+}

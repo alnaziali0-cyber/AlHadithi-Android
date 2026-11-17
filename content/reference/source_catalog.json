@@ -1,0 +1,173 @@
+[
+  {
+    "source_id": "SRC-RADIO-IMAMHUSSAIN-FM",
+    "name": "إذاعة الروضة الحسينية المقدسة",
+    "category": "radio",
+    "official_url": "https://www.imamhussain-fm.com/",
+    "observed": "الموقع الرسمي يعرض البث المباشر وجدول البرامج ومعلومات الترددات.",
+    "use_for": "التواصل لطلب رابط تضمين البث والشعار والبيانات الإعلامية.",
+    "license_status": "not_granted_contact_required",
+    "notes": "وجود بث مباشر في الموقع لا يمنح تلقائياً إذن إعادة بثه أو تسجيله أو تنزيل محتواه."
+  },
+  {
+    "source_id": "SRC-QURAN-DAR-ALQURAN",
+    "name": "دار القرآن الكريم في العتبة الحسينية المقدسة",
+    "category": "quran_audio",
+    "official_url": "https://www.dar-alquran.org/sound",
+    "observed": "صفحة صوتيات تعرض مواد قرآنية وتعليمية وأسماء قراء وملفات/حلقات صوتية.",
+    "use_for": "تحديد أصحاب المواد ومصدر التلاوات وطلب إذن الاستخدام والتحميل.",
+    "license_status": "not_granted_contact_required",
+    "notes": "لا تفترض أن كل مادة قابلة لإعادة النشر."
+  },
+  {
+    "source_id": "SRC-IMAMHUSSAIN-PORTAL",
+    "name": "بوابة العتبة الحسينية المقدسة",
+    "category": "organization_media",
+    "official_url": "https://imamhussain.gov.iq/arabic",
+    "observed": "بوابة رسمية للعتبة، وتعرض بيانات الاتصال العامة ومنها بريد media@imamhussain.org وفق الصفحة المفحوصة.",
+    "use_for": "مراسلة الجهة الإعلامية وطلب مكتبة صوت وصور وشعارات وموافقة مكتوبة.",
+    "contact_email": "media@imamhussain.org",
+    "license_status": "not_granted_contact_required",
+    "notes": "استخدم البريد للتحويل إلى القسم المختص واطلب جهة اتصال مالك الحقوق."
+  },
+  {
+    "source_id": "SRC-ALKAFEEL",
+    "name": "شبكة الكفيل العالمية – العتبة العباسية المقدسة",
+    "category": "organization_media",
+    "official_url": "https://main.home.alkafeel.net/?lang=ar",
+    "observed": "الموقع الرسمي يعرض أقسام الوسائط المتعددة ومعرض الصور والمكتبة المرئية وإصدارات الكفيل.",
+    "use_for": "طلب مواد مرئية/صوتية وشعارات وموافقات إعادة الاستخدام.",
+    "license_status": "not_granted_contact_required",
+    "notes": "المحتوى المنشور لا يعني إباحة إعادة نشره."
+  },
+  {
+    "source_id": "SRC-IMAMALI",
+    "name": "العتبة العلوية المقدسة",
+    "category": "organization_media",
+    "official_url": "https://www.imamali.net/",
+    "observed": "الموقع الرسمي يعرّف بتطبيقات وخدمات، ومن ضمنها شبكة الإمام علي التي تتضمن أوقات الصلاة والبث المباشر للإذاعة والأدعية والزيارات.",
+    "use_for": "طلب مواد صوتية وروابط إذاعية ومعلومات مصدرها وتراخيصها.",
+    "license_status": "not_granted_contact_required",
+    "notes": "لا تستخرج رابط التطبيق أو stream من دون إذن الجهة."
+  },
+  {
+    "source_id": "SRC-ALJAWADAIN",
+    "name": "العتبة الكاظمية المقدسة",
+    "category": "organization_media",
+    "official_url": "https://www.aljawadain.iq/home",
+    "observed": "الموقع يعرض مكتبة صوتية ومكتبة صورية وفيديوية ضمن أقسامه.",
+    "use_for": "مصدر محتمل للتواصل حول التسجيلات والصور الرسمية وحقوقها.",
+    "license_status": "not_granted_contact_required",
+    "notes": "يلزم سؤال الجهة عن شروط كل مادة."
+  },
+  {
+    "source_id": "SRC-NOJUMI-PRAYER",
+    "name": "مركز البحوث والدراسات الفلكية – Nojumi",
+    "category": "prayer_times_reference",
+    "official_url": "https://arabic.nojumi.org/prayertimes",
+    "observed": "حاسبة مواقيت وقبلة حسب موقع على الخريطة؛ تعرض إحداثيات وزاويتي الفجر والمغرب وإمكانية جداول شهرية/سنوية. المثال الظاهر وقت التحقق يعرض زاوية فجر 18° ومغرب 4.5°.",
+    "use_for": "مرجع مقارنة أولي وطلب وصف فني/ترخيص استخدام البيانات والمنهج.",
+    "license_status": "reference_only_permission_for_reuse_unconfirmed",
+    "notes": "لا تعتمد الأرقام الظاهرة كإعداد ملزم لجميع المستخدمين أو كموقف رسمي لمرجعية دون توثيق مباشر."
+  },
+  {
+    "source_id": "SRC-GEONAMES",
+    "name": "GeoNames – المدن العراقية",
+    "category": "geographic_data",
+    "official_url": "https://www.geonames.org/IQ/largest-cities-in-iraq.html",
+    "observed": "يعرض أسماء المدن وإحداثيات لعينة من المدن العراقية.",
+    "use_for": "مرجع تقاطعي لإحداثيات مراكز المدن.",
+    "license_status": "check_data_license_before_redistribution",
+    "notes": "راجع شروط بيانات GeoNames قبل إعادة توزيع البيانات ضمن منتج تجاري."
+  },
+  {
+    "source_id": "SRC-GEODATOS",
+    "name": "GeoDatos – إحداثيات مدن العراق",
+    "category": "geographic_data",
+    "official_url": "https://www.geodatos.net/en/coordinates/iraq",
+    "observed": "يعرض إحداثيات لمدن عراقية عديدة، وبعض صفحات المدن تعرض نقطة مركز المدينة على WGS84.",
+    "use_for": "إدخال أولي لإحداثيات مركز المدينة ثم التحقق منها قبل الإنتاج.",
+    "license_status": "check_data_license_before_redistribution",
+    "notes": "هذه إحداثيات تقريبية لمركز المدينة وليست بديلاً عن GPS المستخدم أو إحداثية مسجد/منطقة محددة."
+  },
+  {
+    "source_id": "SRC-TANZIL-QURAN-UTHMANI",
+    "name": "مشروع Tanzil – نص القرآن بالرسم العثماني",
+    "category": "quran_text",
+    "official_url": "https://tanzil.net/",
+    "observed": "ينشر النص القرآني بالرسم العثماني، ويتضمن تنزيل النص وبيان شروط الاستخدام ورقم الإصدار.",
+    "use_for": "مصدر النص القرآني المعتمد للاستيراد الحرفي بعد مطابقة البنية والبيانات ومراجعة مختص مؤهل.",
+    "license_status": "cc_by_3_0_verbatim_no_changes",
+    "notes": "يجوز نسخ النص وتوزيعه حرفياً فقط؛ يمنع تغيير النص. يجب إظهار نسبة Tanzil والرابط https://tanzil.net/ وإرفاق إشعار حقوق النشر والرخصة مع النسخ التي تحتوي على النص أو جزء جوهري منه. أُدرجت نسخة المصدر الخام في content/resources/quran/01_QURAN مع إشعار Tanzil وبصمة تنزيلها؛ لم تُستورد إلى قاعدة البيانات أو تُفعّل في القارئ. تحقّق من الإصدار وأكمل المطابقة البنيوية ومراجعة مختص مؤهل قبل الاستيراد."
+  },
+  {
+    "source_id": "SRC-AMIRI-QURAN-FONT",
+    "name": "خط Amiri Quran",
+    "category": "quran_font",
+    "official_url": "https://github.com/alif-type/amiri",
+    "observed": "خط عربي تراثي يدعم العلامات القرآنية، ومشروع الخط يتيح استخدامه وفق SIL Open Font License 1.1.",
+    "use_for": "عرض نص المصحف في قارئ القرآن ضمن تطبيق خزائن الهدى.",
+    "license_status": "sil_ofl_1_1_bundled_with_notice",
+    "notes": "أضيف ملف AmiriQuran.ttf إلى أصول التطبيق مع نسخة OFL 1.1 وبيان حقوق المؤلف داخل assets/fonts/AMIRI_OFL_LICENSE.txt. لا يُباع ملف الخط منفرداً، وتبقى شروط OFL سارية عند إعادة توزيع التطبيق."
+  },
+  {
+    "source_id": "SRC-OPENITI-TEXT-CORPUS",
+    "name": "OpenITI – مدونة النصوص الإسلامية المفتوحة",
+    "category": "islamic_text_corpus",
+    "official_url": "https://openiti.org/documentation/",
+    "observed": "تذكر وثائق المشروع أن إصدارات النصوص منشورة تحت CC BY-NC-SA 4.0، وأن الملفات تستند إلى مكتبات رقمية سابقة مع الإشارة إلى معرّفات المصادر.",
+    "use_for": "البحث عن نصوص تراثية ومراجع قابلة للاستخدام غير التجاري بعد فحص سجل كل نص وطبعة ومصدر.",
+    "license_status": "cc_by_nc_sa_4_0_noncommercial_item_review_required",
+    "notes": "الرخصة غير تجارية، وتتطلب النسبة ومشاركة المشتقات بالشروط نفسها. لا تنسخ أي كتاب إلى قاعدة التطبيق قبل مراجعة URI الخاص به وحقوق الطبعة الرقمية والناشر والنص المحدد؛ الرخصة العامة للمدونة لا تلغي قيود الطبعات أو المصادر الأصلية المحتملة."
+  },
+  {
+    "source_id": "SRC-AQQD-QIRAAT-AUDIO-DATASET",
+    "name": "AQQD – Annotated Quranic Qira’at Dataset",
+    "category": "quran_audio_dataset",
+    "official_url": "https://doi.org/10.7910/DVN/A8GM5Y",
+    "observed": "مجموعة بحثية منشورة في 2026 تضم وفق وصف الناشرين 24,183 مقطع WAV قصيراً من 309 قراء وتغطي مقاطع من 70 سورة، وتعلن CC0 1.0.",
+    "use_for": "مرجع محتمل لمقاطع بحثية/تعليمية قصيرة بعد تدقيق README والبيانات الوصفية ومصدر كل تسجيل وملاءمة الاستخدام داخل التطبيق.",
+    "license_status": "cc0_1_0_declared_source_provenance_review_required",
+    "notes": "لا تُعامل على أنها مكتبة تلاوات كاملة؛ المقاطع قصيرة ومخصصة أساساً للبحث الصوتي. رغم إعلان مجموعة البيانات CC0 1.0، فإن بعض التسجيلات جُمعت من مواقع وقنوات عامة؛ قبل إعادة التعبئة داخل التطبيق افحص مصدر كل ملف وحقوق أداء القارئ والتسجيل/الوقف وأي شروط مرافقة. لم تُنزّل أو تُضمّن ملفات صوتية من هذه المجموعة في هذه الجولة."
+  },
+  {
+    "source_id": "SRC-QURANENC-TRANSLATIONS",
+    "name": "QuranEnc.com – قواعد ترجمات معاني القرآن",
+    "category": "quran_translation",
+    "official_url": "https://quranenc.com/en/home/api/",
+    "observed": "توثيق QuranEnc يوفّر فهرساً عاماً لقواعد SQLite المضغوطة مع اسم الناشر والإصدار واللغة وتاريخ التحديث، ويذكر صراحة شروط تنزيل الترجمات وإعادة نشرها.",
+    "use_for": "حفظ القواعد الأصلية وتوزيعها مع نسبة QuranEnc والناشر والإصدار، بعد مراجعة كل ترجمة قبل تفعيلها في واجهة التطبيق.",
+    "license_status": "redistribution_allowed_with_publisher_conditions",
+    "notes": "شروط QuranEnc المنشورة: يمنع تعديل المحتوى أو الإضافة/الحذف؛ يجب ذكر الناشر والمصدر ورقم الإصدار وإبقاء بيانات النسخة المضمّنة؛ إبلاغ QuranEnc بأي ملاحظة؛ متابعة النسخة الأحدث؛ ومنع الإعلانات غير اللائقة. السماح بإعادة التوزيع لا يعني اعتماداً علمياً أو تحريرياً لكل ترجمة."
+  },
+  {
+    "source_id": "SRC-HADEETHENC-TRANSLATIONS",
+    "name": "HadeethEnc.com – موسوعة الأحاديث النبوية وترجماتها",
+    "category": "hadith_translation",
+    "official_url": "https://hadeethenc.com/ar/home",
+    "observed": "الموقع الرسمي يتيح تنزيل قواعد المحتوى بصيغ SQLite وCSV وExcel، ويعرض شروط إعادة نشر الترجمات.",
+    "use_for": "مرجع لمراجعة البيانات بعد إثبات رقم الإصدار لكل لغة وموافقة مختص على ملاءمتها لمحتوى التطبيق؛ لم تُضمّن قواعد في هذه الدفعة.",
+    "license_status": "redistribution_allowed_with_publisher_conditions_review_required",
+    "notes": "شروط الموقع تسمح بتنزيل الترجمات وإعادة نشرها دون تعديل مع نسبة الناشر وHadeethEnc.com وذكر رقم الإصدار وإبقاء بيانات النسخة داخل المستند وإبلاغ المصدر بالملاحظات ومتابعة أحدث إصدار ومنع الإعلانات غير اللائقة. لم تُضمّن قواعد هنا لأن رقم إصدار مستقل لكل حزمة لم يُثبت ولأن ملاءمة المحتوى للمراجعة العلمية الشيعية لم تُحسم."
+  },
+  {
+    "source_id": "SRC-QURAN-WS-KFGQPC-HAFS",
+    "name": "Quran Text من Quran.ws — حفص عن عاصم / مجمع الملك فهد",
+    "category": "quran_text",
+    "official_url": "https://github.com/quran-ws/quran-text",
+    "observed": "بيانات الملف المرفق تذكر رواية حفص، والملف UthmanicHafs-v-3.0.zip وبصمة المصدر cdec7341b7c684e7b8dd469c4b68988914d2784e924c7e6cbb9cb4b57c24f013. سجل Quran.ws يصف نسخة حفص بأنها متحققة من المصدر.",
+    "use_for": "نص محلي داخل قسم القرآن، محفوظاً دون تغيير، مع إشعار الحقوق والإسناد وبصمة ملف JSON.",
+    "license_status": "cc_by_4_0_quranws_with_kfgqpc_software_terms",
+    "notes": "Quran.ws يرخّص بياناته الأصلية بموجب CC BY 4.0 ويعفي الإسناد عند الاستخدام داخل المنتج، لكن إعادة توزيع ملف البيانات كمورد مستقل تتطلب الإسناد. النص المصدري من مجمع الملك فهد وتسمح شروط المجمع المنشورة باستخدام النسخة الرقمية في البرامج. بصمة JSON المضمّن SHA-256: d3865331602f30d919a872c7766c6043de7dc5101276da871c3b9dd422f798e0. إشعار الحقوق: apps/mobile/assets/data/QURAN_SOURCE_NOTICE_AR.md."
+  },
+  {
+    "source_id": "SRC-ALFEKER-AHLULBAYT-LIBRARY",
+    "name": "شبكة الفكر – أرشيف كتب مكتبة أهل البيت",
+    "category": "shia_library",
+    "official_url": "https://alfeker.net/b/804/",
+    "observed": "تعرض صفحة المصدر أرشيف ahlualbayt_lib_pdf.rar بحجم يقارب 2,000 ميغابايت وتذكر 4,095 كتاباً، وتضعه ضمن موضوعي الحديث وموسوعات إسلامية. تاريخ الصفحة الظاهر 2011-10-03.",
+    "use_for": "مرجع خارجي وفهرس لاكتشاف الموضوعات والعناوين؛ يلزم التحقق من ملف الكتاب وطبقته وحقوقه قبل أي تضمين.",
+    "license_status": "reference_only_permission_for_reuse_unconfirmed",
+    "notes": "لم يظهر في صفحة العنصر إذن صريح لتضمين الأرشيف أو إعادة توزيعه أو إعادة توزيع كل كتاب داخله. لم يُنزّل الأرشيف، ولا يُعد رابط التنزيل إذناً. تحقق من حق كل ملف وطبعة وموافقة صاحب الحق قبل النسخ أو التخزين دون اتصال أو إعادة التوزيع."
+  }
+]

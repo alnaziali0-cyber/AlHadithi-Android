@@ -1,0 +1,28 @@
+{
+  "id": "replace-with-uuid",
+  "profile_name": "",
+  "authority_or_calendar": "",
+  "jurisprudential_basis": "jaafari",
+  "source_url": "",
+  "source_document_storage_key": null,
+  "fajr_angle_degrees": null,
+  "isha_angle_degrees": null,
+  "maghrib_rule": "source_defined|angle|minutes_after_sunset|manual",
+  "maghrib_angle_degrees": null,
+  "asr_rule": "source_defined|standard|other",
+  "midnight_rule": "source_defined|sunset_to_fajr|other",
+  "sunrise_rule": "astronomical",
+  "minute_adjustments": {
+    "fajr": 0,
+    "sunrise": 0,
+    "dhuhr": 0,
+    "sunset": 0,
+    "maghrib": 0,
+    "isha": 0
+  },
+  "calculation_engine": "",
+  "engine_version": "",
+  "is_officially_verified": false,
+  "verification_document": "",
+  "notes": "لا تعتمد هذا الملف قبل التحقق من الجهة المرجعية والتقويم المطابق."
+}

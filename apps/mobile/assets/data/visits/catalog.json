@@ -1,0 +1,94 @@
+{
+  "series_title": "موسوعة زيارات المعصومين (عليهم السلام)",
+  "publisher": "مؤسسة الإمام الهادي",
+  "content_type": "ziyara_text_and_outlines",
+  "language": "ar",
+  "format": "local_plain_text_ocr_drafts_and_outlines",
+  "source_files_bundled": false,
+  "transcribed_text_files_bundled": true,
+  "body_ocr_available": true,
+  "body_transcription_complete": false,
+  "body_transcription_verified": false,
+  "redistribution_permission": {
+    "basis": "تأكيد مباشر من مالكة التطبيق بأنها تملك إذناً بتحويل الملفات المرفقة إلى نص وإعادة توزيعه داخل التطبيق.",
+    "scope": "نصوص مستخرجة من الملفات المرفقة كمسودات OCR غير مدققة حرفياً بالكامل؛ لا ينشئ هذا إذناً مستقلاً لمصادر ويب أخرى.",
+    "independently_verified": false,
+    "note": "لم يُرفق مستند مستقل للإذن؛ يُحفظ تأكيد المالكة كمرجع التفويض لهذا العمل."
+  },
+  "publisher_rights_notice": "تنسب النسخ الأصلية إلى مؤسسة الإمام الهادي وتذكر حفظ حقوق الطبع؛ أُبقيت النسبة في قسم الزيارات.",
+  "text_processing": "ملفات النصوص الستة متاحة محلياً كمسودات OCR مرتبة بعناوين الأقسام وصفحات المصدر. لم تُدقّق حرفياً بالكامل ولا تُقدّم كنصوص موثقة أو دقيقة بالكامل؛ المجلد 3 غير مرفق.",
+  "documents": [
+    {
+      "id": "volume_0",
+      "volume_label": "المجلد 0",
+      "title": "المقدمة",
+      "subtitle": "تمهيد الموسوعة",
+      "source_pages": 503,
+      "outline_asset_path": "assets/data/visits/outlines/outline-volume_0.md",
+      "text_asset_path": "assets/data/visits/transcribed/volume_0.txt",
+      "transcription_status": "ocr_draft_unverified",
+      "outline_transcribed": true,
+      "body_pages_transcribed_and_verified": 0
+    },
+    {
+      "id": "volume_1",
+      "volume_label": "المجلد 1",
+      "title": "الرسول والزهراء والأئمة بالبقيع (عليهم السلام)",
+      "subtitle": "الرسول الأكرم، السيدة الزهراء، وأئمة البقيع",
+      "source_pages": 432,
+      "outline_asset_path": "assets/data/visits/outlines/outline-volume_1.md",
+      "text_asset_path": "assets/data/visits/transcribed/volume_1.txt",
+      "transcription_status": "ocr_draft_unverified",
+      "outline_transcribed": true,
+      "body_pages_transcribed_and_verified": 0
+    },
+    {
+      "id": "volume_2",
+      "volume_label": "المجلد 2",
+      "title": "أمير المؤمنين (عليه السلام)",
+      "subtitle": "الزيارات المتعلقة بأمير المؤمنين",
+      "source_pages": 419,
+      "outline_asset_path": "assets/data/visits/outlines/outline-volume_2.md",
+      "text_asset_path": "assets/data/visits/transcribed/volume_2.txt",
+      "transcription_status": "ocr_draft_unverified",
+      "outline_transcribed": true,
+      "body_pages_transcribed_and_verified": 0
+    },
+    {
+      "id": "volume_4",
+      "volume_label": "المجلد 4",
+      "title": "الأئمة الكاظم، الرضا، الجواد، الهادي، العسكري، الحجة (عليهم السلام)",
+      "subtitle": "زيارات الأئمة من الكاظم إلى الحجة",
+      "source_pages": 454,
+      "outline_asset_path": "assets/data/visits/outlines/outline-volume_4.md",
+      "text_asset_path": "assets/data/visits/transcribed/volume_4.txt",
+      "transcription_status": "ocr_draft_unverified",
+      "outline_transcribed": true,
+      "body_pages_transcribed_and_verified": 0
+    },
+    {
+      "id": "volume_5",
+      "volume_label": "المجلد 5",
+      "title": "الزيارات الجامعة للأئمة (عليهم السلام)",
+      "subtitle": "الزيارات الجامعة",
+      "source_pages": 260,
+      "outline_asset_path": "assets/data/visits/outlines/outline-volume_5.md",
+      "text_asset_path": "assets/data/visits/transcribed/volume_5.txt",
+      "transcription_status": "ocr_draft_unverified",
+      "outline_transcribed": true,
+      "body_pages_transcribed_and_verified": 0
+    },
+    {
+      "id": "volume_6",
+      "volume_label": "المجلد 6",
+      "title": "الفهارس",
+      "subtitle": "فهارس الموسوعة",
+      "source_pages": 400,
+      "outline_asset_path": "assets/data/visits/outlines/outline-volume_6.md",
+      "text_asset_path": "assets/data/visits/transcribed/volume_6.txt",
+      "transcription_status": "ocr_draft_unverified",
+      "outline_transcribed": true,
+      "body_pages_transcribed_and_verified": 0
+    }
+  ]
+}

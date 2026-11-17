@@ -1,0 +1,377 @@
+{
+  "version": 1,
+  "catalog_title": "كتالوج مصادر الصوتيات والقرآن",
+  "source_package": {
+    "filename": "KHAZAIN_ALHUDA_MEGA_LIBRARY.zip",
+    "sha256": "81bc45de3af757694323e6c77e02302fea2fefdf763a1a21ec06744b10cc1cde",
+    "license_status": "فهارس وروابط مرجعية؛ تُراجع حقوق كل مادة على حدة."
+  },
+  "notice_ar": "سجل حقوق ومصادر داخلي فقط؛ لا يُحمّل ضمن أصول Flutter ولا يعرض التطبيق روابطه. لا يتضمن ملفات MP3/OGG. يجب إثبات الإذن المحدد لكل ملف صوتي قبل إضافته أو توزيعه.",
+  "groups": [
+    {
+      "id": "radio",
+      "title_ar": "الإذاعات",
+      "description_ar": "صفحات المشغلات التي يسجلها كتالوج الحزمة كمصادر رسمية؛ لا تُدرج روابط بث خام، وتحقق من الوجهة قبل الاستخدام.",
+      "items": [
+        {
+          "id": "imamhussain_fm",
+          "name": "إذاعة الروضة الحسينية المقدسة",
+          "url": "https://www.imamhussain-fm.com/",
+          "category": "official_radio",
+          "categories": [
+            "قرآن",
+            "أذان",
+            "أدعية",
+            "زيارات",
+            "مراثي حسينية",
+            "محاضرات",
+            "برامج إذاعية"
+          ],
+          "rights_status": "official_player_only_permission_required_for_recording_rehost",
+          "rights_note": "اعرض صفحة المشغل الرسمية أو اطلب رابط تضمين مكتوباً؛ لا تستخرج رابطاً خاماً من المشغل.",
+          "source_url": "https://www.imamhussain-fm.com/",
+          "rights_note_ar": "اعرض صفحة المشغل الرسمية أو اطلب رابط تضمين مكتوباً؛ لا تستخرج رابطاً خاماً من المشغل."
+        },
+        {
+          "id": "alkafeel_radio",
+          "name": "إذاعة الكفيل",
+          "url": "https://radio.alkafeel.net/",
+          "category": "official_radio",
+          "categories": [
+            "برامج دينية",
+            "برامج اجتماعية",
+            "الأسرة والمرأة",
+            "حلقات مسجلة",
+            "إذاعة الرياحين"
+          ],
+          "rights_status": "all_rights_reserved_permission_required_for_rehosting",
+          "rights_note": "رابط الموقع/المشغل الرسمي فقط حتى الحصول على إذن مكتوب لدمج البث أو تنزيل الأرشيف.",
+          "source_url": "https://radio.alkafeel.net/index.php/about",
+          "rights_note_ar": "رابط الموقع/المشغل الرسمي فقط حتى الحصول على إذن مكتوب لدمج البث أو تنزيل الأرشيف."
+        },
+        {
+          "id": "reyaheen_radio",
+          "name": "إذاعة الرياحين",
+          "url": "https://radio.alkafeel.net/reyaheen",
+          "category": "official_children_radio",
+          "categories": [
+            "أطفال",
+            "ناشئة",
+            "قصص",
+            "تربية",
+            "برامج تعليمية"
+          ],
+          "rights_status": "permission_required_for_rehosting",
+          "rights_note": "اربط الصفحة الرسمية أو احصل على تصريح باستخدام البث والحلقات.",
+          "source_url": "https://radio.alkafeel.net/reyaheen",
+          "rights_note_ar": "اربط الصفحة الرسمية أو احصل على تصريح باستخدام البث والحلقات."
+        },
+        {
+          "id": "aljawadain_radio",
+          "name": "إذاعة الجوادين",
+          "url": "https://www.aljawadain.iq/radio/aljawadain-radio",
+          "category": "official_shrine_radio",
+          "categories": [
+            "إذاعة العتبة الكاظمية",
+            "برامج دينية",
+            "برامج على مدار 24 ساعة"
+          ],
+          "rights_status": "official_player_only_permission_required_for_rehost",
+          "rights_note": "المشغل الرسمي هو المصدر المتاح؛ لا توجد في الصفحة التي فُحصت وصلة بث خام موثقة.",
+          "source_url": "https://www.aljawadain.iq/radio/aljawadain-radio",
+          "rights_note_ar": "المشغل الرسمي هو المصدر المتاح؛ لا توجد في الصفحة التي فُحصت وصلة بث خام موثقة."
+        },
+        {
+          "id": "almaaref_radio",
+          "name": "إذاعة المعارف",
+          "url": "https://www.almaarefradio.com/news/?p=1084",
+          "category": "official_shia_radio",
+          "categories": [
+            "برامج دينية",
+            "أدعية",
+            "زيارات",
+            "بودكاست",
+            "بث مباشر"
+          ],
+          "rights_status": "permission_required_for_recording_rehost",
+          "rights_note": "استخدم صفحة البث/التطبيق الرسمي أو اطلب تصريح تضمين البث والأرشيف.",
+          "source_url": "https://www.almaarefradio.com/news/?p=1084",
+          "rights_note_ar": "استخدم صفحة البث/التطبيق الرسمي أو اطلب تصريح تضمين البث والأرشيف."
+        },
+        {
+          "id": "sawt_alhussain_international",
+          "name": "إذاعة صوت الحسين الدولية",
+          "url": "https://imamhussain.org/english/liveradio",
+          "category": "shrine_radio_reference",
+          "categories": [
+            "بث إذاعي",
+            "العتبة الحسينية"
+          ],
+          "rights_status": "official_player_only_permission_required_for_rehost",
+          "rights_note": "صفحة مشغل رسمية؛ اطلب رابط تكامل مرخصاً إذا أردت مشغلاً داخلياً.",
+          "source_url": "https://imamhussain.org/english/liveradio",
+          "rights_note_ar": "صفحة مشغل رسمية؛ اطلب رابط تكامل مرخصاً إذا أردت مشغلاً داخلياً."
+        },
+        {
+          "id": "shia_radio_app",
+          "name": "راديو الشيعة – المنبر الحسيني والروح",
+          "url": "https://play.google.com/store/apps/details?hl=ar&id=com.shiaa.radio",
+          "category": "app_reference",
+          "categories": [
+            "المنبر الحسيني",
+            "الروح"
+          ],
+          "rights_status": "third_party_app_reference_not_stream_permission",
+          "rights_note": "مرجع لاكتشاف المحطات؛ لا تنسخ روابط أو ملفات التطبيق دون إذن مالكها.",
+          "source_url": "https://play.google.com/store/apps/details?hl=ar&id=com.shiaa.radio",
+          "rights_note_ar": "مرجع لاكتشاف المحطات؛ لا تنسخ روابط أو ملفات التطبيق دون إذن مالكها."
+        },
+        {
+          "id": "imamali_audio_reference",
+          "name": "مركز/بوابة العتبة العلوية – خدمات البث",
+          "url": "https://imamali.net/",
+          "category": "official_media_reference",
+          "categories": [
+            "بث مباشر من العتبة العلوية",
+            "مناسبات وزيارات"
+          ],
+          "rights_status": "official_player_only_permission_required_for_reuse",
+          "rights_note": "تحقق من نافذة الخدمة الرسمية واطلب إذن إعادة البث داخل التطبيق.",
+          "source_url": "https://imamali.net/",
+          "rights_note_ar": "تحقق من نافذة الخدمة الرسمية واطلب إذن إعادة البث داخل التطبيق."
+        }
+      ]
+    },
+    {
+      "id": "quran_audio",
+      "title_ar": "مراجع القرآن والتلاوات",
+      "description_ar": "روابط لفهارس ومشغلات ومراجع؛ بعضها يعرض بيانات أو ترجمات، وليس بالضرورة مشغلاً مباشراً. صلاحية كل تسجيل تراجع على حدة.",
+      "items": [
+        {
+          "id": "mp3quran_v3",
+          "name": "MP3Quran API v3",
+          "url": "https://www.mp3quran.net/ar/api",
+          "category": "reciter_and_audio_metadata_api",
+          "categories": [
+            "live metadata fetcher included"
+          ],
+          "rights_status": "permission_review_required",
+          "rights_note": "API docs describe catalogue/audio URLs but do not grant blanket permission to mirror or redistribute every recording. Treat audio redistribution as permission-needed until confirmed in writing.",
+          "source_url": "https://www.mp3quran.net/ar/api",
+          "rights_note_ar": "توفر واجهة الفهرسة روابطاً ومعلومات عن التلاوات، لكنها لا تمنح إذناً عاماً لنسخ التسجيلات أو إعادة توزيعها. تحقق من حقوق كل تسجيل."
+        },
+        {
+          "id": "qul",
+          "name": "Quranic Universal Library",
+          "url": "https://qul.tarteel.ai/resources",
+          "category": "quranic_text_font_recitation_resource_library",
+          "categories": [
+            "resource discovery"
+          ],
+          "rights_status": "permission_review_required",
+          "rights_note": "Check per resource and recording; no global blanket audio redistribution licence assumed.",
+          "source_url": "https://qul.tarteel.ai/resources",
+          "rights_note_ar": "راجع شروط كل مادة وقارئ على حدة؛ لا يُفترض وجود ترخيص واحد يغطي جميع التسجيلات."
+        },
+        {
+          "id": "quranicaudio",
+          "name": "QuranicAudio",
+          "url": "https://quranicaudio.com/",
+          "category": "quran_recitation_library",
+          "categories": [
+            "resource discovery"
+          ],
+          "rights_status": "permission_review_required",
+          "rights_note": "A public player/download link is not a blanket redistribution licence. Obtain file-level permission.",
+          "source_url": "https://quranicaudio.com/",
+          "rights_note_ar": "وجود مشغل أو رابط تنزيل عام لا يثبت حق إعادة الاستضافة أو التوزيع. تحقق من الإذن لكل ملف."
+        },
+        {
+          "id": "everyayah",
+          "name": "EveryAyah",
+          "url": "https://everyayah.com/",
+          "category": "ayah_audio_library",
+          "categories": [
+            "resource discovery"
+          ],
+          "rights_status": "permission_review_required",
+          "rights_note": "Review each recitation and its own rights notice; no site-wide rehosting grant assumed.",
+          "source_url": "https://everyayah.com/",
+          "rights_note_ar": "راجع إشعار الحقوق الخاص بكل تلاوة قبل التضمين أو التنزيل."
+        },
+        {
+          "id": "quran_foundation",
+          "name": "Quran Foundation API",
+          "url": "https://api-docs.quran.com/",
+          "category": "quran_content_api",
+          "categories": [
+            "API integration"
+          ],
+          "rights_status": "permission_review_required",
+          "rights_note": "Follow Quran Foundation terms and content-sync rules; do not export raw datasets for redistribution unless expressly allowed.",
+          "source_url": "https://api-docs.quran.com/",
+          "rights_note_ar": "اتبع شروط المؤسسة وقواعد مزامنة المحتوى؛ لا تُعِد توزيع البيانات أو الصوت دون إذن صريح."
+        },
+        {
+          "id": "quranenc",
+          "name": "QuranEnc",
+          "url": "https://quranenc.com/ar/home/api",
+          "category": "quran_translation_text_and_font_resource",
+          "categories": [
+            "downloadable resources and API"
+          ],
+          "rights_status": "permission_review_required",
+          "rights_note": "Check dataset/translation licence and attribution on each item; keep source attribution and do not modify protected texts.",
+          "source_url": "https://quranenc.com/ar/home/api",
+          "rights_note_ar": "تحقق من ترخيص المادة ونسبتها إلى مصدرها، ولا تعدّل النصوص المحمية."
+        },
+        {
+          "id": "islamic_network_alquran_cloud",
+          "name": "Islamic Network / AlQuran Cloud",
+          "url": "https://alquran.cloud/terms-and-conditions",
+          "category": "مصدر التلاوة المستخدم داخل المصحف",
+          "categories": [
+            "مشغل التلاوة داخل التطبيق"
+          ],
+          "rights_status": "personal_educational_use_reciter_copyright",
+          "rights_note": "The provider states that recitations remain copyrighted by their reciters; streaming, embedding and downloads are allowed for personal and educational use, and reciters may request removal from commercial products.",
+          "rights_note_ar": "تنص شروط المصدر على بقاء حقوق التلاوات للقارئين، وتسمح بالاستماع والتضمين والتنزيل للاستخدام الشخصي والتعليمي. وقد يطلب القارئ حذف تسجيله من منتج تجاري.",
+          "source_url": "https://alquran.cloud/terms-and-conditions"
+        }
+      ]
+    },
+    {
+      "id": "shia_audio",
+      "title_ar": "مصادر صوتية أخرى",
+      "description_ar": "روابط لمكتبات ومصادر دينية وصوتية متنوعة؛ لا تفترض أن كل تسجيل منها مرخّص لإعادة التوزيع.",
+      "items": [
+        {
+          "id": "shiaaudios",
+          "name": "ShiaAudios",
+          "url": "https://www.shiaaudios.com/",
+          "category": "مصدر صوتي",
+          "categories": [
+            "Quran",
+            "lectures",
+            "audio books",
+            "kids audio"
+          ],
+          "rights_status": "permission_review_required_noncommercial_claim",
+          "rights_note": "The site describes non-commercial hosting with original-holder permission and requires express approval for commercial use. Do not bulk-download or redistribute. Obtain permission from both the site and each rights holder before integration.",
+          "source_url": "https://www.shiaaudios.com/",
+          "rights_note_ar": "يذكر الموقع أن بعض المحتوى يُستضاف لغير الأغراض التجارية بإذن أصحاب الحقوق، وأن الاستخدام التجاري يتطلب موافقة صريحة. لا تنزّل التسجيلات بالجملة ولا تعِد توزيعها؛ احصل على إذن الموقع وصاحب كل تسجيل قبل أي دمج."
+        },
+        {
+          "id": "alkafeel_archive",
+          "name": "إذاعة الكفيل – الأرشيف",
+          "url": "https://radio.alkafeel.net/archives_inner/1800",
+          "category": "مصدر صوتي",
+          "categories": [
+            "radio episodes",
+            "Quranic programs",
+            "family and educational programs"
+          ],
+          "rights_status": "all_rights_reserved",
+          "rights_note": "Use official archive/player links; get written permission for audio downloads, offline use, mirroring, or redistribution.",
+          "source_url": "https://radio.alkafeel.net/archives_inner/1800",
+          "rights_note_ar": "استخدم رابط المشغل أو الأرشيف الأصلي. يلزم إذن مكتوب قبل تنزيل التسجيلات أو استخدامها دون اتصال أو إعادة توزيعها."
+        },
+        {
+          "id": "rawda_fm",
+          "name": "إذاعة الروضة الحسينية – المكتبة الصوتية",
+          "url": "https://www.imamhussain-fm.com/",
+          "category": "مصدر صوتي",
+          "categories": [
+            "Quran",
+            "dua",
+            "ziyara",
+            "mourning programs",
+            "lectures"
+          ],
+          "rights_status": "permission_required",
+          "rights_note": "Official radio and its audio library are discoverable on the website; no blanket download/rehosting permission established.",
+          "source_url": "https://www.imamhussain-fm.com/",
+          "rights_note_ar": "افتح المشغل الرسمي؛ يلزم إذن مكتوب لدمج التسجيل أو إعادة استضافته."
+        },
+        {
+          "id": "almaaref",
+          "name": "إذاعة المعارف",
+          "url": "https://www.almaarefradio.com/",
+          "category": "مصدر صوتي",
+          "categories": [
+            "podcasts",
+            "dua",
+            "ziyara",
+            "religious lectures"
+          ],
+          "rights_status": "permission_required",
+          "rights_note": "Use its official app/player or request a written license for offline distribution.",
+          "source_url": "https://www.almaarefradio.com/",
+          "rights_note_ar": "افتح المصدر الرسمي؛ يلزم إذن مكتوب قبل إعادة نشر التسجيلات."
+        },
+        {
+          "id": "mp3quran",
+          "name": "MP3Quran",
+          "url": "https://www.mp3quran.net/ar/api",
+          "category": "مصدر صوتي",
+          "categories": [
+            "reciters",
+            "moshaf",
+            "surahs",
+            "radio metadata"
+          ],
+          "rights_status": "metadata_api_available_audio_permission_review",
+          "rights_note": "Fetch metadata and play URLs from the API; get confirmation before mass mirroring or app redistribution.",
+          "source_url": "https://www.mp3quran.net/ar/api",
+          "rights_note_ar": "توفر واجهة البيانات لا يمنح تلقائياً حق إعادة توزيع الصوت. تحقق من حقوق كل تسجيل."
+        },
+        {
+          "id": "archive_org",
+          "name": "Internet Archive",
+          "url": "https://archive.org/",
+          "category": "مصدر صوتي",
+          "categories": [
+            "historical recordings",
+            "lectures",
+            "audio collections"
+          ],
+          "rights_status": "item_level_license_check",
+          "rights_note": "Only download items whose individual metadata/license explicitly permits intended redistribution; uploader rights may be uncertain.",
+          "source_url": "https://archive.org/",
+          "rights_note_ar": "تحقق من ترخيص صفحة العنصر المحدد؛ تختلف حقوق الملفات من عنصر إلى آخر."
+        },
+        {
+          "id": "open_dua",
+          "name": "OpenDua",
+          "url": "https://opendua.org/developers",
+          "category": "مصدر صوتي",
+          "categories": [
+            "dua text",
+            "translations",
+            "transliteration",
+            "editorial metadata",
+            "API"
+          ],
+          "rights_status": "CC_BY_4_0_for_editorial_text_and_dataset_structure; recordings_separate_agreement",
+          "rights_note": "The recorded recitation is NOT covered by dataset CC BY 4.0. Reuse only the separately licensed text/metadata and preserve attribution; do not download recordings under the dataset licence.",
+          "source_url": "https://opendua.org/developers",
+          "rights_note_ar": "يشير المصدر إلى CC BY 4.0 للنصوص وبنية المجموعة؛ التسجيلات الصوتية تحتاج موافقة مستقلة."
+        },
+        {
+          "id": "shiavoice_quran",
+          "name": "صوت الشيعة · القرآن الكريم",
+          "url": "https://shiavoice.com/quran",
+          "category": "بوابة استكشاف صوتية",
+          "categories": [
+            "قرآن",
+            "قراء ومشغلات"
+          ],
+          "rights_status": "reference_only_permission_for_reuse_unconfirmed",
+          "rights_note": "The reviewed Quran page lists reciters and audio players. No general app-redistribution license was visible in the reviewed page; keep use link-only unless permission is confirmed for each recording.",
+          "rights_note_ar": "صفحة القرآن تعرض قوائم قراء ومشغلات صوتية. لم يظهر في الصفحة التي راجعناها ترخيص عام لإعادة توزيع التسجيلات داخل التطبيقات؛ أبقِ الاستخدام رابطاً للمصدر ما لم يثبت إذن كل تسجيل.",
+          "source_url": "https://shiavoice.com/quran"
+        }
+      ]
+    }
+  ]
+}

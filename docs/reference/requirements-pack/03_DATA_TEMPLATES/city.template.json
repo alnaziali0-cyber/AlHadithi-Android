@@ -1,0 +1,13 @@
+{
+  "city_id": "IQ-XX-XXX",
+  "country_code": "IQ",
+  "governorate": "",
+  "city_name_ar": "",
+  "city_name_en": "",
+  "latitude": null,
+  "longitude": null,
+  "timezone": "Asia/Baghdad",
+  "coordinate_source": "",
+  "coordinate_accuracy": "approximate_city_center|gps|surveyed",
+  "verified": false
+}

@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "text_source": {
+    "publisher": "Tanzil Project",
+    "dataset": "Tanzil Quran Text 1.1 — Simple / Imla'ei",
+    "repository_mirror": "https://github.com/risan/quran-json",
+    "upstream_commit": "6523a9ad3b73bb7e8cb3a9cdf0ea774b8bab3123",
+    "source_path": "data/tanzil/simple.json",
+    "reading_label_in_source_manifest": "Hafs 'an Asim",
+    "reading_metadata_url": "https://quran-json.risanb.com/manifest.json",
+    "verse_numbering": "Hafs / Kufi",
+    "license": "CC BY 3.0; verbatim only; text must not be changed",
+    "license_url": "https://tanzil.net/docs/text_license",
+    "source_url": "https://tanzil.net/pub/download/index.php?quranType=simple&outType=txt-2&agree=true",
+    "sha256": "703246a73a0a3d57f721b02e3edad9a2ee6831b79f49ffb9513ddfe99a65b801",
+    "verbatim_copy": true,
+    "required_notice": "Tanzil Quran Text — Copyright (C) 2007-2021 Tanzil Project — CC BY 3.0 — https://tanzil.net/"
+  },
+  "reading_sanad": {
+    "riwayah": "حفص عن عاصم",
+    "narrator": "حفص بن سليمان الأسدي الكوفي",
+    "reader": "عاصم بن أبي النجود",
+    "chain_as_reported": [
+      "حفص بن سليمان",
+      "عاصم بن أبي النجود",
+      "أبو عبد الرحمن السلمي",
+      "علي بن أبي طالب",
+      "النبي محمد صلى الله عليه وآله وسلم"
+    ],
+    "reference": {
+      "publisher": "إسلام ويب",
+      "title": "سند رواية عاصم بن أبي النجود",
+      "reference_number": "100241",
+      "url": "https://www.islamweb.net/ar/fatwa/100241/"
+    },
+    "scope_note": "هذا مرجع لتعريف السلسلة المنقولة للرواية فقط؛ ليس إجازة أو سند أداء للتطبيق أو ناشره، وليس تزكية لجهة أو مرجعية أو حوزة.",
+    "specialist_review_status": "pending; scholarly review of the exact edition and sanad reference is required before final release"
+  },
+  "dataset_license": {
+    "publisher": "Quran JSON (risan)",
+    "commit": "6523a9ad3b73bb7e8cb3a9cdf0ea774b8bab3123",
+    "license": "CC BY-SA 4.0",
+    "url": "https://github.com/risan/quran-json",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "license_file": "licenses/QURAN_JSON_CC-BY-SA-4.0.txt",
+    "scope_note": "Applies to the repository's database compilation/arrangement; it does not replace the upstream Tanzil text license."
+  },
+  "audio": {
+    "provider": "Islamic Network CDN / AlQuran Cloud",
+    "reciter": "Mishary Rashid Alafasy",
+    "reciter_id": "ar.alafasy",
+    "reading": "hafs",
+    "verse_numbering": "global Hafs ayah index, 1-6236",
+    "license_status": "download allowed for personal and educational use under current provider terms; recording copyright remains with the reciter",
+    "terms_url": "https://alquran.cloud/terms-and-conditions",
+    "ayah_url_template": "https://cdn.islamic.network/quran/audio/128/ar.alafasy/{global_ayah}.mp3",
+    "surah_url_template": "https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/{surah}.mp3",
+    "bundled_in_app": false,
+    "commercial_distribution_review_required": true
+  },
+  "font": {
+    "family": "Amiri Quran",
+    "file": "assets/fonts/AmiriQuran.ttf",
+    "license": "SIL Open Font License",
+    "license_file": "assets/fonts/AMIRI_OFL_LICENSE.txt"
+  },
+  "institutional_attribution": {
+    "marja_or_hawza": null,
+    "statement": "لا تُنسب هذه النسخة إلى مرجعية أو حوزة."
+  }
+}

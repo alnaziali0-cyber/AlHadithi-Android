@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "storage": "runtime bookmarks are stored locally in SharedPreferences; this is the empty seed schema",
+  "items": [],
+  "last_read": null
+}

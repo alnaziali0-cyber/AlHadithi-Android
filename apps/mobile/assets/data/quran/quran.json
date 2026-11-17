@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "bundle_version": "1.0.0",
+  "generated": "2026-11-15",
+  "reading": {
+    "id": "hafs",
+    "riwayah": "حفص",
+    "qiraah": "عاصم الكوفي",
+    "verse_numbering": "kufi_hafs",
+    "ayah_count": 6236
+  },
+  "script": {
+    "id": "simple",
+    "name_ar": "الرسم الإملائي (البسيط)",
+    "name_en": "Imla'ei / Simple",
+    "vocalization": "full",
+    "source": "Tanzil Quran Text 1.1"
+  },
+  "counts": {
+    "surahs": 114,
+    "ayahs": 6236,
+    "juz": 30,
+    "hizb": 60,
+    "hizb_quarters": 240,
+    "sajdah_positions": 15
+  },
+  "text_sha256": "703246a73a0a3d57f721b02e3edad9a2ee6831b79f49ffb9513ddfe99a65b801",
+  "text_source_sha256": "703246a73a0a3d57f721b02e3edad9a2ee6831b79f49ffb9513ddfe99a65b801",
+  "upstream_repository": "https://github.com/risan/quran-json",
+  "upstream_commit": "6523a9ad3b73bb7e8cb3a9cdf0ea774b8bab3123",
+  "offline_text_and_font": true,
+  "audio": {
+    "reciter_id": "ar.alafasy",
+    "reading": "hafs",
+    "provider": "Islamic Network CDN / AlQuran Cloud",
+    "ayah_url_template": "https://cdn.islamic.network/quran/audio/128/ar.alafasy/{global_ayah}.mp3",
+    "surah_url_template": "https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/{surah}.mp3",
+    "licensed_for_personal_educational_download": true,
+    "bundled_in_app": false,
+    "terms_url": "https://alquran.cloud/terms-and-conditions"
+  },
+  "integrity": {
+    "surahs.json": "c56582b86e4b20fca6fcd3f31a2fc1e173a874517ab3e912f3194308b8877616",
+    "ayahs.json": "703246a73a0a3d57f721b02e3edad9a2ee6831b79f49ffb9513ddfe99a65b801",
+    "juz.json": "6e8efbe894e7cf45d989a0daa1ad76c114d35a981cb239e31eb78632c47e5165",
+    "hizb.json": "28bbb6a2deee37d5d34ba865104b95f8d1b70674f461374d6eb88dde097238fb",
+    "sajdah.json": "9b2961188b73c337643691dfbef0c605179b0dbb12ea13f1ea8cd062bd026ccc",
+    "bookmarks.json": "6a67da4456e4be7ce4e23898aa819b01653cb8b6ae769fd9a9aa5f23175fe607",
+    "quran_sources.json": "efcd28e0679d853caa7db1e3d87dc2a228ade3b98668e5523480b79356ca2530",
+    "quran_attribution.json": "266060415c77a430eb5c0732492836bec9b0f182f966a1ae413e45e91a498d4e",
+    "QURAN_SOURCE_NOTICE_AR.md": "7adf0322475b23a0e7c45d6004acbb154b8c4def0fb2f2f11d0e0a8b9a54843a",
+    "licenses/QURAN_JSON_CC-BY-SA-4.0.txt": "7abe19ec9bb73b36141b999b861d24ad855e808bafe0f81e84cce28556f6c297"
+  }
+}

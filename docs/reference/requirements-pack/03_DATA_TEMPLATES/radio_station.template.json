@@ -1,0 +1,21 @@
+{
+  "id": "replace-with-uuid",
+  "name": "",
+  "description": "",
+  "owner_organization": "",
+  "official_website": "",
+  "logo_storage_key": null,
+  "image_storage_key": null,
+  "official_stream_url": null,
+  "stream_type": "HLS|AAC|MP3|OTHER",
+  "stream_region": "Iraq",
+  "stream_status": "unverified",
+  "broadcast_license_id": null,
+  "background_playback_allowed": false,
+  "recording_allowed": false,
+  "redistribution_allowed": false,
+  "frequencies": [],
+  "program_schedule_url": null,
+  "source_verified_at": null,
+  "review_status": "draft"
+}

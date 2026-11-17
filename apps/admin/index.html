@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>لوحة إدارة خزائن الهدى</title>
+  <link rel="stylesheet" href="/admin-assets/admin.css">
+  <script defer src="/admin-assets/admin.js"></script>
+</head>
+<body>
+  <main class="page-shell">
+    <section id="login-view" class="login-wrap">
+      <div class="brand-mark"><img src="/mobile-assets/khazain_logo.jpg" alt="شعار خزائن الهدى"></div>
+      <p class="eyebrow">KHAZAIN AL-HUDA · CONTROL CENTER</p>
+      <h1>لوحة المطوّر</h1>
+      <p class="muted">دخول إداري موثّق. لا تُشارك بيانات الدخول مع أي شخص.</p>
+      <form id="login-form" class="surface form-stack">
+        <label>اسم المستخدم<input name="username" autocomplete="username" required maxlength="80"></label>
+        <label>كلمة المرور<input name="password" type="password" autocomplete="current-password" required maxlength="256"></label>
+        <button class="primary" type="submit">تسجيل الدخول</button>
+        <p id="login-error" class="error" role="alert"></p>
+      </form>
+    </section>
+
+    <section id="dashboard-view" hidden>
+      <header class="topbar surface">
+        <div><p class="eyebrow">KHAZAIN AL-HUDA</p><h1>مركز الإدارة</h1></div>
+        <div class="top-actions"><span id="current-admin" class="muted"></span><button id="logout-btn" class="ghost">تسجيل الخروج</button></div>
+      </header>
+      <div id="password-rotation" class="surface warning" hidden>
+        <h2>تغيير كلمة المرور الأولية مطلوب</h2>
+        <p class="muted">لن تُفتح أدوات الإدارة حتى تعيين كلمة مرور جديدة قوية.</p>
+        <form id="password-form" class="form-grid">
+          <label>كلمة المرور الحالية<input name="current_password" type="password" required autocomplete="current-password"></label>
+          <label>كلمة المرور الجديدة<input name="new_password" type="password" required minlength="14" autocomplete="new-password"></label>
+          <button class="primary" type="submit">تحديث كلمة المرور</button>
+        </form>
+        <p id="password-message" class="muted" aria-live="polite"></p>
+      </div>
+      <nav class="tabs" aria-label="أقسام لوحة الإدارة">
+        <button class="tab active" data-panel="overview">نظرة عامة</button>
+        <button class="tab" data-panel="content">المحتوى والمنشورات</button>
+        <button class="tab" data-panel="catalog">المكتبة والمحتوى الموثّق</button>
+        <button class="tab" data-panel="wallpapers">الخلفيات</button>
+        <button class="tab" data-panel="radio">إذاعة العتبة</button>
+        <button class="tab" data-panel="media">الوسائط</button>
+        <button class="tab" data-panel="audit">سجلّ النشاط</button>
+        <button class="tab" data-panel="services">حالة الخدمات</button>
+      </nav>
+      <section id="panel-overview" class="panel"><div id="stats-grid" class="stats-grid"></div><p class="muted note">الأرقام من قاعدة البيانات الفعلية. عدم استيراد محتوى ديني موثّق يظهر كحالة غير جاهزة، ولا يُستبدل ببيانات تجريبية.</p></section>
+      <section id="panel-content" class="panel" hidden>
+        <div class="panel-heading"><div><h2>إدارة المنشورات</h2><p class="muted">مسودة، نشر، جدولة، إيقاف أو أرشفة.</p></div></div>
+        <form id="content-form" class="surface form-grid">
+          <label>نوع المنشور<select name="content_type"><option value="announcement">إعلان</option><option value="news">خبر</option><option value="notice">تنبيه</option><option value="ethics_lesson">درس أخلاقي</option><option value="event">مناسبة</option><option value="radio_promo">إعلان إذاعة</option><option value="app_update">تحديث التطبيق</option></select></label>
+          <label>العنوان<input name="title" required maxlength="180"></label>
+          <label class="wide">الوصف / المحتوى<textarea name="body_markdown" rows="5" maxlength="30000"></textarea></label>
+          <label>رابط HTTPS<input name="target_url" type="url" placeholder="https://example.org"></label>
+          <label>نص الزر<input name="button_label" maxlength="60"></label>
+          <label>الحالة<select name="status"><option value="draft">مسودة</option><option value="published">نشر الآن</option><option value="scheduled">مجدول</option><option value="paused">متوقف</option></select></label>
+          <label>بداية النشر<input name="starts_at" type="datetime-local"></label>
+          <label>نهاية النشر<input name="ends_at" type="datetime-local"></label>
+          <button class="primary" type="submit">حفظ المنشور</button>
+        </form>
+        <div id="content-list" class="surface table-wrap"></div>
+      </section>
+      <section id="panel-catalog" class="panel" hidden>
+        <div class="panel-heading"><div><h2>إدارة المكتبة والمحتوى الموثّق</h2><p class="muted">إدارة سجلات الكتب والروايات ومصادرها والأدعية والزيارات والمناسبات والدروس والصوتيات. النشر يخضع للتحقق من المصادر وحقوق الاستخدام.</p></div></div>
+        <form id="catalog-form" class="surface form-grid">
+          <label>نوع السجل<select id="catalog-type" name="catalog_type">
+            <option value="book">كتاب</option>
+            <option value="hadith_source">مصدر حديثي / طبعة</option>
+            <option value="hadith">رواية / حديث</option>
+            <option value="dua">دعاء</option>
+            <option value="visit">زيارة</option>
+            <option value="event">مناسبة إسلامية</option>
+            <option value="ethics_lesson">درس أخلاقي</option>
+            <option value="audio">ملف صوتي</option>
+          </select></label>
+          <label>معرّف السجل الجاري تحريره<input id="catalog-record-id" readonly placeholder="سجل جديد"></label>
+          <label class="wide">بيانات السجل بصيغة JSON<textarea id="catalog-json" rows="14" spellcheck="false" required dir="ltr" placeholder='{"title":"عنوان موثق","publication_status":"draft"}'></textarea></label>
+          <div class="inline-form wide">
+            <button class="primary" type="submit">حفظ السجل</button>
+            <button id="catalog-new" class="ghost" type="button">سجل جديد</button>
+          </div>
+          <p id="catalog-message" class="muted wide" role="status" aria-live="polite">يُحفظ المحتوى كمسودة افتراضياً. لا تنشر نصاً دينياً قبل مراجعة مصدره وحقوقه.</p>
+        </form>
+        <div class="surface catalog-related">
+          <h3>إدارة صفحات الكتب</h3>
+          <p class="muted">استيراد دفعة من الصفحات إلى كتاب غير منشور. استخدم JSON بالمفاتيح volume_number وpage_number وtext_content.</p>
+          <form id="book-pages-form" class="form-grid">
+            <label>معرّف الكتاب<input id="book-pages-id" type="number" min="1" required></label>
+            <label class="wide">صفحات JSON<textarea id="book-pages-json" rows="7" dir="ltr" required placeholder='{"pages":[{"volume_number":1,"page_number":1,"text_content":"نص الصفحة من المصدر المرخص"}]}'></textarea></label>
+            <button class="primary" type="submit">استيراد الصفحات</button>
+          </form>
+          <p id="book-pages-message" class="muted" role="status" aria-live="polite"></p>
+          <div id="book-pages-list" class="table-wrap"></div>
+        </div>
+        <div class="surface catalog-related">
+          <h3>إضافة تقييم علمي للرواية</h3>
+          <p class="muted">التقييم يُضاف كسجل مستقل ولا يغيّر نص الرواية أو سندها. يجب ذكر الباحث والمنهج والإحالة.</p>
+          <form id="hadith-grading-form" class="form-grid">
+            <label>معرّف الرواية<input id="grading-hadith-id" type="number" min="1" required></label>
+            <label>التقييم<input name="grading" required maxlength="80" placeholder="مثال: غير محسوم"></label>
+            <label>الباحث / العالم<input name="scholar" required maxlength="180"></label>
+            <label>المنهجية<input name="methodology" required maxlength="180"></label>
+            <label class="wide">الإحالة العلمية<textarea name="citation" rows="3" required maxlength="12000"></textarea></label>
+            <button class="primary" type="submit">إضافة التقييم</button>
+          </form>
+          <p id="grading-message" class="muted" role="status" aria-live="polite"></p>
+        </div>
+        <div id="catalog-list" class="surface table-wrap"></div>
+      </section>
+      <section id="panel-wallpapers" class="panel" hidden>
+        <div class="panel-heading"><div><h2>إدارة الخلفيات المحلية</h2><p class="muted">انشري أو أخفي الصور المضمّنة داخل التطبيق. لا تُرفع الصور إلى الخادم؛ إظهارها للمستخدمين يتطلب جلسة مالك صالحة، وتُسجّل كل عملية في سجل النشاط.</p></div></div>
+        <p id="wallpapers-message" class="muted" role="status" aria-live="polite"></p>
+        <div id="wallpapers-list" class="surface table-wrap"></div>
+      </section>
+      <section id="panel-radio" class="panel" hidden>
+        <div class="surface"><h2>مصدر البث الإذاعي</h2><p class="muted">لن يتم تفعيل التشغيل إلا بعد وضع رابط بث HTTPS والتحقق منه يدوياً مقابل المصدر الرسمي وحقوق استخدامه.</p>
+          <form id="radio-form" class="form-grid">
+            <label>اسم الإذاعة<input name="name" required maxlength="160"></label>
+            <label>المصدر الرسمي HTTPS<input name="official_source_url" type="url" required></label>
+            <label class="wide">رابط البث المباشر HTTPS<input name="stream_url" type="url"></label>
+            <label class="wide">الوصف<textarea name="description" rows="3"></textarea></label>
+            <label class="wide">دليل إذن إعادة البث/التضمين<textarea name="rights_evidence" rows="4" maxlength="12000" placeholder="رقم موافقة الجهة، رابط شروط الترخيص المحدد، تاريخ الإذن ونطاقه (بث/تنزيل/تخزين)؛ لا يكفي رابط صفحة الإذاعة."></textarea></label>
+            <label class="check-label"><input name="is_verified" type="checkbox"> تم التحقق من الرابط ودليل الإذن</label>
+            <label class="check-label"><input name="is_enabled" type="checkbox"> تفعيل القناة للمستخدمين</label>
+            <button class="primary" type="submit">حفظ إعدادات الإذاعة</button>
+          </form><p id="radio-message" class="muted" aria-live="polite"></p>
+        </div>
+      </section>
+      <section id="panel-media" class="panel" hidden>
+        <div class="surface"><h2>رفع الوسائط</h2><p class="muted">الحد الأقصى 15 ميغابايت. الصيغ المقبولة: JPEG وPNG وWebP وMP3 وPDF. يجري فحص التوقيع الداخلي قبل الحفظ.</p>
+          <form id="media-form" class="inline-form"><input name="file" type="file" accept="image/jpeg,image/png,image/webp,audio/mpeg,application/pdf" required><button class="primary" type="submit">رفع الملف</button></form><p id="media-message" class="muted" aria-live="polite"></p>
+        </div><div id="media-list" class="surface table-wrap"></div>
+      </section>
+      <section id="panel-audit" class="panel" hidden><div id="audit-list" class="surface table-wrap"></div></section>
+      <section id="panel-services" class="panel" hidden><div id="services-list" class="stats-grid"></div></section>
+      <footer class="footer muted">KHAZAIN AL-HUDA · لوحة خاصة · جميع عمليات الإدارة الحساسة تُسجّل.</footer>
+    </section>
+  </main>
+</body>
+</html>

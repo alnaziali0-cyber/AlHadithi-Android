@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "upstream_repository": "https://github.com/risan/quran-json",
+  "upstream_commit": "6523a9ad3b73bb7e8cb3a9cdf0ea774b8bab3123",
+  "items": [
+    {
+      "source_id": "tanzil_simple_text",
+      "path_in_source_repo": "data/tanzil/simple.json",
+      "source": "tanzil.net",
+      "url": "https://tanzil.net/pub/download/index.php?quranType=simple&outType=txt-2&agree=true",
+      "license": "Tanzil Quran Text / Copyright (C) 2007-2021 Tanzil Project / Creative Commons Attribution 3.0. Permission is granted to copy and distribute verbatim copies of this text, but CHANGING IT IS NOT ALLOWED.",
+      "license_status": "granted",
+      "license_url": "https://tanzil.net/docs/text_license",
+      "sha256": "703246a73a0a3d57f721b02e3edad9a2ee6831b79f49ffb9513ddfe99a65b801",
+      "bytes": 1731456,
+      "revision": "e20bba6abe2cc37f77f5aae5266f39cc55b9ca77"
+    },
+    {
+      "source_id": "tanzil_chapter_metadata",
+      "path_in_source_repo": "data/tanzil/chapters.json",
+      "source": "tanzil.net",
+      "url": "https://tanzil.net/res/text/metadata/quran-data.xml",
+      "license": "Tanzil Quran Text / Copyright (C) 2007-2021 Tanzil Project / Creative Commons Attribution 3.0. Permission is granted to copy and distribute verbatim copies of this text, but CHANGING IT IS NOT ALLOWED.",
+      "license_status": "granted",
+      "license_url": "https://tanzil.net/docs/text_license",
+      "sha256": "5b18adae945fcb6f9fbb865dd7dc596f89a63607a4e6617ca9e37f7f10d3386b",
+      "bytes": 89238,
+      "revision": "e20bba6abe2cc37f77f5aae5266f39cc55b9ca77"
+    },
+    {
+      "source_id": "islamic_network_by_ayah",
+      "path_in_source_repo": "data/audio/islamic_network_by_ayah.json",
+      "source": "Islamic Network CDN",
+      "url": "https://cdn.islamic.network/quran/info/by-ayah/info.json",
+      "license": "islamic.network audio is free to redistribute for non-commercial use; each recitation's copyright remains with its reciter. The terms are published at alquran.cloud, the project behind the CDN.",
+      "license_status": "granted",
+      "license_url": "https://alquran.cloud/terms-and-conditions",
+      "sha256": "4b127658bbf20d73b8fae355f20c2aff5c70fc4c063bec5e8c139a26f9451e98",
+      "bytes": 2298,
+      "revision": "e20bba6abe2cc37f77f5aae5266f39cc55b9ca77"
+    },
+    {
+      "source_id": "islamic_network_by_surah",
+      "path_in_source_repo": "data/audio/islamic_network_by_surah.json",
+      "source": "Islamic Network CDN",
+      "url": "https://cdn.islamic.network/quran/info/by-surah/info.json",
+      "license": "islamic.network audio is free to redistribute for non-commercial use; each recitation's copyright remains with its reciter. The terms are published at alquran.cloud, the project behind the CDN.",
+      "license_status": "granted",
+      "license_url": "https://alquran.cloud/terms-and-conditions",
+      "sha256": "f41562f8168182c83a9918cec7f7a509aee72a09414f18bf6fddfbab370506fb",
+      "bytes": 5621,
+      "revision": "e20bba6abe2cc37f77f5aae5266f39cc55b9ca77"
+    },
+    {
+      "source_id": "quran_json_dataset",
+      "source": "Quran JSON",
+      "url": "https://github.com/risan/quran-json",
+      "license": "Creative Commons Attribution-ShareAlike 4.0 International",
+      "license_status": "granted",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "revision": "6523a9ad3b73bb7e8cb3a9cdf0ea774b8bab3123",
+      "license_file": "licenses/QURAN_JSON_CC-BY-SA-4.0.txt"
+    },
+    {
+      "source_id": "quran_json_reading_manifest",
+      "source": "Quran JSON published reading/script metadata",
+      "url": "https://quran-json.risanb.com/manifest.json",
+      "license_status": "metadata reference",
+      "claim": "simple script; Hafs riwayah; Asim qiraah; Hafs verse numbering",
+      "repository_commit": "6523a9ad3b73bb7e8cb3a9cdf0ea774b8bab3123"
+    },
+    {
+      "source_id": "hafs_reading_chain_reference",
+      "source": "إسلام ويب — فتوى سند رواية عاصم بن أبي النجود",
+      "url": "https://www.islamweb.net/ar/fatwa/100241/",
+      "reference_number": "100241",
+      "license_status": "citation reference only; no content copied",
+      "claim_scope": "chain as reported by the page; not an app-specific ijazah or institutional endorsement"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+﻿city_id,country_code,governorate,city_name_ar,city_name_en,latitude,longitude,timezone,coordinate_source,coordinate_accuracy,verified
+IQ-BG-BAG,IQ,بغداد,بغداد,Baghdad,33.34058,44.40088,Asia/Baghdad,GeoDatos; GeoNames,approximate_city_center,False
+IQ-BB-HIL,IQ,بابل,الحلة,Al Hillah,32.46367,44.41963,Asia/Baghdad,GeoDatos; GeoNames,approximate_city_center,False
+IQ-KR-KAR,IQ,كربلاء,كربلاء,Karbala,32.61603,44.02488,Asia/Baghdad,GeoDatos; GeoNames,approximate_city_center,False
+IQ-NJ-NAJ,IQ,النجف,النجف,Najaf,32.02594,44.34625,Asia/Baghdad,GeoDatos; GeoNames,approximate_city_center,False
+IQ-BS-BAS,IQ,البصرة,البصرة,Basrah,30.50852,47.7804,Asia/Baghdad,GeoDatos; GeoNames,approximate_city_center,False
+IQ-NI-MOS,IQ,نينوى,الموصل,Mosul,36.335,43.11889,Asia/Baghdad,GeoDatos; GeoNames,approximate_city_center,False
+IQ-AN-RAM,IQ,الأنبار,الرمادي,Ramadi,33.42056,43.30778,Asia/Baghdad,GeoDatos,approximate_city_center,False
+IQ-SD-TIK,IQ,صلاح الدين,تكريت,Tikrit,34.61581,43.67861,Asia/Baghdad,GeoDatos,approximate_city_center,False
+IQ-DY-BAQ,IQ,ديالى,بعقوبة,Baqubah,33.75403,44.60518,Asia/Baghdad,GeoDatos,approximate_city_center,False
+IQ-WA-KUT,IQ,واسط,الكوت,Al-Kut,32.5128,45.81817,Asia/Baghdad,GeoDatos,approximate_city_center,False
+IQ-QD-DIW,IQ,القادسية,الديوانية,Al Diwaniyah,31.99289,44.92552,Asia/Baghdad,GeoDatos,approximate_city_center,False
+IQ-DQ-NAS,IQ,ذي قار,الناصرية,Nasiriyah,31.05799,46.25726,Asia/Baghdad,GeoDatos; GeoNames,approximate_city_center,False
+IQ-MS-AMR,IQ,ميسان,العمارة,Al Amarah,31.83561,47.14483,Asia/Baghdad,GeoDatos,approximate_city_center,False
+IQ-MT-SAM,IQ,المثنى,السماوة,As Samawah,31.33198,45.2944,Asia/Baghdad,GeoDatos,approximate_city_center,False
+IQ-KK-KIR,IQ,كركوك,كركوك,Kirkuk,35.46806,44.39222,Asia/Baghdad,GeoDatos; GeoNames,approximate_city_center,False
+IQ-AR-ERB,IQ,أربيل,أربيل,Erbil,36.19117,44.00943,Asia/Baghdad,GeoDatos; GeoNames,approximate_city_center,False
+IQ-SL-SUL,IQ,السليمانية,السليمانية,Sulaymaniyah,35.56496,45.4329,Asia/Baghdad,GeoDatos; GeoNames,approximate_city_center,False
+IQ-DH-DUH,IQ,دهوك,دهوك,Duhok,36.86608,42.9879,Asia/Baghdad,GeoDatos,approximate_city_center,False
+IQ-HL-HAL,IQ,حلبجة,حلبجة,Halabja,35.17778,45.98611,Asia/Baghdad,GeoDatos,approximate_city_center,False
+IQ-SD-SAM,IQ,صلاح الدين,سامراء,Samarra,34.1959,43.88568,Asia/Baghdad,GeoDatos,approximate_city_center,False

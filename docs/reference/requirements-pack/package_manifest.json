@@ -1,0 +1,16 @@
+{
+  "project": "Khazain Al Huda",
+  "package_version": "1.1.0",
+  "created_date": "2026-11-14",
+  "stack_assumption": [
+    "Flutter",
+    "FastAPI",
+    "PostgreSQL",
+    "Object Storage"
+  ],
+  "contains_actual_audio": false,
+  "contains_actual_station_logos": false,
+  "contains_stream_urls": false,
+  "contains_prayer_profile_approved_for_marjiya": false,
+  "notes": "Requirements/templates and expanded source catalogue only. No new audio, station logos, stream URLs, approved marjiya prayer profile or Quran text were bundled. OpenITI source texts and AQQD audio clips were not imported; verify item-level rights before publication."
+}

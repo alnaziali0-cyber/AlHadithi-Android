@@ -1,0 +1,75 @@
+name: khazain_al_huda
+description: Khazain Al-Huda - a Shia Islamic knowledge and worship companion.
+publish_to: 'none'
+version: 1.0.24+26
+
+environment:
+  sdk: '>=3.6.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  flutter_riverpod: ^2.6.1
+  go_router: ^15.1.2
+  dio: ^5.8.0+1
+  shared_preferences: ^2.5.3
+  just_audio: ^0.9.46
+  path_provider: ^2.1.5
+  pdfrx: 1.0.103
+  share_plus: ^10.1.4
+  scrollable_positioned_list: ^0.3.8
+  url_launcher: ^6.3.1
+  intl: ^0.20.2
+  geolocator: ^13.0.2
+  geocoding: ^3.0.0
+  flutter_secure_storage: ^9.2.4
+  crypto: ^3.0.6
+  flutter_compass: ^0.8.1
+  flutter_local_notifications: ^19.5.0
+  timezone: ^0.10.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/branding/mosque_background.jpg
+    - assets/branding/khazain_logo.jpg
+    - assets/data/wallpapers.json
+    - assets/images/wallpapers/
+    - assets/data/visits/catalog.json
+    - assets/data/visits/outlines/
+    - assets/data/visits/transcribed/
+    - assets/data/iraq_governorates.json
+    - assets/data/quran/
+  fonts:
+    - family: NotoNaskhArabicUI
+      fonts:
+        - asset: assets/fonts/NotoNaskhArabicUI-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/NotoNaskhArabicUI-Bold.ttf
+          weight: 700
+    - family: AlanSansLight
+      fonts:
+        - asset: assets/fonts/AlanSans-Light.ttf
+          weight: 300
+    - family: GeezaArabic
+      fonts:
+        - asset: assets/fonts/GeezaRegular.otf
+          weight: 400
+        - asset: assets/fonts/GeezaBold.otf
+          weight: 700
+    - family: BeINArabic
+      fonts:
+        - asset: assets/fonts/beIN-ArabicNormal.otf
+          weight: 400
+        - asset: assets/fonts/beIN-ArabicBlack.otf
+          weight: 900
+    - family: AmiriQuran
+      fonts:
+        - asset: assets/fonts/AmiriQuran.ttf

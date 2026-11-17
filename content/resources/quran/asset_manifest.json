@@ -1,0 +1,102 @@
+{
+  "project": "Khazain AlHuda",
+  "package_kind": "licensed Quran resources snapshot + downloader",
+  "package_created_at": "2026-11-15",
+  "important_limitation": "The original attachment was a starter with no downloaded third-party binaries. This project copy now contains the Tanzil raw Uthmani export and metadata plus all downloadable QuranEnc translation database archives in the catalog. Exact acquisition timestamps, URLs, byte counts, and SHA-256 hashes are recorded in 15_LOGS/fetch_report.json. The files are staged resources, not an approval to publish each translation or enable the Quran reader.",
+  "download_targets": [
+    {
+      "id": "tanzil_uthmani_text",
+      "category": "Quran",
+      "source": "Tanzil Project",
+      "url": "https://tanzil.net/pub/download/index.php",
+      "local_path": "01_QURAN/tanzil_uthmani_verbatim.txt",
+      "status": "downloaded_raw_staged",
+      "license": "CC BY 3.0 / publisher-specific terms",
+      "conditions": [
+        "Do not alter the Quran text",
+        "Retain full copyright notice",
+        "Attribute Tanzil Project",
+        "Link to https://tanzil.net/"
+      ]
+    },
+    {
+      "id": "tanzil_quran_metadata",
+      "category": "Quran metadata",
+      "source": "Tanzil Project",
+      "url": "https://tanzil.net/res/text/metadata/quran-data.xml",
+      "local_path": "02_QURAN_METADATA/quran-data.xml",
+      "status": "downloaded_official_structural_metadata_staged",
+      "license": "Tanzil terms; attribution required"
+    },
+    {
+      "id": "quranenc_hafs20",
+      "category": "Quran font and text",
+      "source": "QuranEnc / King Fahd Glorious Quran Printing Complex font attribution shown by source",
+      "url": "https://quranenc.com/downloads/assets/Hafs_20.zip",
+      "local_path": "11_FONTS/QuranEnc_Hafs_20.zip",
+      "status": "not_downloaded_font_redistribution_permission_unverified",
+      "contents": [
+        "Hafs_20.ttf",
+        "Hafs_20.woff2",
+        "Quran_text.csv"
+      ],
+      "license": "Follow QuranEnc source terms and preserve attribution/version"
+    },
+    {
+      "id": "quranenc_translation_databases",
+      "category": "Quran translations",
+      "source": "QuranEnc",
+      "url": "https://quranenc.com/api/v1/translations/list",
+      "local_path": "03_QURAN_TRANSLATIONS/",
+      "status": "downloaded_all_available_catalog_archives",
+      "license": "Publisher permits redistribution with conditions: no edits/additions/deletions; clear publisher/source; version number; preserve embedded version metadata; track updates; suitable advertising only"
+    }
+  ],
+  "not_bundled_due_to_rights_or_access": [
+    {
+      "category": "Quran Foundation raw content",
+      "status": "api_only",
+      "reason": "No raw package redistribution; Content Sync is required for supported offline resources and developer credentials are needed."
+    },
+    {
+      "category": "Recitations, adhan, latmiyat, majalis, lectures",
+      "status": "permission_required",
+      "reason": "Audio availability is not proof of redistribution rights."
+    },
+    {
+      "category": "Modern books and scanned editions",
+      "status": "edition_rights_review",
+      "reason": "Copyright can apply to modern editing, annotations, layout, and scans."
+    },
+    {
+      "category": "OpenITI corpus",
+      "status": "review_before_use",
+      "reason": "CC BY-NC-SA 4.0; check non-commercial compatibility and individual record provenance."
+    },
+    {
+      "id": "quranenc_hafs20_font",
+      "category": "QuranEnc Hafs_20 font bundle",
+      "status": "not_bundled_pending_review",
+      "reason": "The source download documentation did not establish a clear separate font redistribution grant; do not bundle until verified."
+    },
+    {
+      "id": "hadeethenc_translation_databases",
+      "category": "HadeethEnc translation databases",
+      "status": "not_bundled_pending_review",
+      "reason": "Although the publisher permits re-publication under conditions, the release version for selected language bundles was not verified and scholarly suitability for this Shia-focused app remains unreviewed."
+    }
+  ],
+  "verified_snapshot": {
+    "generated_at_utc": "2026-11-15T12:11:45.598073+00:00",
+    "downloaded_count": 79,
+    "failed_count": 0,
+    "quranenc_database_count": 76,
+    "quranenc_database_archive_bytes": 49431652,
+    "tanzil_structured_preview": "01_QURAN/tanzil_uthmani_structured_import.tsv",
+    "tanzil_preview_status": "dry-run passed; database unchanged; qualified scholarly review required",
+    "sha256_report": "15_LOGS/fetch_report.json",
+    "zip_integrity": "all QuranEnc translation ZIP archives passed CRC checks",
+    "tanzil_font_bundle": "not downloaded; separate distribution rights not verified",
+    "hadeethenc": "not downloaded; exact translation release version and editorial suitability not confirmed"
+  }
+}

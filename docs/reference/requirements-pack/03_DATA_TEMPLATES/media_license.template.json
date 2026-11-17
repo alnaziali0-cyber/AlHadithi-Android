@@ -1,0 +1,27 @@
+{
+  "id": "replace-with-uuid",
+  "rights_holder": "",
+  "licensor_contact": "",
+  "document_storage_key": null,
+  "license_type": "written_permission|cc_license|public_domain|contract|other",
+  "valid_from": null,
+  "valid_until": null,
+  "broadcast_allowed": false,
+  "download_allowed": false,
+  "offline_allowed": false,
+  "commercial_allowed": false,
+  "modification_allowed": false,
+  "attribution_required": true,
+  "attribution_text": "",
+  "territories": [
+    "IQ"
+  ],
+  "platforms": [
+    "Android",
+    "iOS"
+  ],
+  "evidence_url": "",
+  "reviewed_by": "",
+  "reviewed_at": null,
+  "status": "pending"
+}

@@ -1,25 +1,37 @@
-*.iml
-.gradle
-.kotlin
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
-local.properties
-.env
-debug.keystore
-*-debug.log
+# Flutter
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+build/
+coverage/
 
-
-.kotlin/
+# Python
 __pycache__/
-*.pyc
-server/node_modules/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Secrets / local state
+.env
+*.db
+*.sqlite3
+var/
+services/api/var/
+
+# Editors / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Flutter generated files
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+apps/mobile/android/
+apps/mobile/ios/
+apps/mobile/build/
